@@ -1,16 +1,21 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { CheckCircle2, Download, Printer, Send, DollarSign, Home, FileText } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
+import { accounts, invoiceRecords } from '../data/mockData';
+import { formatCurrency } from '../utils/calculations';
 
 export default function K2StatementCreated() {
   const navigate = useNavigate();
   const location = useLocation();
-  const {
-    total = 51.45,
-    status = 'unpaid'
-  } = location.state || {};
-
-  const statementNumber = 'INV-1002';
+  const state = (location.state ?? {}) as {
+    total?: number;
+    status?: string;
+  };
+  const fallbackStatement = invoiceRecords.find((invoice) => invoice.recordType === 'k2_statement') ?? invoiceRecords[0];
+  const k2Account = accounts.find((account) => account.id === fallbackStatement.accountId);
+  const total = state.total ?? fallbackStatement.total;
+  const status = state.status ?? fallbackStatement.status;
+  const statementNumber = fallbackStatement.displayNumber;
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -35,7 +40,7 @@ export default function K2StatementCreated() {
 
           <div className="border-t border-gray-200 pt-3">
             <div className="text-sm text-gray-600 mb-1">Account</div>
-            <div className="font-semibold text-gray-900">K2</div>
+            <div className="font-semibold text-gray-900">{k2Account?.name ?? 'K2'}</div>
           </div>
 
           <div className="border-t border-gray-200 pt-3">
@@ -48,7 +53,7 @@ export default function K2StatementCreated() {
           <div className="border-t border-gray-200 pt-3">
             <div className="text-sm text-gray-600 mb-1">Total</div>
             <div className="text-2xl font-bold text-gray-900">
-              ${total.toFixed(2)}
+              {formatCurrency(total)}
             </div>
           </div>
 
@@ -80,7 +85,7 @@ export default function K2StatementCreated() {
           <ActionButton
             icon={<DollarSign size={20} />}
             label="Record Payment"
-            onClick={() => {}}
+            onClick={() => navigate('/record-payment')}
           />
         </div>
       </div>

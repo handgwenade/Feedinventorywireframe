@@ -1,17 +1,24 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { CheckCircle2, Download, Printer, Send, DollarSign, Home, ShoppingCart } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
+import { accounts, invoiceRecords } from '../data/mockData';
+import { formatCurrency } from '../utils/calculations';
 
 export default function InvoiceCreated() {
   const navigate = useNavigate();
   const location = useLocation();
-  const {
-    customerName = 'Anderson Cattle Co.',
-    total = 9.79,
-    balanceDue = 9.79
-  } = location.state || {};
-
-  const invoiceNumber = 'INV-1001';
+  const state = (location.state ?? {}) as {
+    customerName?: string;
+    accountId?: string;
+    total?: number;
+    balanceDue?: number;
+  };
+  const fallbackInvoice = invoiceRecords.find((invoice) => invoice.recordType === 'customer_invoice') ?? invoiceRecords[0];
+  const fallbackAccount = accounts.find((account) => account.id === (state.accountId ?? fallbackInvoice.accountId));
+  const customerName = state.customerName ?? fallbackAccount?.name ?? 'Anderson Cattle Co.';
+  const total = state.total ?? fallbackInvoice.total;
+  const balanceDue = state.balanceDue ?? fallbackInvoice.balanceDue;
+  const invoiceNumber = fallbackInvoice.displayNumber;
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -42,14 +49,14 @@ export default function InvoiceCreated() {
           <div className="border-t border-gray-200 pt-3">
             <div className="text-sm text-gray-600 mb-1">Total</div>
             <div className="text-2xl font-bold text-gray-900">
-              ${total.toFixed(2)}
+              {formatCurrency(total)}
             </div>
           </div>
 
           <div className="border-t border-gray-200 pt-3">
             <div className="text-sm text-gray-600 mb-1">Balance Due</div>
             <div className="text-xl font-semibold text-gray-900">
-              ${balanceDue.toFixed(2)}
+              {formatCurrency(balanceDue)}
             </div>
           </div>
         </div>
@@ -74,7 +81,7 @@ export default function InvoiceCreated() {
           <ActionButton
             icon={<DollarSign size={20} />}
             label="Record Payment"
-            onClick={() => {}}
+            onClick={() => navigate('/record-payment')}
           />
         </div>
       </div>

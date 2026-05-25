@@ -2,35 +2,59 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Download, Printer, Send, DollarSign, XCircle, Trash2 } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
 import UserIcon from './shared/UserIcon';
+import { accounts, invoiceLineItems, invoiceRecords, people, products } from '../data/mockData';
+import { formatCurrency } from '../utils/calculations';
+import type { InvoiceRecord } from '../types';
 
-interface Invoice {
-  number: string;
-  account: string;
-  type: 'customer' | 'k2' | 'family';
-  status: string;
-  date: string;
-  total: number;
-  balance: number;
+type InvoiceDetailState = Partial<InvoiceRecord> & {
+  number?: string;
+  account?: string;
+  type?: 'customer' | 'k2' | 'family';
+  balance?: number;
+};
+
+function getInvoiceType(invoice: InvoiceRecord): 'customer' | 'k2' | 'family' {
+  if (invoice.recordType === 'k2_statement') return 'k2';
+  if (invoice.recordType === 'family_use') return 'family';
+  return 'customer';
+}
+
+function getAccountName(invoice: InvoiceRecord): string {
+  if (invoice.accountId) {
+    return accounts.find((account) => account.id === invoice.accountId)?.name ?? 'Unknown Account';
+  }
+
+  if (invoice.personId) {
+    return people.find((person) => person.id === invoice.personId)?.officialDisplayName ?? 'Unknown Person';
+  }
+
+  return 'Unknown';
 }
 
 export default function InvoiceDetail() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { invoice } = location.state || {
-    invoice: {
-      number: 'INV-1001',
-      account: 'Anderson Cattle Co.',
-      type: 'customer',
-      status: 'unpaid',
-      date: '2026-05-20',
-      total: 171.50,
-      balance: 171.50,
-    }
+  const fallbackInvoice = invoiceRecords.find((record) => record.balanceDue > 0) ?? invoiceRecords[0];
+  const routedInvoice = ((location.state as { invoice?: InvoiceDetailState } | null)?.invoice ?? fallbackInvoice);
+  const invoice = routedInvoice.id
+    ? invoiceRecords.find((record) => record.id === routedInvoice.id) ?? fallbackInvoice
+    : fallbackInvoice;
+  const invoiceType = routedInvoice.type ?? getInvoiceType(invoice);
+  const accountName = routedInvoice.account ?? getAccountName(invoice);
+  const displayNumber = routedInvoice.number ?? routedInvoice.displayNumber ?? invoice.displayNumber;
+  const balanceDue = routedInvoice.balance ?? routedInvoice.balanceDue ?? invoice.balanceDue;
+  const lineItems = invoiceLineItems.filter((item) => item.invoiceRecordId === invoice.id);
+  const paymentInvoice = {
+    ...invoice,
+    number: displayNumber,
+    account: accountName,
+    type: invoiceType,
+    balance: balanceDue,
   };
 
-  const invoiceDate = '5/19/2026';
-  const dueDate = 'Due on receipt';
-  const amountPaid = invoice.total - invoice.balance;
+  const invoiceDate = new Date(invoice.issueDate).toLocaleDateString();
+  const dueDate = invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString() : 'Due on receipt';
+  const amountPaid = invoice.amountPaid;
 
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
@@ -54,16 +78,16 @@ export default function InvoiceDetail() {
           <div className="flex justify-between items-start mb-3">
             <div>
               <div className="text-sm text-gray-600 mb-1">Invoice Number</div>
-              <div className="text-xl font-bold text-gray-900">{invoice.number}</div>
+              <div className="text-xl font-bold text-gray-900">{displayNumber}</div>
             </div>
             <div className="flex gap-1">
-              <TypeBadge type={invoice.type} />
+              <TypeBadge type={invoiceType} />
               <StatusBadge status={invoice.status} />
             </div>
           </div>
           <div className="border-t border-gray-200 pt-3">
             <div className="text-sm text-gray-600 mb-1">Customer/Account</div>
-            <div className="font-semibold text-gray-900">{invoice.account}</div>
+            <div className="font-semibold text-gray-900">{accountName}</div>
           </div>
         </div>
 
@@ -84,17 +108,34 @@ export default function InvoiceDetail() {
           <div className="p-4 border-b border-gray-200 bg-gray-50">
             <h2 className="font-semibold text-gray-900">Line Items</h2>
           </div>
-          <div className="p-4">
-            <div className="flex justify-between items-start mb-2">
-              <div className="flex-1">
-                <div className="font-medium text-gray-900 mb-1">Garlic Salt Blocks</div>
-                <div className="text-sm text-gray-600">Quantity: 10</div>
-                <div className="text-sm text-gray-600">Unit price: $17.15</div>
+          <div className="divide-y divide-gray-200">
+            {lineItems.map((item) => {
+              const product = products.find((candidate) => candidate.id === item.productId);
+
+              return (
+                <div key={item.id} className="p-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <div className="flex-1">
+                      <div className="font-medium text-gray-900 mb-1">{item.description}</div>
+                      <div className="text-sm text-gray-600">
+                        Quantity: {item.quantity} {product?.unitLabel ?? 'units'}
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        Unit price: {formatCurrency(item.unitPrice)}
+                      </div>
+                    </div>
+                    <div className="font-semibold text-gray-900 text-lg">
+                      {formatCurrency(item.lineTotal)}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+            {lineItems.length === 0 && (
+              <div className="p-4">
+                <div className="text-sm text-gray-600">No line items recorded.</div>
               </div>
-              <div className="font-semibold text-gray-900 text-lg">
-                $171.50
-              </div>
-            </div>
+            )}
           </div>
         </div>
 
@@ -102,19 +143,21 @@ export default function InvoiceDetail() {
         <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
           <div className="flex justify-between">
             <span className="text-gray-700">Subtotal</span>
-            <span className="font-medium text-gray-900">$171.50</span>
+            <span className="font-medium text-gray-900">{formatCurrency(invoice.subtotal)}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-700">Tax</span>
-            <span className="font-medium text-gray-900">Off</span>
+            <span className="font-medium text-gray-900">
+              {invoice.taxAmount > 0 ? formatCurrency(invoice.taxAmount) : 'Off'}
+            </span>
           </div>
           <div className="pt-3 border-t border-gray-200 flex justify-between items-center">
             <span className="font-semibold text-gray-900 text-lg">Total</span>
-            <span className="font-bold text-gray-900 text-2xl">${invoice.total.toFixed(2)}</span>
+            <span className="font-bold text-gray-900 text-2xl">{formatCurrency(invoice.total)}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-700">Amount paid</span>
-            <span className="font-medium text-gray-900">${amountPaid.toFixed(2)}</span>
+            <span className="font-medium text-gray-900">{formatCurrency(amountPaid)}</span>
           </div>
         </div>
 
@@ -122,14 +165,14 @@ export default function InvoiceDetail() {
         <div className="bg-gray-900 text-white rounded-lg p-4">
           <div className="flex justify-between items-center">
             <span className="font-semibold text-lg">Balance due</span>
-            <span className="text-3xl font-bold">${invoice.balance.toFixed(2)}</span>
+            <span className="text-3xl font-bold">{formatCurrency(balanceDue)}</span>
           </div>
         </div>
 
         {/* Notes */}
         <div className="bg-white border border-gray-200 rounded-lg p-4">
           <div className="text-sm text-gray-600 mb-1">Notes</div>
-          <div className="text-gray-900">—</div>
+          <div className="text-gray-900">{invoice.notes ?? '—'}</div>
         </div>
 
         {/* Action Buttons */}
@@ -149,11 +192,11 @@ export default function InvoiceDetail() {
             label="Send"
             onClick={() => {}}
           />
-          {invoice.balance > 0 && (
+          {balanceDue > 0 && (
             <ActionButton
               icon={<DollarSign size={20} />}
               label="Record Payment"
-              onClick={() => navigate('/record-payment', { state: { invoice } })}
+              onClick={() => navigate('/record-payment', { state: { invoice: paymentInvoice } })}
               primary
             />
           )}

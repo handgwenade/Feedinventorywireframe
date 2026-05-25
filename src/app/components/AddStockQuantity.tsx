@@ -2,24 +2,19 @@ import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
-
-interface Product {
-  id: string;
-  name: string;
-  available: number;
-  price: number;
-}
+import { products } from '../data/mockData';
+import type { Product } from '../types';
 
 export default function AddStockQuantity() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { product } = location.state || { product: { name: 'Garlic Salt Blocks', available: 247, price: 17.15 } };
+  const { product = products[0] } = (location.state ?? {}) as { product?: Product };
 
   const [quantityAdded, setQuantityAdded] = useState(40);
   const [vendorNote, setVendorNote] = useState('');
   const [notes, setNotes] = useState('');
 
-  const newQuantity = product.available + quantityAdded;
+  const newQuantity = product.currentQuantity + quantityAdded;
 
   const handleReview = () => {
     navigate('/add-stock-review', {
@@ -56,7 +51,9 @@ export default function AddStockQuantity() {
         {/* Current Quantity */}
         <div className="bg-white border border-gray-200 rounded-lg p-4">
           <div className="text-sm text-gray-600 mb-1">Current quantity</div>
-          <div className="text-2xl font-bold text-gray-900">{product.available}</div>
+          <div className="text-2xl font-bold text-gray-900">
+            {product.currentQuantity} {product.unitLabel}
+          </div>
         </div>
 
         {/* Quantity Added */}
@@ -90,15 +87,21 @@ export default function AddStockQuantity() {
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
               <span className="text-gray-600">Current quantity:</span>
-              <span className="font-medium text-gray-900">{product.available}</span>
+              <span className="font-medium text-gray-900">
+                {product.currentQuantity} {product.unitLabel}
+              </span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-gray-600">Quantity added:</span>
-              <span className="font-medium text-gray-900">{quantityAdded}</span>
+              <span className="font-medium text-gray-900">
+                {quantityAdded} {product.unitLabel}
+              </span>
             </div>
             <div className="pt-2 border-t border-gray-200 flex justify-between">
               <span className="font-semibold text-gray-900">New quantity:</span>
-              <span className="text-xl font-bold text-gray-900">{newQuantity}</span>
+              <span className="text-xl font-bold text-gray-900">
+                {newQuantity} {product.unitLabel}
+              </span>
             </div>
           </div>
         </div>

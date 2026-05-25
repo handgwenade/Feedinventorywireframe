@@ -1,15 +1,20 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { CheckCircle2, PlusCircle, Package, Home } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
+import { products } from '../data/mockData';
+import type { Product } from '../types';
 
 export default function AddStockSuccess() {
   const navigate = useNavigate();
   const location = useLocation();
-  const {
-    product = { name: 'Garlic Salt Blocks' },
-    quantityAdded = 40,
-    newQuantity = 287
-  } = location.state || {};
+  const state = (location.state ?? {}) as {
+    product?: Product;
+    quantityAdded?: number;
+    newQuantity?: number;
+  };
+  const product = state.product ?? products[0];
+  const quantityAdded = state.quantityAdded ?? 40;
+  const newQuantity = state.newQuantity ?? product.currentQuantity + quantityAdded;
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -34,12 +39,16 @@ export default function AddStockSuccess() {
 
           <div className="border-t border-gray-200 pt-3">
             <div className="text-sm text-gray-600 mb-1">Quantity added</div>
-            <div className="text-xl font-bold text-gray-900">+{quantityAdded}</div>
+            <div className="text-xl font-bold text-gray-900">
+              +{quantityAdded} {product.unitLabel}
+            </div>
           </div>
 
           <div className="border-t border-gray-200 pt-3">
             <div className="text-sm text-gray-600 mb-1">New quantity</div>
-            <div className="text-2xl font-bold text-gray-900">{newQuantity}</div>
+            <div className="text-2xl font-bold text-gray-900">
+              {newQuantity} {product.unitLabel}
+            </div>
           </div>
 
           <div className="border-t border-gray-200 pt-3">
@@ -59,7 +68,7 @@ export default function AddStockSuccess() {
           Add More Stock
         </button>
         <button
-          onClick={() => {}}
+          onClick={() => navigate('/product-detail', { state: { product: { ...product, currentQuantity: newQuantity } } })}
           className="w-full bg-white border border-gray-300 text-gray-900 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 active:bg-gray-50"
         >
           <Package size={20} />

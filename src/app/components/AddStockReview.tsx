@@ -1,17 +1,24 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
+import { products } from '../data/mockData';
+import type { Product } from '../types';
 
 export default function AddStockReview() {
   const navigate = useNavigate();
   const location = useLocation();
-  const {
-    product = { name: 'Garlic Salt Blocks', available: 247 },
-    quantityAdded = 40,
-    newQuantity = 287,
-    vendorNote = '',
-    notes = ''
-  } = location.state || {};
+  const state = (location.state ?? {}) as {
+    product?: Product;
+    quantityAdded?: number;
+    newQuantity?: number;
+    vendorNote?: string;
+    notes?: string;
+  };
+  const product = state.product ?? products[0];
+  const quantityAdded = state.quantityAdded ?? 40;
+  const newQuantity = state.newQuantity ?? product.currentQuantity + quantityAdded;
+  const vendorNote = state.vendorNote ?? '';
+  const notes = state.notes ?? '';
 
   const handleAddStock = () => {
     navigate('/add-stock-success', {
@@ -55,15 +62,19 @@ export default function AddStockReview() {
         <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
           <div className="flex justify-between">
             <span className="text-gray-700">Current quantity</span>
-            <span className="font-medium text-gray-900">{product.available}</span>
+            <span className="font-medium text-gray-900">
+              {product.currentQuantity} {product.unitLabel}
+            </span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-700">Quantity added</span>
-            <span className="font-medium text-gray-900">+{quantityAdded}</span>
+            <span className="font-medium text-gray-900">+{quantityAdded} {product.unitLabel}</span>
           </div>
           <div className="pt-3 border-t border-gray-200 flex justify-between items-center">
             <span className="font-semibold text-gray-900 text-lg">New quantity</span>
-            <span className="font-bold text-gray-900 text-2xl">{newQuantity}</span>
+            <span className="font-bold text-gray-900 text-2xl">
+              {newQuantity} {product.unitLabel}
+            </span>
           </div>
         </div>
 

@@ -64,7 +64,7 @@ export default function ReviewInvoice() {
       {/* Header */}
       <div className="bg-white border-b border-gray-200 p-4 flex items-center gap-3">
         <button
-          onClick={() => navigate('/add-products')}
+          onClick={() => navigate('/add-products', { state: { customerName, customerId, accountId, cart } })}
           className="text-gray-600 active:text-gray-900"
         >
           <ArrowLeft size={24} />

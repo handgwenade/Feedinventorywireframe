@@ -1,44 +1,17 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, ArrowLeft, AlertCircle } from 'lucide-react';
+import { Search, ArrowLeft, AlertCircle, Package } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
 import UserIcon from './shared/UserIcon';
-
-interface Product {
-  id: string;
-  name: string;
-  available: number;
-  price: number;
-  lowStock?: boolean;
-}
-
-const PRODUCTS: Product[] = [
-  {
-    id: '1',
-    name: 'Garlic Salt Blocks',
-    available: 247,
-    price: 17.15,
-  },
-  {
-    id: '2',
-    name: 'Redmond Mineral Salt',
-    available: 200,
-    price: 9.79,
-  },
-  {
-    id: '3',
-    name: 'SweetPro FiberMate 20',
-    available: 6,
-    price: 154.00,
-    lowStock: true,
-  },
-];
+import { products } from '../data/mockData';
+import { formatCurrency, isLowStock } from '../utils/calculations';
+import type { Product } from '../types';
 
 export default function AddStockSelectProduct() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filteredProducts = PRODUCTS.filter(product =>
+  const filteredProducts = products.filter(product =>
     product.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -98,9 +71,9 @@ export default function AddStockSelectProduct() {
                 <h3 className="font-semibold text-gray-900 mb-1">{product.name}</h3>
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-sm text-gray-600">
-                    {product.available} available
+                    {product.currentQuantity} {product.unitLabel} available
                   </span>
-                  {product.lowStock && (
+                  {isLowStock(product) && (
                     <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 text-gray-700 text-xs font-medium rounded border border-gray-300">
                       <AlertCircle size={12} />
                       Low Stock
@@ -108,7 +81,7 @@ export default function AddStockSelectProduct() {
                   )}
                 </div>
                 <div className="text-lg font-semibold text-gray-900">
-                  ${product.price.toFixed(2)}
+                  {formatCurrency(product.salePrice)}
                 </div>
               </div>
 
@@ -126,16 +99,5 @@ export default function AddStockSelectProduct() {
 
       <BottomNav />
     </div>
-  );
-}
-
-function Package({ size, className }: { size: number; className?: string }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-      <path d="M16.5 9.4l-9-5.19" />
-      <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
-      <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
-      <line x1="12" y1="22.08" x2="12" y2="12" />
-    </svg>
   );
 }

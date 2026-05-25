@@ -2,13 +2,23 @@ import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
-
-type PaymentMethod = 'cash' | 'check' | 'other';
+import { calculateBalanceDue, formatCurrency } from '../utils/calculations';
+import type { PaymentMethod } from '../types';
 
 export default function PaymentDetails() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { customerName = 'Anderson Cattle Co.', cart, total = 9.79, paymentStatus } = location.state || {};
+  const {
+    customerName = 'Anderson Cattle Co.',
+    customerId,
+    accountId,
+    cart = [],
+    subtotal,
+    tax,
+    total = 9.79,
+    paymentStatus,
+    notes
+  } = location.state || {};
 
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cash');
   const [amountPaid, setAmountPaid] = useState(paymentStatus === 'paid' ? total.toString() : '');
@@ -16,15 +26,23 @@ export default function PaymentDetails() {
   const [paymentNote, setPaymentNote] = useState('');
 
   const handleSavePayment = () => {
-    const balanceDue = total - parseFloat(amountPaid || '0');
+    const paidAmount = parseFloat(amountPaid || '0');
+    const balanceDue = calculateBalanceDue(total, paidAmount);
     navigate('/invoice-created', {
       state: {
         customerName,
+        customerId,
+        accountId,
         cart,
+        subtotal,
+        tax,
         total,
         balanceDue,
         paymentMethod,
-        amountPaid: parseFloat(amountPaid || '0'),
+        amountPaid: paidAmount,
+        checkNumber,
+        paymentNote,
+        notes,
       }
     });
   };
@@ -34,7 +52,9 @@ export default function PaymentDetails() {
       {/* Header */}
       <div className="bg-white border-b border-gray-200 p-4 flex items-center gap-3">
         <button
-          onClick={() => navigate('/review-invoice')}
+          onClick={() => navigate('/review-invoice', {
+            state: { customerName, customerId, accountId, cart, subtotal, tax, total, paymentStatus, notes }
+          })}
           className="text-gray-600 active:text-gray-900"
         >
           <ArrowLeft size={24} />
@@ -47,7 +67,7 @@ export default function PaymentDetails() {
         <div className="bg-white border border-gray-200 rounded-lg p-4">
           <div className="text-sm text-gray-600 mb-1">Invoice Total</div>
           <div className="text-3xl font-bold text-gray-900">
-            ${total.toFixed(2)}
+            {formatCurrency(total)}
           </div>
         </div>
 
@@ -98,7 +118,7 @@ export default function PaymentDetails() {
           </div>
           {amountPaid && parseFloat(amountPaid) < total && (
             <div className="mt-2 text-sm text-gray-600">
-              Balance Due: ${(total - parseFloat(amountPaid)).toFixed(2)}
+              Balance Due: {formatCurrency(calculateBalanceDue(total, parseFloat(amountPaid)))}
             </div>
           )}
         </div>

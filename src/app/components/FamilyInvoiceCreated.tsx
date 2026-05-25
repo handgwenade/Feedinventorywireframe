@@ -1,17 +1,24 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { CheckCircle2, Download, Printer, Send, DollarSign, Home, Users } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
+import { invoiceRecords, people } from '../data/mockData';
+import { formatCurrency } from '../utils/calculations';
 
 export default function FamilyInvoiceCreated() {
   const navigate = useNavigate();
   const location = useLocation();
-  const {
-    personName = 'Bill Johnson',
-    total = 0,
-    status = 'unpaid'
-  } = location.state || {};
-
-  const invoiceNumber = 'FAM-1003';
+  const state = (location.state ?? {}) as {
+    personId?: string;
+    personName?: string;
+    total?: number;
+    status?: string;
+  };
+  const fallbackInvoice = invoiceRecords.find((invoice) => invoice.recordType === 'family_use') ?? invoiceRecords[0];
+  const fallbackPerson = people.find((person) => person.id === (state.personId ?? fallbackInvoice.personId));
+  const personName = state.personName ?? fallbackPerson?.officialDisplayName ?? 'Bill Johnson';
+  const total = state.total ?? fallbackInvoice.total;
+  const status = state.status ?? fallbackInvoice.status;
+  const invoiceNumber = fallbackInvoice.displayNumber;
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -49,7 +56,7 @@ export default function FamilyInvoiceCreated() {
           <div className="border-t border-gray-200 pt-3">
             <div className="text-sm text-gray-600 mb-1">Total</div>
             <div className="text-2xl font-bold text-gray-900">
-              ${total.toFixed(2)}
+              {formatCurrency(total)}
             </div>
           </div>
 
@@ -81,7 +88,7 @@ export default function FamilyInvoiceCreated() {
           <ActionButton
             icon={<DollarSign size={20} />}
             label="Record Payment"
-            onClick={() => {}}
+            onClick={() => navigate('/record-payment')}
           />
         </div>
       </div>

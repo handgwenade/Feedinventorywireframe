@@ -2,12 +2,14 @@ import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Edit2, Trash2, Plus } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
+import { calculateLineTotal, formatCurrency } from '../utils/calculations';
 
 interface CartItem {
   productId: string;
   name: string;
   quantity: number;
   price: number;
+  unitLabel?: string;
 }
 
 type FamilyStatus = 'unpaid' | 'paid' | 'written-off';
@@ -15,7 +17,7 @@ type FamilyStatus = 'unpaid' | 'paid' | 'written-off';
 export default function FamilyReviewInvoice() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { personName = 'Bill Johnson', cart: initialCart = [] } = location.state || {};
+  const { personId, personName = 'Bill Johnson', cart: initialCart = [] } = location.state || {};
 
   const [cart, setCart] = useState<CartItem[]>(initialCart);
   const [taxEnabled, setTaxEnabled] = useState(false);
@@ -24,7 +26,7 @@ export default function FamilyReviewInvoice() {
 
   const invoiceNumber = 'FAM-1003';
 
-  const subtotal = cart.reduce((sum: number, item: CartItem) => sum + (item.quantity * item.price), 0);
+  const subtotal = cart.reduce((sum: number, item: CartItem) => sum + calculateLineTotal(item.quantity, item.price), 0);
   const taxRate = 0.08;
   const tax = taxEnabled ? subtotal * taxRate : 0;
   const total = subtotal + tax;
@@ -35,19 +37,19 @@ export default function FamilyReviewInvoice() {
 
   const handleEditItem = (index: number) => {
     navigate('/family-add-products', {
-      state: { personName, cart, editingIndex: index }
+      state: { personId, personName, cart, editingIndex: index }
     });
   };
 
   const handleAddProduct = () => {
     navigate('/family-add-products', {
-      state: { personName, cart }
+      state: { personId, personName, cart }
     });
   };
 
   const handleCreateInvoice = () => {
     navigate('/family-invoice-created', {
-      state: { personName, cart, total, status }
+      state: { personId, personName, cart, subtotal, tax, total, status, notes }
     });
   };
 
@@ -56,7 +58,7 @@ export default function FamilyReviewInvoice() {
       {/* Header */}
       <div className="bg-white border-b border-gray-200 p-4 flex items-center gap-3">
         <button
-          onClick={() => navigate('/family-add-products')}
+          onClick={() => navigate('/family-add-products', { state: { personId, personName, cart } })}
           className="text-gray-600 active:text-gray-900"
         >
           <ArrowLeft size={24} />
@@ -96,15 +98,15 @@ export default function FamilyReviewInvoice() {
                   <div className="flex-1">
                     <div className="font-medium text-gray-900 mb-1">{item.name}</div>
                     <div className="text-sm text-gray-600">
-                      Quantity: {item.quantity}
+                      Quantity: {item.quantity} {item.unitLabel ?? 'units'}
                     </div>
                     <div className="text-sm text-gray-600">
-                      Unit price: ${item.price.toFixed(2)}
+                      Unit price: {formatCurrency(item.price)}
                     </div>
                   </div>
                   <div className="text-right">
                     <div className="font-semibold text-gray-900 text-lg mb-2">
-                      ${(item.quantity * item.price).toFixed(2)}
+                      {formatCurrency(calculateLineTotal(item.quantity, item.price))}
                     </div>
                   </div>
                 </div>
@@ -183,7 +185,7 @@ export default function FamilyReviewInvoice() {
         <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
           <div className="flex justify-between text-gray-700">
             <span>Subtotal</span>
-            <span className="font-medium">${subtotal.toFixed(2)}</span>
+            <span className="font-medium">{formatCurrency(subtotal)}</span>
           </div>
 
           {/* Tax Toggle */}
@@ -192,7 +194,7 @@ export default function FamilyReviewInvoice() {
             <div className="flex items-center gap-3">
               {taxEnabled && (
                 <span className="font-medium text-gray-900">
-                  ${tax.toFixed(2)}
+                  {formatCurrency(tax)}
                 </span>
               )}
               <button
@@ -213,7 +215,7 @@ export default function FamilyReviewInvoice() {
           <div className="pt-3 border-t border-gray-200 flex justify-between items-center">
             <span className="font-semibold text-gray-900 text-lg">Total</span>
             <span className="font-bold text-gray-900 text-2xl">
-              ${total.toFixed(2)}
+              {formatCurrency(total)}
             </span>
           </div>
         </div>

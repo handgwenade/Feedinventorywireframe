@@ -2,26 +2,50 @@ import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
+import { accounts, invoiceRecords, people } from '../data/mockData';
+import { formatCurrency } from '../utils/calculations';
+import type { InvoiceRecord, PaymentMethod } from '../types';
 
-interface Invoice {
-  number: string;
-  account: string;
-  balance: number;
-  total: number;
+type RoutedInvoice = Partial<InvoiceRecord> & {
+  number?: string;
+  account?: string;
+  type?: 'customer' | 'k2' | 'family';
+  balance?: number;
+};
+
+function getAccountName(invoice: InvoiceRecord): string {
+  if (invoice.accountId) {
+    return accounts.find((account) => account.id === invoice.accountId)?.name ?? 'Unknown Account';
+  }
+
+  if (invoice.personId) {
+    return people.find((person) => person.id === invoice.personId)?.officialDisplayName ?? 'Unknown Person';
+  }
+
+  return 'Unknown';
 }
 
-type PaymentMethod = 'cash' | 'check' | 'other';
+function getInvoiceType(invoice: InvoiceRecord): 'customer' | 'k2' | 'family' {
+  if (invoice.recordType === 'k2_statement') return 'k2';
+  if (invoice.recordType === 'family_use') return 'family';
+  return 'customer';
+}
 
 export default function RecordPayment() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { invoice } = location.state || {
-    invoice: {
-      number: 'INV-1001',
-      account: 'Anderson Cattle Co.',
-      balance: 171.50,
-      total: 171.50,
-    }
+  const fallbackInvoice = invoiceRecords.find((record) => record.balanceDue > 0) ?? invoiceRecords[0];
+  const routedInvoice = ((location.state as { invoice?: RoutedInvoice } | null)?.invoice ?? fallbackInvoice);
+  const invoiceRecord = routedInvoice.id
+    ? invoiceRecords.find((record) => record.id === routedInvoice.id) ?? fallbackInvoice
+    : fallbackInvoice;
+  const invoice = {
+    ...invoiceRecord,
+    number: routedInvoice.number ?? routedInvoice.displayNumber ?? invoiceRecord.displayNumber,
+    account: routedInvoice.account ?? getAccountName(invoiceRecord),
+    type: routedInvoice.type ?? getInvoiceType(invoiceRecord),
+    balance: routedInvoice.balance ?? routedInvoice.balanceDue ?? invoiceRecord.balanceDue,
+    total: routedInvoice.total ?? invoiceRecord.total,
   };
 
   const [amountPaid, setAmountPaid] = useState(invoice.balance.toString());
@@ -66,7 +90,7 @@ export default function RecordPayment() {
           </div>
           <div className="pt-2 border-t border-gray-200">
             <div className="text-sm text-gray-600 mb-1">Balance due</div>
-            <div className="text-2xl font-bold text-gray-900">${invoice.balance.toFixed(2)}</div>
+            <div className="text-2xl font-bold text-gray-900">{formatCurrency(invoice.balance)}</div>
           </div>
         </div>
 

@@ -17,11 +17,22 @@ interface CartItem {
 export default function FamilyAddProducts() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { personId, personName = 'Bill Johnson' } = location.state || {};
+  const {
+    personId,
+    personName = 'Bill Johnson',
+    cart: initialCart = [],
+    editingIndex
+  } = location.state || {};
+  const initialEditingProduct = typeof editingIndex === 'number'
+    ? products.find((product) => product.id === initialCart[editingIndex]?.productId) ?? null
+    : null;
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [cart, setCart] = useState<CartItem[]>([]);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [cart, setCart] = useState<CartItem[]>(initialCart);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(initialEditingProduct);
+  const [editingCartIndex, setEditingCartIndex] = useState<number | null>(
+    typeof editingIndex === 'number' ? editingIndex : null
+  );
 
   const filteredProducts = products.filter((product) =>
     product.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -36,6 +47,23 @@ export default function FamilyAddProducts() {
 
   const handleQuantityConfirm = (quantity: number) => {
     if (!selectedProduct) return;
+
+    if (editingCartIndex !== null) {
+      setCart(cart.map((item, index) =>
+        index === editingCartIndex
+          ? {
+              productId: selectedProduct.id,
+              name: selectedProduct.name,
+              quantity,
+              price: selectedProduct.salePrice,
+              unitLabel: selectedProduct.unitLabel,
+            }
+          : item
+      ));
+      setSelectedProduct(null);
+      setEditingCartIndex(null);
+      return;
+    }
 
     const existingItem = cart.find((item) => item.productId === selectedProduct.id);
     if (existingItem) {
@@ -162,8 +190,12 @@ export default function FamilyAddProducts() {
       {selectedProduct && (
         <QuantityModal
           product={selectedProduct}
+          initialQuantity={editingCartIndex !== null ? cart[editingCartIndex]?.quantity : undefined}
           onConfirm={handleQuantityConfirm}
-          onCancel={() => setSelectedProduct(null)}
+          onCancel={() => {
+            setSelectedProduct(null);
+            setEditingCartIndex(null);
+          }}
         />
       )}
 
@@ -174,14 +206,16 @@ export default function FamilyAddProducts() {
 
 function QuantityModal({
   product,
+  initialQuantity = 1,
   onConfirm,
   onCancel,
 }: {
   product: Product;
+  initialQuantity?: number;
   onConfirm: (quantity: number) => void;
   onCancel: () => void;
 }) {
-  const [quantity, setQuantity] = useState(1);
+  const [quantity, setQuantity] = useState(initialQuantity);
 
   const lineTotal = calculateLineTotal(quantity, product.salePrice);
   const afterUse = product.currentQuantity - quantity;

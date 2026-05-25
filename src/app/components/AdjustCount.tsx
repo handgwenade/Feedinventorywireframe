@@ -2,28 +2,30 @@ import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
-
-interface Product {
-  id: string;
-  name: string;
-  available: number;
-  price: number;
-}
+import { products } from '../data/mockData';
+import type { Product } from '../types';
 
 export default function AdjustCount() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { product } = location.state || { product: { name: 'Garlic Salt Blocks', available: 247, price: 17.15 } };
+  const { product = products[0] } = (location.state ?? {}) as { product?: Product };
 
   const [physicalCount, setPhysicalCount] = useState('');
   const [reasonNote, setReasonNote] = useState('');
 
-  const difference = physicalCount ? parseInt(physicalCount) - product.available : 0;
+  const parsedPhysicalCount = parseInt(physicalCount);
+  const difference = physicalCount ? parsedPhysicalCount - product.currentQuantity : 0;
   const differenceText = difference > 0 ? `+${difference}` : difference.toString();
 
   const handleSave = () => {
     // Navigate back to product detail with success message
-    navigate('/product-detail', { state: { product } });
+    navigate('/product-detail', {
+      state: {
+        product: physicalCount
+          ? { ...product, currentQuantity: parsedPhysicalCount }
+          : product
+      }
+    });
   };
 
   return (
@@ -49,7 +51,9 @@ export default function AdjustCount() {
         {/* Current App Quantity */}
         <div className="bg-white border border-gray-200 rounded-lg p-4">
           <div className="text-sm text-gray-600 mb-1">Current app quantity</div>
-          <div className="text-2xl font-bold text-gray-900">{product.available}</div>
+          <div className="text-2xl font-bold text-gray-900">
+            {product.currentQuantity} {product.unitLabel}
+          </div>
         </div>
 
         {/* Physical Count */}
@@ -73,16 +77,20 @@ export default function AdjustCount() {
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Current app quantity:</span>
-                <span className="font-medium text-gray-900">{product.available}</span>
+                <span className="font-medium text-gray-900">
+                  {product.currentQuantity} {product.unitLabel}
+                </span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Physical count:</span>
-                <span className="font-medium text-gray-900">{physicalCount}</span>
+                <span className="font-medium text-gray-900">
+                  {physicalCount} {product.unitLabel}
+                </span>
               </div>
               <div className="pt-2 border-t border-gray-200 flex justify-between">
                 <span className="font-semibold text-gray-900">Difference:</span>
                 <span className={`text-xl font-bold ${difference > 0 ? 'text-gray-900' : 'text-gray-900'}`}>
-                  {differenceText}
+                  {differenceText} {product.unitLabel}
                 </span>
               </div>
             </div>
