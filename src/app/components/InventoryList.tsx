@@ -1,53 +1,20 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, AlertCircle, ChevronDown } from 'lucide-react';
+import { Search, AlertCircle, ChevronDown, Package } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
 import UserIcon from './shared/UserIcon';
 
-interface Product {
-  id: string;
-  name: string;
-  available: number;
-  price: number;
-  category: string;
-  lowStock?: boolean;
-}
+import { products, productCategories } from '../data/mockData';
+import { calculateInventoryValue, formatCurrency, isLowStock } from '../utils/calculations';
+import type { Product } from '../types';
 
-const PRODUCTS: Product[] = [
-  {
-    id: '1',
-    name: 'Garlic Salt Blocks',
-    available: 247,
-    price: 17.15,
-    category: 'blocks',
-  },
-  {
-    id: '2',
-    name: 'Redmond Mineral Salt',
-    available: 200,
-    price: 9.79,
-    category: 'salt',
-  },
-  {
-    id: '3',
-    name: 'SweetPro FiberMate 20',
-    available: 6,
-    price: 154.00,
-    category: 'tubs',
-    lowStock: true,
-  },
-  {
-    id: '4',
-    name: 'RumenEdge Tubs',
-    available: 4,
-    price: 123.70,
-    category: 'tubs',
-    lowStock: true,
-  },
-];
 
 type FilterType = 'all' | 'low-stock' | 'salt' | 'mineral' | 'tubs' | 'blocks';
 type SortType = 'name' | 'quantity' | 'low-stock';
+
+function getProductCategoryName(categoryId: string): string {
+  return productCategories.find((category) => category.id === categoryId)?.name ?? 'Other';
+}
 
 export default function InventoryList() {
   const navigate = useNavigate();
@@ -56,18 +23,21 @@ export default function InventoryList() {
   const [sortBy, setSortBy] = useState<SortType>('name');
   const [showSortMenu, setShowSortMenu] = useState(false);
 
-  const filteredProducts = PRODUCTS.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase());
+  const filteredProducts = products
+    .filter((product) => {
+      const categoryName = getProductCategoryName(product.categoryId).toLowerCase();
+      const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase());
 
-    if (activeFilter === 'all') return matchesSearch;
-    if (activeFilter === 'low-stock') return matchesSearch && product.lowStock;
-    return matchesSearch && product.category === activeFilter;
-  }).sort((a, b) => {
-    if (sortBy === 'name') return a.name.localeCompare(b.name);
-    if (sortBy === 'quantity') return b.available - a.available;
-    if (sortBy === 'low-stock') return (b.lowStock ? 1 : 0) - (a.lowStock ? 1 : 0);
-    return 0;
-  });
+      if (activeFilter === 'all') return matchesSearch;
+      if (activeFilter === 'low-stock') return matchesSearch && isLowStock(product);
+      return matchesSearch && categoryName === activeFilter;
+    })
+    .sort((a, b) => {
+      if (sortBy === 'name') return a.name.localeCompare(b.name);
+      if (sortBy === 'quantity') return b.currentQuantity - a.currentQuantity;
+      if (sortBy === 'low-stock') return Number(isLowStock(b)) - Number(isLowStock(a));
+      return 0;
+    });
 
   const handleViewProduct = (product: Product) => {
     navigate('/product-detail', { state: { product } });
@@ -94,7 +64,7 @@ export default function InventoryList() {
             type="text"
             placeholder="Search products..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(event) => setSearchQuery(event.target.value)}
             className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900"
           />
         </div>
@@ -177,7 +147,8 @@ export default function InventoryList() {
       {/* Products */}
       <div className="p-4 space-y-3">
         {filteredProducts.map((product) => {
-          const inventoryValue = product.available * product.price;
+          const inventoryValue = calculateInventoryValue(product);
+          const lowStock = isLowStock(product);
           return (
             <button
               key={product.id}
@@ -195,9 +166,9 @@ export default function InventoryList() {
                   <h3 className="font-semibold text-gray-900 mb-1">{product.name}</h3>
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-sm text-gray-600">
-                      {product.available} available
+                      {product.currentQuantity} {product.unitLabel} available
                     </span>
-                    {product.lowStock && (
+                    {lowStock && (
                       <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 text-gray-700 text-xs font-medium rounded border border-gray-300">
                         <AlertCircle size={12} />
                         Low Stock
@@ -205,10 +176,10 @@ export default function InventoryList() {
                     )}
                   </div>
                   <div className="text-sm text-gray-600 mb-1">
-                    ${product.price.toFixed(2)} / unit
+                    {formatCurrency(product.salePrice)} / {product.unitLabel}
                   </div>
                   <div className="text-sm font-semibold text-gray-900">
-                    Value: ${inventoryValue.toFixed(2)}
+                    Value: {formatCurrency(inventoryValue)}
                   </div>
                 </div>
 
@@ -227,16 +198,6 @@ export default function InventoryList() {
   );
 }
 
-function Package({ size, className }: { size: number; className?: string }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-      <path d="M16.5 9.4l-9-5.19" />
-      <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
-      <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
-      <line x1="12" y1="22.08" x2="12" y2="12" />
-    </svg>
-  );
-}
 
 function FilterChip({
   label,
