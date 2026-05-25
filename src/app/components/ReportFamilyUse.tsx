@@ -3,47 +3,48 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Download, Printer, FileText, ChevronDown } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
 import UserIcon from './shared/UserIcon';
+import { invoiceLineItems, invoiceRecords, people } from '../data/mockData';
+import { formatCurrency } from '../utils/calculations';
+import type { InvoiceRecord } from '../types';
 
 type DateFilter = 'this-month' | 'last-month' | 'custom';
 
-interface FamilyRecord {
-  id: string;
-  takenBy: string;
-  product: string;
-  quantity: number;
-  value: number;
-  status: string;
-  date: string;
+function getPersonName(personId?: string): string {
+  if (!personId) return 'Unknown Person';
+  return people.find((person) => person.id === personId)?.officialDisplayName ?? 'Unknown Person';
 }
 
-const familyData: FamilyRecord[] = [
-  {
-    id: '1',
-    takenBy: 'Bill Johnson',
-    product: 'Garlic Salt Blocks',
-    quantity: 3,
-    value: 51.45,
-    status: 'Track Only',
-    date: '5/17/2026'
-  },
-  {
-    id: '2',
-    takenBy: 'Tessie Geringer',
-    product: 'Redmond Mineral Salt',
-    quantity: 2,
-    value: 19.58,
-    status: 'Track Only',
-    date: '5/15/2026'
-  }
-];
+function getProductsSummary(recordId: string): string {
+  const items = invoiceLineItems.filter((item) => item.invoiceRecordId === recordId);
+
+  if (items.length === 0) return 'No line items';
+
+  return items
+    .map((item) => `${item.description}, ${item.quantity} ${item.quantity === 1 ? 'unit' : 'units'}`)
+    .join('; ');
+}
+
+function getTotalUnits(recordId: string): number {
+  return invoiceLineItems
+    .filter((item) => item.invoiceRecordId === recordId)
+    .reduce((total, item) => total + item.quantity, 0);
+}
+
+function getStatusLabel(status: string): string {
+  return status
+    .split('_')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
 
 export default function ReportFamilyUse() {
   const navigate = useNavigate();
   const [dateFilter, setDateFilter] = useState<DateFilter>('this-month');
 
-  const totalValue = familyData.reduce((sum, record) => sum + record.value, 0);
-  const totalUnits = familyData.reduce((sum, record) => sum + record.quantity, 0);
-  const openAmount = 0.00;
+  const familyData = invoiceRecords.filter((record) => record.recordType === 'family_use');
+  const totalValue = familyData.reduce((sum, record) => sum + record.total, 0);
+  const totalUnits = familyData.reduce((sum, record) => sum + getTotalUnits(record.id), 0);
+  const openAmount = familyData.reduce((sum, record) => sum + record.balanceDue, 0);
 
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
@@ -69,9 +70,9 @@ export default function ReportFamilyUse() {
 
         {/* Summary Cards */}
         <div className="grid grid-cols-3 gap-3">
-          <SummaryCard label="Total Value Taken" value={`$${totalValue.toFixed(2)}`} />
+          <SummaryCard label="Total Value Taken" value={formatCurrency(totalValue)} />
           <SummaryCard label="Total Units" value={totalUnits.toString()} />
-          <SummaryCard label="Open Amount" value={`$${openAmount.toFixed(2)}`} />
+          <SummaryCard label="Open Amount" value={formatCurrency(openAmount)} />
         </div>
 
         {/* Date Filter */}
@@ -92,7 +93,7 @@ export default function ReportFamilyUse() {
 
         {/* Family Records List */}
         <div className="space-y-3">
-          {familyData.map(record => (
+          {familyData.map((record) => (
             <FamilyRecordRow key={record.id} record={record} navigate={navigate} />
           ))}
         </div>
@@ -131,31 +132,37 @@ function DateFilterChip({ label, active, onClick }: { label: string; active: boo
   );
 }
 
-function FamilyRecordRow({ record, navigate }: { record: FamilyRecord; navigate: any }) {
+function FamilyRecordRow({
+  record,
+  navigate,
+}: {
+  record: InvoiceRecord;
+  navigate: (route: string, options?: { state?: unknown }) => void;
+}) {
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-4">
-      <div className="flex justify-between items-start mb-2">
+      <div className="flex justify-between items-start mb-2 gap-3">
         <div>
-          <div className="font-semibold text-gray-900 mb-1">{record.takenBy}</div>
-          <div className="text-sm text-gray-600">{record.date}</div>
+          <div className="font-semibold text-gray-900 mb-1">{getPersonName(record.personId)}</div>
+          <div className="text-sm text-gray-600">{new Date(record.issueDate).toLocaleDateString()}</div>
         </div>
         <span className="text-xs px-2 py-1 rounded border bg-gray-100 border-gray-300 text-gray-700">
-          {record.status}
+          {getStatusLabel(record.status)}
         </span>
       </div>
-      <div className="text-sm text-gray-700 mb-2">{record.product}</div>
+      <div className="text-sm text-gray-700 mb-2">{getProductsSummary(record.id)}</div>
       <div className="grid grid-cols-2 gap-3 text-sm mb-3">
         <div>
           <div className="text-gray-600 text-xs">Quantity</div>
-          <div className="font-medium text-gray-900">{record.quantity} units</div>
+          <div className="font-medium text-gray-900">{getTotalUnits(record.id)} units</div>
         </div>
         <div>
           <div className="text-gray-600 text-xs">Value</div>
-          <div className="font-medium text-gray-900">${record.value.toFixed(2)}</div>
+          <div className="font-medium text-gray-900">{formatCurrency(record.total)}</div>
         </div>
       </div>
       <button
-        onClick={() => navigate('/invoices')}
+        onClick={() => navigate('/invoice-detail', { state: { invoice: record } })}
         className="w-full bg-white border border-gray-300 text-gray-900 py-2 rounded-lg font-medium text-sm flex items-center justify-center gap-2 active:bg-gray-50"
       >
         <FileText size={16} />
