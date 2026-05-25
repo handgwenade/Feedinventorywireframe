@@ -2,19 +2,14 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, ArrowLeft, UserPlus, User } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
-
-const PEOPLE = [
-  { id: '1', name: 'Bill Johnson' },
-  { id: '2', name: 'Tessie Geringer' },
-  { id: '3', name: 'Other Family' },
-];
+import { people } from '../data/mockData';
 
 export default function ChooseFamilyAccount() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filteredPeople = PEOPLE.filter(person =>
-    person.name.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredPeople = people.filter((person) =>
+    person.officialDisplayName.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const handleSelectPerson = (personId: string, personName: string) => {
@@ -50,14 +45,17 @@ export default function ChooseFamilyAccount() {
               type="text"
               placeholder="Search people..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(event) => setSearchQuery(event.target.value)}
               className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900"
             />
           </div>
         </div>
 
         {/* Add Person Button */}
-        <button className="w-full bg-white border-2 border-dashed border-gray-300 p-4 rounded-lg mb-6 flex items-center justify-center gap-2 text-gray-600 active:bg-gray-50">
+        <button
+          onClick={() => navigate('/add-account-person')}
+          className="w-full bg-white border-2 border-dashed border-gray-300 p-4 rounded-lg mb-6 flex items-center justify-center gap-2 text-gray-600 active:bg-gray-50"
+        >
           <UserPlus size={20} />
           <span className="font-medium">Add Person</span>
         </button>
@@ -69,13 +67,13 @@ export default function ChooseFamilyAccount() {
             {filteredPeople.map((person) => (
               <button
                 key={person.id}
-                onClick={() => handleSelectPerson(person.id, person.name)}
+                onClick={() => handleSelectPerson(person.id, person.officialDisplayName)}
                 className="w-full bg-white border border-gray-200 p-4 rounded-lg flex items-center gap-3 active:bg-gray-50"
               >
                 <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
                   <User size={20} className="text-gray-600" />
                 </div>
-                <span className="font-medium text-gray-900">{person.name}</span>
+                <span className="font-medium text-gray-900">{person.officialDisplayName}</span>
               </button>
             ))}
           </div>
