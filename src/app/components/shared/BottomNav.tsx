@@ -46,7 +46,7 @@ export default function BottomNav() {
           icon={<Users size={20} />}
           label="Accounts"
           active={isActive('/accounts')}
-          onClick={() => {}}
+          onClick={() => navigate('/accounts')}
         />
       </div>
     </div>

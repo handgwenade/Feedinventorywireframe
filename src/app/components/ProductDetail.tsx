@@ -103,7 +103,7 @@ export default function ProductDetail() {
           <ActionButton
             icon={<Clock size={20} />}
             label="View History"
-            onClick={() => {}}
+            onClick={() => navigate('/activity-history')}
           />
         </div>
 

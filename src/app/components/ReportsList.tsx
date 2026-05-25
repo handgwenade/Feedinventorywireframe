@@ -1,0 +1,152 @@
+import { useNavigate } from 'react-router-dom';
+import { ArrowLeft, Package, AlertTriangle, Clock, Users, Truck, HomeIcon, FileText, DollarSign } from 'lucide-react';
+import BottomNav from './shared/BottomNav';
+import UserIcon from './shared/UserIcon';
+
+interface ReportCard {
+  id: string;
+  name: string;
+  helperText: string;
+  icon: React.ReactNode;
+  route: string;
+}
+
+const reports: ReportCard[] = [
+  {
+    id: '1',
+    name: 'Inventory Summary',
+    helperText: 'Current quantity, value, and stock status by product.',
+    icon: <Package size={24} />,
+    route: '/report-inventory-summary'
+  },
+  {
+    id: '2',
+    name: 'Low Stock',
+    helperText: 'Products at or below minimum quantity.',
+    icon: <AlertTriangle size={24} />,
+    route: '/report-low-stock'
+  },
+  {
+    id: '3',
+    name: 'Activity History',
+    helperText: 'All inventory, invoice, payment, and account changes.',
+    icon: <Clock size={24} />,
+    route: '/activity-history'
+  },
+  {
+    id: '4',
+    name: 'Customer Sales',
+    helperText: 'Sales to outside customers only.',
+    icon: <Users size={24} />,
+    route: '/report-customer-sales'
+  },
+  {
+    id: '5',
+    name: 'K2 Account Use',
+    helperText: 'Feed/products recorded to K2.',
+    icon: <Truck size={24} />,
+    route: '/report-k2-use'
+  },
+  {
+    id: '6',
+    name: 'Family Use',
+    helperText: 'Feed/products recorded to family/person records.',
+    icon: <HomeIcon size={24} />,
+    route: '/report-family-use'
+  },
+  {
+    id: '7',
+    name: 'Unpaid Invoices',
+    helperText: 'Open balances by customer/account.',
+    icon: <FileText size={24} />,
+    route: '/report-unpaid-invoices'
+  },
+  {
+    id: '8',
+    name: 'Payments Received',
+    helperText: 'Cash, check, and other payments recorded.',
+    icon: <DollarSign size={24} />,
+    route: '/report-payments-received'
+  }
+];
+
+export default function ReportsList() {
+  const navigate = useNavigate();
+
+  return (
+    <div className="min-h-screen bg-gray-50 pb-24">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200 p-4 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => navigate('/')}
+            className="text-gray-600 active:text-gray-900"
+          >
+            <ArrowLeft size={24} />
+          </button>
+          <h1 className="text-xl font-semibold text-gray-900">Reports</h1>
+        </div>
+        <UserIcon />
+      </div>
+
+      <div className="p-4 space-y-4">
+        {/* Helper Text */}
+        <p className="text-sm text-gray-600">
+          Review inventory, sales, payments, and account activity.
+        </p>
+
+        {/* Report Cards */}
+        <div className="space-y-3">
+          {reports.map(report => (
+            <ReportCardComponent
+              key={report.id}
+              report={report}
+              onClick={() => navigate(report.route)}
+            />
+          ))}
+        </div>
+
+        {/* Annotations */}
+        <div className="mt-6 space-y-3">
+          <div className="p-3 bg-gray-50 border border-gray-300 rounded text-xs text-gray-600 leading-relaxed">
+            <strong>Separation:</strong> Reports should separate Customer, K2, and Family activity so customer sales are not mixed with related-entity or family use.
+          </div>
+          <div className="p-3 bg-gray-50 border border-gray-300 rounded text-xs text-gray-600 leading-relaxed">
+            <strong>Role-based access:</strong> Admin/Manager can see full reports. Operator/View Only access can be limited.
+          </div>
+          <div className="p-3 bg-gray-50 border border-gray-300 rounded text-xs text-gray-600 leading-relaxed">
+            <strong>Read-only:</strong> Reports are for viewing, exporting, and printing. Editing should happen through the source record, not inside the report.
+          </div>
+        </div>
+      </div>
+
+      <BottomNav />
+    </div>
+  );
+}
+
+function ReportCardComponent({
+  report,
+  onClick
+}: {
+  report: ReportCard;
+  onClick: () => void;
+}) {
+  return (
+    <div
+      onClick={onClick}
+      className="bg-white border border-gray-200 rounded-lg p-4 active:bg-gray-50 cursor-pointer"
+    >
+      <div className="flex items-start gap-3 mb-2">
+        <div className="text-gray-700 mt-1">{report.icon}</div>
+        <div className="flex-1">
+          <div className="font-semibold text-gray-900 mb-1">{report.name}</div>
+          <div className="text-sm text-gray-600">{report.helperText}</div>
+        </div>
+      </div>
+      <button className="mt-3 w-full bg-white border border-gray-300 text-gray-900 py-2 rounded-lg font-medium text-sm active:bg-gray-50">
+        View
+      </button>
+    </div>
+  );
+}

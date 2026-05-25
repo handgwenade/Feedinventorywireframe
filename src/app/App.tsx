@@ -24,6 +24,27 @@ import InvoicesList from './components/InvoicesList';
 import InvoiceDetail from './components/InvoiceDetail';
 import RecordPayment from './components/RecordPayment';
 import PaymentRecorded from './components/PaymentRecorded';
+import AccountsList from './components/AccountsList';
+import AccountDetail from './components/AccountDetail';
+import AddAccountPerson from './components/AddAccountPerson';
+import ActivityHistory from './components/ActivityHistory';
+import ActivityDetail from './components/ActivityDetail';
+import ReportsList from './components/ReportsList';
+import ReportInventorySummary from './components/ReportInventorySummary';
+import ReportLowStock from './components/ReportLowStock';
+import ReportCustomerSales from './components/ReportCustomerSales';
+import ReportK2Use from './components/ReportK2Use';
+import ReportFamilyUse from './components/ReportFamilyUse';
+import ReportUnpaidInvoices from './components/ReportUnpaidInvoices';
+import ReportPaymentsReceived from './components/ReportPaymentsReceived';
+import ProfileMenu from './components/ProfileMenu';
+import MyProfile from './components/MyProfile';
+import RolePermissions from './components/RolePermissions';
+import Settings from './components/Settings';
+import ManageUsers from './components/ManageUsers';
+import EditUser from './components/EditUser';
+import Login from './components/Login';
+import SessionExpired from './components/SessionExpired';
 
 export default function App() {
   return (
@@ -55,6 +76,27 @@ export default function App() {
           <Route path="/invoice-detail" element={<InvoiceDetail />} />
           <Route path="/record-payment" element={<RecordPayment />} />
           <Route path="/payment-recorded" element={<PaymentRecorded />} />
+          <Route path="/accounts" element={<AccountsList />} />
+          <Route path="/account-detail" element={<AccountDetail />} />
+          <Route path="/add-account-person" element={<AddAccountPerson />} />
+          <Route path="/activity-history" element={<ActivityHistory />} />
+          <Route path="/activity-detail" element={<ActivityDetail />} />
+          <Route path="/reports" element={<ReportsList />} />
+          <Route path="/report-inventory-summary" element={<ReportInventorySummary />} />
+          <Route path="/report-low-stock" element={<ReportLowStock />} />
+          <Route path="/report-customer-sales" element={<ReportCustomerSales />} />
+          <Route path="/report-k2-use" element={<ReportK2Use />} />
+          <Route path="/report-family-use" element={<ReportFamilyUse />} />
+          <Route path="/report-unpaid-invoices" element={<ReportUnpaidInvoices />} />
+          <Route path="/report-payments-received" element={<ReportPaymentsReceived />} />
+          <Route path="/profile-menu" element={<ProfileMenu />} />
+          <Route path="/my-profile" element={<MyProfile />} />
+          <Route path="/role-permissions" element={<RolePermissions />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/manage-users" element={<ManageUsers />} />
+          <Route path="/edit-user" element={<EditUser />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/session-expired" element={<SessionExpired />} />
         </Routes>
       </div>
     </BrowserRouter>

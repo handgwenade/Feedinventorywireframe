@@ -64,12 +64,12 @@ export default function Dashboard() {
           <NavCard
             icon={<Users size={24} />}
             label="Accounts"
-            onClick={() => {}}
+            onClick={() => navigate('/accounts')}
           />
           <NavCard
             icon={<BarChart3 size={24} />}
             label="Reports"
-            onClick={() => {}}
+            onClick={() => navigate('/reports')}
           />
           <NavCard
             icon={<PlusCircle size={24} />}
@@ -79,7 +79,7 @@ export default function Dashboard() {
           <NavCard
             icon={<Clock size={24} />}
             label="Activity History"
-            onClick={() => {}}
+            onClick={() => navigate('/activity-history')}
           />
         </div>
       </div>
