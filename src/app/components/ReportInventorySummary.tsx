@@ -3,74 +3,32 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Search, Download, Printer } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
 import UserIcon from './shared/UserIcon';
+import { inventorySummary, productCategories, products } from '../data/mockData';
+import { calculateInventoryValue, formatCurrency, isLowStock } from '../utils/calculations';
+import type { Product } from '../types';
 
 type FilterType = 'all' | 'low-stock' | 'salt' | 'mineral' | 'tubs' | 'blocks';
 
-interface InventoryItem {
-  id: string;
-  name: string;
-  quantity: number;
-  unitPrice: number;
-  inventoryValue: number;
-  status: 'in-stock' | 'low-stock';
+function getProductCategoryName(categoryId: string): string {
+  return productCategories.find((category) => category.id === categoryId)?.name ?? 'Other';
 }
-
-const inventoryData: InventoryItem[] = [
-  {
-    id: '1',
-    name: 'Garlic Salt Blocks',
-    quantity: 247,
-    unitPrice: 17.15,
-    inventoryValue: 4236.05,
-    status: 'in-stock'
-  },
-  {
-    id: '2',
-    name: 'Redmond Mineral Salt',
-    quantity: 200,
-    unitPrice: 9.79,
-    inventoryValue: 1958.00,
-    status: 'in-stock'
-  },
-  {
-    id: '3',
-    name: 'SweetPro FiberMate 20',
-    quantity: 6,
-    unitPrice: 154.00,
-    inventoryValue: 924.00,
-    status: 'low-stock'
-  },
-  {
-    id: '4',
-    name: 'RumenEdge Tubs',
-    quantity: 4,
-    unitPrice: 123.70,
-    inventoryValue: 494.80,
-    status: 'low-stock'
-  }
-];
 
 export default function ReportInventorySummary() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
 
-  const totalValue = inventoryData.reduce((sum, item) => sum + item.inventoryValue, 0);
-  const totalUnits = inventoryData.reduce((sum, item) => sum + item.quantity, 0);
-  const lowStockCount = inventoryData.filter(item => item.status === 'low-stock').length;
+  const totalValue = inventorySummary.totalInventoryValue;
+  const totalUnits = inventorySummary.totalUnits;
+  const lowStockCount = inventorySummary.lowStockCount;
 
-  const filteredData = inventoryData.filter(item => {
-    const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
+  const filteredData = products.filter((product) => {
+    const categoryName = getProductCategoryName(product.categoryId).toLowerCase();
+    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase());
 
     if (activeFilter === 'all') return matchesSearch;
-    if (activeFilter === 'low-stock') return matchesSearch && item.status === 'low-stock';
-    // Simple filters based on product name keywords
-    if (activeFilter === 'salt') return matchesSearch && item.name.toLowerCase().includes('salt');
-    if (activeFilter === 'mineral') return matchesSearch && item.name.toLowerCase().includes('mineral');
-    if (activeFilter === 'tubs') return matchesSearch && item.name.toLowerCase().includes('tub');
-    if (activeFilter === 'blocks') return matchesSearch && item.name.toLowerCase().includes('block');
-
-    return matchesSearch;
+    if (activeFilter === 'low-stock') return matchesSearch && isLowStock(product);
+    return matchesSearch && categoryName === activeFilter;
   });
 
   return (
@@ -97,7 +55,7 @@ export default function ReportInventorySummary() {
 
         {/* Summary Cards */}
         <div className="grid grid-cols-3 gap-3">
-          <SummaryCard label="Total Inventory Value" value={`$${totalValue.toFixed(2)}`} />
+          <SummaryCard label="Total Inventory Value" value={formatCurrency(totalValue)} />
           <SummaryCard label="Total Units" value={totalUnits.toString()} />
           <SummaryCard label="Low Stock Items" value={lowStockCount.toString()} />
         </div>
@@ -109,7 +67,7 @@ export default function ReportInventorySummary() {
             type="text"
             placeholder="Search products..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(event) => setSearchQuery(event.target.value)}
             className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900"
           />
         </div>
@@ -126,8 +84,8 @@ export default function ReportInventorySummary() {
 
         {/* Inventory List */}
         <div className="space-y-3">
-          {filteredData.map(item => (
-            <InventoryRow key={item.id} item={item} />
+          {filteredData.map((product) => (
+            <InventoryRow key={product.id} product={product} />
           ))}
         </div>
 
@@ -165,31 +123,36 @@ function FilterChip({ label, active, onClick }: { label: string; active: boolean
   );
 }
 
-function InventoryRow({ item }: { item: InventoryItem }) {
+function InventoryRow({ product }: { product: Product }) {
+  const status = isLowStock(product) ? 'low-stock' : 'in-stock';
+  const inventoryValue = calculateInventoryValue(product);
+
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-4">
-      <div className="flex justify-between items-start mb-2">
-        <div className="font-semibold text-gray-900">{item.name}</div>
+      <div className="flex justify-between items-start mb-2 gap-3">
+        <div className="font-semibold text-gray-900">{product.name}</div>
         <span className={`text-xs px-2 py-1 rounded border ${
-          item.status === 'low-stock'
+          status === 'low-stock'
             ? 'bg-gray-100 border-gray-300 text-gray-700'
             : 'bg-gray-50 border-gray-200 text-gray-600'
         }`}>
-          {item.status === 'low-stock' ? 'Low Stock' : 'In Stock'}
+          {status === 'low-stock' ? 'Low Stock' : 'In Stock'}
         </span>
       </div>
       <div className="grid grid-cols-3 gap-2 text-sm">
         <div>
           <div className="text-gray-600 text-xs">Quantity</div>
-          <div className="font-medium text-gray-900">{item.quantity} units</div>
+          <div className="font-medium text-gray-900">
+            {product.currentQuantity} {product.unitLabel}
+          </div>
         </div>
         <div>
           <div className="text-gray-600 text-xs">Unit Price</div>
-          <div className="font-medium text-gray-900">${item.unitPrice.toFixed(2)}</div>
+          <div className="font-medium text-gray-900">{formatCurrency(product.salePrice)}</div>
         </div>
         <div>
           <div className="text-gray-600 text-xs">Value</div>
-          <div className="font-medium text-gray-900">${item.inventoryValue.toFixed(2)}</div>
+          <div className="font-medium text-gray-900">{formatCurrency(inventoryValue)}</div>
         </div>
       </div>
     </div>
