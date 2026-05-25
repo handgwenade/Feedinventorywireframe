@@ -3,63 +3,47 @@ import { useNavigate } from 'react-router-dom';
 import { Search, ChevronDown, DollarSign, AlertCircle, TrendingUp } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
 import UserIcon from './shared/UserIcon';
-
-interface Invoice {
-  id: string;
-  number: string;
-  account: string;
-  type: 'customer' | 'k2' | 'family';
-  status: 'unpaid' | 'paid' | 'partial' | 'written-off' | 'internal-transfer';
-  date: string;
-  total: number;
-  balance: number;
-}
-
-const INVOICES: Invoice[] = [
-  {
-    id: '1',
-    number: 'INV-1001',
-    account: 'Anderson Cattle Co.',
-    type: 'customer',
-    status: 'unpaid',
-    date: '2026-05-20',
-    total: 171.50,
-    balance: 171.50,
-  },
-  {
-    id: '2',
-    number: 'STMT-1002',
-    account: 'K2',
-    type: 'k2',
-    status: 'internal-transfer',
-    date: '2026-05-19',
-    total: 34.30,
-    balance: 0,
-  },
-  {
-    id: '3',
-    number: 'FAM-1003',
-    account: 'Bill Johnson',
-    type: 'family',
-    status: 'unpaid',
-    date: '2026-05-18',
-    total: 51.45,
-    balance: 51.45,
-  },
-  {
-    id: '4',
-    number: 'INV-1004',
-    account: 'Johnson Ranch',
-    type: 'customer',
-    status: 'paid',
-    date: '2026-05-17',
-    total: 97.90,
-    balance: 0,
-  },
-];
+import { accounts, invoiceLineItems, invoiceRecords, people } from '../data/mockData';
+import { formatCurrency } from '../utils/calculations';
+import type { InvoiceRecord, InvoiceRecordType, InvoiceStatus } from '../types';
 
 type FilterType = 'all' | 'unpaid' | 'paid' | 'customer' | 'k2' | 'family';
 type SortType = 'date' | 'balance' | 'account';
+type InvoiceListType = 'customer' | 'k2' | 'family';
+
+interface InvoiceListItem extends InvoiceRecord {
+  accountName: string;
+  type: InvoiceListType;
+  productsSummary: string;
+}
+
+function getInvoiceType(recordType: InvoiceRecordType): InvoiceListType {
+  if (recordType === 'customer_invoice') return 'customer';
+  if (recordType === 'k2_statement') return 'k2';
+  return 'family';
+}
+
+function getAccountName(invoice: InvoiceRecord): string {
+  if (invoice.accountId) {
+    return accounts.find((account) => account.id === invoice.accountId)?.name ?? 'Unknown Account';
+  }
+
+  if (invoice.personId) {
+    return people.find((person) => person.id === invoice.personId)?.officialDisplayName ?? 'Unknown Person';
+  }
+
+  return 'Unknown';
+}
+
+function getProductsSummary(invoiceId: string): string {
+  const items = invoiceLineItems.filter((item) => item.invoiceRecordId === invoiceId);
+
+  if (items.length === 0) return 'No line items';
+
+  return items
+    .map((item) => `${item.description}, ${item.quantity} ${item.quantity === 1 ? 'unit' : 'units'}`)
+    .join('; ');
+}
 
 export default function InvoicesList() {
   const navigate = useNavigate();
@@ -68,27 +52,39 @@ export default function InvoicesList() {
   const [sortBy, setSortBy] = useState<SortType>('date');
   const [showSortMenu, setShowSortMenu] = useState(false);
 
-  const filteredInvoices = INVOICES.filter(invoice => {
-    const matchesSearch =
-      invoice.number.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      invoice.account.toLowerCase().includes(searchQuery.toLowerCase());
+  const invoices: InvoiceListItem[] = invoiceRecords.map((invoice) => ({
+    ...invoice,
+    accountName: getAccountName(invoice),
+    type: getInvoiceType(invoice.recordType),
+    productsSummary: getProductsSummary(invoice.id),
+  }));
 
-    if (activeFilter === 'all') return matchesSearch;
-    if (activeFilter === 'unpaid') return matchesSearch && (invoice.status === 'unpaid' || invoice.status === 'partial');
-    if (activeFilter === 'paid') return matchesSearch && (invoice.status === 'paid' || invoice.status === 'written-off' || invoice.status === 'internal-transfer');
-    return matchesSearch && invoice.type === activeFilter;
-  }).sort((a, b) => {
-    if (sortBy === 'date') return b.date.localeCompare(a.date);
-    if (sortBy === 'balance') return b.balance - a.balance;
-    if (sortBy === 'account') return a.account.localeCompare(b.account);
-    return 0;
-  });
+  const filteredInvoices = invoices
+    .filter((invoice) => {
+      const matchesSearch =
+        invoice.accountName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        invoice.displayNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        invoice.productsSummary.toLowerCase().includes(searchQuery.toLowerCase());
 
-  const unpaidTotal = INVOICES.filter(i => i.status === 'unpaid' || i.status === 'partial').reduce((sum, i) => sum + i.balance, 0);
-  const overdue = INVOICES.filter(i => i.status === 'unpaid').length;
-  const paidThisMonth = INVOICES.filter(i => i.status === 'paid').length;
+      if (activeFilter === 'all') return matchesSearch;
+      if (activeFilter === 'unpaid') {
+        return matchesSearch && invoice.balanceDue > 0 && invoice.status !== 'paid';
+      }
+      if (activeFilter === 'paid') return matchesSearch && invoice.status === 'paid';
+      return matchesSearch && invoice.type === activeFilter;
+    })
+    .sort((a, b) => {
+      if (sortBy === 'date') return new Date(b.issueDate).getTime() - new Date(a.issueDate).getTime();
+      if (sortBy === 'balance') return b.balanceDue - a.balanceDue;
+      if (sortBy === 'account') return a.accountName.localeCompare(b.accountName);
+      return 0;
+    });
 
-  const handleViewInvoice = (invoice: Invoice) => {
+  const unpaidTotal = invoiceRecords.reduce((sum, invoice) => sum + invoice.balanceDue, 0);
+  const overdue = invoiceRecords.filter((invoice) => invoice.status === 'overdue').length;
+  const paidThisMonth = invoiceRecords.filter((invoice) => invoice.status === 'paid').length;
+
+  const handleViewInvoice = (invoice: InvoiceListItem) => {
     navigate('/invoice-detail', { state: { invoice } });
   };
 
@@ -111,7 +107,7 @@ export default function InvoicesList() {
           <SummaryCard
             icon={<DollarSign size={18} />}
             label="Unpaid Total"
-            value={`$${unpaidTotal.toFixed(2)}`}
+            value={formatCurrency(unpaidTotal)}
           />
           <SummaryCard
             icon={<AlertCircle size={18} />}
@@ -200,22 +196,25 @@ export default function InvoicesList() {
           >
             <div className="flex justify-between items-start mb-2">
               <div>
-                <div className="font-semibold text-gray-900 mb-1">{invoice.number}</div>
-                <div className="text-sm text-gray-700">{invoice.account}</div>
+                <div className="font-semibold text-gray-900 mb-1">{invoice.displayNumber}</div>
+                <div className="text-sm text-gray-700">{invoice.accountName}</div>
+                <div className="text-xs text-gray-500 mt-1">{invoice.productsSummary}</div>
               </div>
-              <div className="flex gap-1">
+              <div className="flex gap-1 flex-wrap justify-end">
                 <TypeBadge type={invoice.type} />
                 <StatusBadge status={invoice.status} />
               </div>
             </div>
             <div className="flex justify-between items-end">
               <div className="text-sm text-gray-600">
-                {new Date(invoice.date).toLocaleDateString()}
+                {new Date(invoice.issueDate).toLocaleDateString()}
               </div>
               <div className="text-right">
-                <div className="text-sm text-gray-600">Total: ${invoice.total.toFixed(2)}</div>
-                {invoice.balance > 0 && (
-                  <div className="text-sm font-semibold text-gray-900">Balance: ${invoice.balance.toFixed(2)}</div>
+                <div className="text-sm text-gray-600">Total: {formatCurrency(invoice.total)}</div>
+                {invoice.balanceDue > 0 && (
+                  <div className="text-sm font-semibold text-gray-900">
+                    Balance: {formatCurrency(invoice.balanceDue)}
+                  </div>
                 )}
               </div>
             </div>
@@ -253,7 +252,7 @@ function FilterChip({ label, active, onClick }: { label: string; active: boolean
   );
 }
 
-function TypeBadge({ type }: { type: 'customer' | 'k2' | 'family' }) {
+function TypeBadge({ type }: { type: InvoiceListType }) {
   const labels = { customer: 'Customer', k2: 'K2', family: 'Family' };
   return (
     <span className="inline-block px-2 py-0.5 bg-gray-100 text-gray-700 text-xs font-medium rounded border border-gray-300">
@@ -262,17 +261,22 @@ function TypeBadge({ type }: { type: 'customer' | 'k2' | 'family' }) {
   );
 }
 
-function StatusBadge({ status }: { status: string }) {
-  const labels = {
-    'unpaid': 'Unpaid',
-    'paid': 'Paid',
-    'partial': 'Partial',
-    'written-off': 'Written Off',
-    'internal-transfer': 'Internal Transfer',
+function StatusBadge({ status }: { status: InvoiceStatus }) {
+  const labels: Record<InvoiceStatus, string> = {
+    unpaid: 'Unpaid',
+    paid: 'Paid',
+    partial: 'Partial',
+    overdue: 'Overdue',
+    void: 'Void',
+    written_off: 'Written Off',
+    internal_transfer: 'Internal Transfer',
+    track_only: 'Track Only',
+    needs_payment: 'Needs Payment',
   };
+
   return (
     <span className="inline-block px-2 py-0.5 bg-gray-100 text-gray-700 text-xs font-medium rounded border border-gray-300">
-      {labels[status as keyof typeof labels]}
+      {labels[status]}
     </span>
   );
 }
