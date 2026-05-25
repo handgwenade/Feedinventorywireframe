@@ -6,7 +6,7 @@ StockLog is the working name for the C&C Feed Inventory app. This document defin
 
 ## Current state
 
-The app is currently a Vite/React wireframe using shared mock data, shared TypeScript types, and shared calculation helpers.
+The app is currently a Vite/React wireframe using shared mock data, shared TypeScript types, shared calculation helpers, and an initial Supabase service layer.
 
 Completed mock-data wiring includes:
 
@@ -22,7 +22,19 @@ Completed mock-data wiring includes:
 - Payment screens
 - Activity history/detail
 
-The next phase is backend planning, not backend implementation.
+Backend setup has started. Supabase has been created, the initial schema has been applied, the first organization/admin profile has been bootstrapped, and setup seed data has been inserted.
+
+Completed backend milestones:
+
+- Supabase project created for StockLog
+- `.env.local` configured locally and ignored by Git
+- Initial schema migration created and applied
+- First `organizations` row created for StockLog
+- First `user_profiles` row created for Gwen Johnson as `admin`
+- Setup seed data inserted for product categories, products, accounts, people, and app settings
+- `@supabase/supabase-js` installed
+- `src/app/services/supabaseClient.ts` added
+- `src/app/services/productsService.ts` added
 
 ## Backend recommendation
 
@@ -499,20 +511,23 @@ This avoids rewriting every component again when the backend goes live.
 
 ## Implementation phases
 
-### Phase 1: Schema and seed data
+### Phase 1: Schema and seed data — complete
 
-- Create Supabase SQL migration.
-- Create tables.
-- Enable RLS.
-- Add basic policies.
-- Seed product categories, products, customers, K2 account, people, sample invoices, sample activity.
+- Created Supabase SQL migration.
+- Created tables.
+- Enabled RLS.
+- Added basic policies.
+- Bootstrapped first organization/admin profile.
+- Seeded product categories, products, customers, K2 account, people, and app settings.
 
-### Phase 2: Service layer with mock backend compatibility
+### Phase 2: Service layer with mock backend compatibility — in progress
 
-- Add service files.
-- Move mock-data reads behind services.
-- Keep app behavior unchanged.
-- Build and verify routes.
+- Added Supabase client service.
+- Added initial products service.
+- Next: test live product reads without swapping the UI yet.
+- Then move mock-data reads behind services screen by screen.
+- Keep app behavior unchanged during service migration.
+- Build and verify routes after each change.
 
 ### Phase 3: Read from Supabase
 
@@ -560,4 +575,4 @@ Later, add SQL views for:
 
 ## Immediate next step
 
-Create the first Supabase SQL migration from this plan, but do not apply it until reviewed.
+Test the new `productsService.list()` read path against Supabase without changing production UI behavior. After the live read is confirmed, begin migrating components from direct `mockData` imports to service calls in small batches.
