@@ -430,6 +430,21 @@ Possible settings:
 - k2_statement_prefix
 - family_use_prefix
 
+## Bootstrap strategy
+
+The initial RLS plan creates a chicken-and-egg problem: admin users can manage profiles and organizations, but the first organization and first admin profile do not exist yet.
+
+For the first backend version, use a manual bootstrap process instead of weakening RLS:
+
+1. Create the first Supabase Auth user.
+2. Manually insert the first `organizations` row in the Supabase SQL editor.
+3. Manually insert the first `user_profiles` row linked to that auth user with role `admin`.
+4. After that first admin exists, normal app/admin workflows can manage users and setup records.
+
+This keeps the public app from allowing random organization creation or self-appointed admins.
+
+Later, StockLog can add a proper onboarding function or invite system for new organizations and users.
+
 ## Row-level security plan
 
 RLS should be enabled on all public tables.
@@ -541,7 +556,7 @@ Later, add SQL views for:
 - Does C&C need vendor purchase records now, or later?
 - Should cost per unit be stored immediately or delayed until permissions are built?
 - What invoice numbering format should StockLog use?
-- Should the app support multiple businesses/workspaces from day one?
+- What should the first-admin bootstrap process look like once onboarding is no longer manual?
 
 ## Immediate next step
 
