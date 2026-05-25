@@ -3,106 +3,94 @@ import { useNavigate } from 'react-router-dom';
 import { Search, ArrowLeft, ChevronDown } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
 import UserIcon from './shared/UserIcon';
+import {
+  accounts,
+  activityLogs,
+  inventoryTransactions,
+  invoiceRecords,
+  payments,
+  people,
+  products,
+  users,
+} from '../data/mockData';
+import { formatCurrency } from '../utils/calculations';
+import type { ActivityLog, ActivityType } from '../types';
 
 type FilterType = 'all' | 'taken' | 'added' | 'adjusted' | 'payments' | 'customer' | 'k2' | 'family';
 type DateFilter = 'today' | 'this-week' | 'this-month' | 'custom';
 type SortOption = 'newest' | 'oldest';
+type RecordBadge = 'customer' | 'k2' | 'family';
 
-interface Activity {
-  id: string;
-  type: 'take-feed' | 'add-stock' | 'payment' | 'adjustment';
-  recordType?: 'customer' | 'k2' | 'family';
-  date: string;
-  time: string;
-  recordedBy: string;
-  takenBy?: string;
-  account?: string;
-  product?: string;
-  quantity?: number;
-  newQuantity?: number;
-  previousQuantity?: number;
-  correctedQuantity?: number;
-  difference?: number;
-  paymentAmount?: number;
-  paymentMethod?: string;
-  invoiceRecord?: string;
-  reason?: string;
+function getUserName(userId: string): string {
+  return users.find((user) => user.id === userId)?.name ?? 'Unknown User';
 }
 
-const activities: Activity[] = [
-  {
-    id: '1',
-    type: 'take-feed',
-    recordType: 'customer',
-    date: '5/19/2026',
-    time: '10:42 AM',
-    recordedBy: 'Operator',
-    account: 'Anderson Cattle Co.',
-    product: 'Garlic Salt Blocks',
-    quantity: -10,
-    newQuantity: 237,
-    invoiceRecord: 'Customer invoice'
-  },
-  {
-    id: '2',
-    type: 'take-feed',
-    recordType: 'k2',
-    date: '5/18/2026',
-    time: '2:15 PM',
-    recordedBy: 'Bill Johnson',
-    account: 'K2',
-    product: 'Garlic Salt Blocks',
-    quantity: -2,
-    newQuantity: 247,
-    invoiceRecord: 'K2 Statement'
-  },
-  {
-    id: '3',
-    type: 'take-feed',
-    recordType: 'family',
-    date: '5/17/2026',
-    time: '8:30 AM',
-    recordedBy: 'Tessie Geringer',
-    takenBy: 'Bill Johnson',
-    product: 'Garlic Salt Blocks',
-    quantity: -3,
-    newQuantity: 249,
-    invoiceRecord: 'Family Use'
-  },
-  {
-    id: '4',
-    type: 'add-stock',
-    date: '5/16/2026',
-    time: '4:10 PM',
-    recordedBy: 'Operator',
-    product: 'Redmond Mineral Salt',
-    quantity: 40,
-    newQuantity: 200
-  },
-  {
-    id: '5',
-    type: 'payment',
-    recordType: 'customer',
-    date: '5/15/2026',
-    time: '1:20 PM',
-    recordedBy: 'Manager',
-    account: 'Johnson Ranch',
-    paymentMethod: 'Check',
-    paymentAmount: 97.90
-  },
-  {
-    id: '6',
-    type: 'adjustment',
-    date: '5/14/2026',
-    time: '9:00 AM',
-    recordedBy: 'Manager',
-    product: 'RumenEdge Tubs',
-    previousQuantity: 5,
-    correctedQuantity: 4,
-    difference: -1,
-    reason: 'Physical count correction'
-  }
-];
+function getProductName(productId?: string): string | undefined {
+  if (!productId) return undefined;
+  return products.find((product) => product.id === productId)?.name;
+}
+
+function getAccountName(accountId?: string): string | undefined {
+  if (!accountId) return undefined;
+  return accounts.find((account) => account.id === accountId)?.name;
+}
+
+function getPersonName(personId?: string): string | undefined {
+  if (!personId) return undefined;
+  return people.find((person) => person.id === personId)?.officialDisplayName;
+}
+
+function getActivityTypeLabel(activityType: ActivityType): string {
+  const labels: Record<ActivityType, string> = {
+    take_feed: 'Take Feed',
+    add_stock: 'Add Stock',
+    adjust_count: 'Count Adjustment',
+    correction: 'Correction',
+    invoice_created: 'Invoice Created',
+    payment_recorded: 'Payment Recorded',
+    account_created: 'Account Created',
+    account_updated: 'Account Updated',
+    person_created: 'Person Created',
+    person_updated: 'Person Updated',
+    status_changed: 'Status Changed',
+  };
+
+  return labels[activityType];
+}
+
+function getRecordBadge(activity: ActivityLog): RecordBadge | undefined {
+  const invoice = invoiceRecords.find((record) => record.id === activity.invoiceRecordId);
+
+  if (invoice?.recordType === 'customer_invoice') return 'customer';
+  if (invoice?.recordType === 'k2_statement') return 'k2';
+  if (invoice?.recordType === 'family_use') return 'family';
+
+  const account = accounts.find((item) => item.id === activity.accountId);
+  if (account?.accountType === 'customer') return 'customer';
+  if (account?.accountType === 'k2') return 'k2';
+
+  if (activity.personId) return 'family';
+
+  return undefined;
+}
+
+function getPaymentAmount(paymentId?: string): number | undefined {
+  if (!paymentId) return undefined;
+  return payments.find((payment) => payment.id === paymentId)?.amount;
+}
+
+function getInventoryTransaction(activity: ActivityLog) {
+  if (!activity.inventoryTransactionId) return undefined;
+  return inventoryTransactions.find((transaction) => transaction.id === activity.inventoryTransactionId);
+}
+
+function formatActivityDate(value: string): string {
+  return new Date(value).toLocaleDateString();
+}
+
+function formatActivityTime(value: string): string {
+  return new Date(value).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+}
 
 export default function ActivityHistory() {
   const navigate = useNavigate();
@@ -111,27 +99,43 @@ export default function ActivityHistory() {
   const [dateFilter, setDateFilter] = useState<DateFilter>('this-week');
   const [sortOption, setSortOption] = useState<SortOption>('newest');
 
-  const filteredActivities = activities.filter(activity => {
-    const matchesSearch =
-      activity.product?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      activity.account?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      activity.recordedBy?.toLowerCase().includes(searchQuery.toLowerCase());
+  const filteredActivities = activityLogs
+    .filter((activity) => {
+      const searchTarget = [
+        activity.summary,
+        getUserName(activity.actorUserId),
+        getProductName(activity.productId),
+        getAccountName(activity.accountId),
+        getPersonName(activity.personId),
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
 
-    if (activeFilter === 'all') return matchesSearch;
-    if (activeFilter === 'taken') return matchesSearch && activity.type === 'take-feed';
-    if (activeFilter === 'added') return matchesSearch && activity.type === 'add-stock';
-    if (activeFilter === 'adjusted') return matchesSearch && activity.type === 'adjustment';
-    if (activeFilter === 'payments') return matchesSearch && activity.type === 'payment';
-    if (activeFilter === 'customer') return matchesSearch && activity.recordType === 'customer';
-    if (activeFilter === 'k2') return matchesSearch && activity.recordType === 'k2';
-    if (activeFilter === 'family') return matchesSearch && activity.recordType === 'family';
+      const matchesSearch = searchTarget.includes(searchQuery.toLowerCase());
+      const recordBadge = getRecordBadge(activity);
 
-    return matchesSearch;
-  });
+      if (activeFilter === 'all') return matchesSearch;
+      if (activeFilter === 'taken') return matchesSearch && activity.activityType === 'take_feed';
+      if (activeFilter === 'added') return matchesSearch && activity.activityType === 'add_stock';
+      if (activeFilter === 'adjusted') {
+        return matchesSearch && ['adjust_count', 'correction'].includes(activity.activityType);
+      }
+      if (activeFilter === 'payments') return matchesSearch && activity.activityType === 'payment_recorded';
+      if (activeFilter === 'customer') return matchesSearch && recordBadge === 'customer';
+      if (activeFilter === 'k2') return matchesSearch && recordBadge === 'k2';
+      if (activeFilter === 'family') return matchesSearch && recordBadge === 'family';
+
+      return matchesSearch;
+    })
+    .sort((a, b) => {
+      const aDate = new Date(a.createdAt).getTime();
+      const bDate = new Date(b.createdAt).getTime();
+      return sortOption === 'newest' ? bDate - aDate : aDate - bDate;
+    });
 
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
-      {/* Header */}
       <div className="bg-white border-b border-gray-200 p-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <button
@@ -146,24 +150,21 @@ export default function ActivityHistory() {
       </div>
 
       <div className="p-4 space-y-4">
-        {/* Helper Text */}
         <p className="text-sm text-gray-600">
           See who changed inventory, invoices, payments, and accounts.
         </p>
 
-        {/* Search */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
           <input
             type="text"
             placeholder="Search products, people, accounts..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(event) => setSearchQuery(event.target.value)}
             className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900"
           />
         </div>
 
-        {/* Filter Chips */}
         <div>
           <div className="text-xs font-medium text-gray-600 mb-2">Activity Type</div>
           <div className="flex gap-2 overflow-x-auto pb-2">
@@ -178,7 +179,6 @@ export default function ActivityHistory() {
           </div>
         </div>
 
-        {/* Date Filter */}
         <div>
           <div className="text-xs font-medium text-gray-600 mb-2">Date Range</div>
           <div className="flex gap-2">
@@ -189,17 +189,16 @@ export default function ActivityHistory() {
           </div>
         </div>
 
-        {/* Sort Option */}
         <button
+          onClick={() => setSortOption(sortOption === 'newest' ? 'oldest' : 'newest')}
           className="w-full bg-white border border-gray-300 rounded-lg p-3 flex items-center justify-between text-gray-900 active:bg-gray-50"
         >
           <span className="font-medium">Sort: {sortOption === 'newest' ? 'Newest First' : 'Oldest First'}</span>
           <ChevronDown size={20} className="text-gray-500" />
         </button>
 
-        {/* Activity List */}
         <div className="space-y-3">
-          {filteredActivities.map(activity => (
+          {filteredActivities.map((activity) => (
             <ActivityCard
               key={activity.id}
               activity={activity}
@@ -208,7 +207,6 @@ export default function ActivityHistory() {
           ))}
         </div>
 
-        {/* Annotations */}
         <div className="mt-6 space-y-3">
           <div className="p-3 bg-gray-50 border border-gray-300 rounded text-xs text-gray-600 leading-relaxed">
             <strong>Audit Trail:</strong> Activity History shows who recorded the action, what changed, when it changed, and the resulting quantity or balance.
@@ -253,24 +251,10 @@ function DateFilterChip({ label, active, onClick }: { label: string; active: boo
   );
 }
 
-function ActivityCard({ activity, onClick }: { activity: Activity; onClick: () => void }) {
-  const getActivityTypeLabel = () => {
-    if (activity.type === 'take-feed') return 'Take Feed';
-    if (activity.type === 'add-stock') return 'Add Stock';
-    if (activity.type === 'payment') return 'Payment Recorded';
-    if (activity.type === 'adjustment') return 'Count Adjustment';
-    return activity.type;
-  };
-
-  const getRecordTypeBadge = () => {
-    if (!activity.recordType) return null;
-    const labels = { customer: 'Customer', k2: 'K2', family: 'Family' };
-    return (
-      <span className="inline-block px-2 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded border border-gray-300 ml-2">
-        {labels[activity.recordType]}
-      </span>
-    );
-  };
+function ActivityCard({ activity, onClick }: { activity: ActivityLog; onClick: () => void }) {
+  const transaction = getInventoryTransaction(activity);
+  const paymentAmount = getPaymentAmount(activity.paymentId);
+  const recordBadge = getRecordBadge(activity);
 
   return (
     <div
@@ -280,81 +264,58 @@ function ActivityCard({ activity, onClick }: { activity: Activity; onClick: () =
       <div className="flex items-start justify-between mb-2">
         <div>
           <div className="font-semibold text-gray-900 mb-1">
-            {getActivityTypeLabel()}
-            {getRecordTypeBadge()}
+            {getActivityTypeLabel(activity.activityType)}
+            {recordBadge && <RecordTypeBadge recordBadge={recordBadge} />}
           </div>
           <div className="text-sm text-gray-600">
-            {activity.date} {activity.time}
+            {formatActivityDate(activity.createdAt)} {formatActivityTime(activity.createdAt)}
           </div>
         </div>
       </div>
 
       <div className="space-y-1 text-sm">
         <div className="text-gray-700">
-          <span className="text-gray-600">Recorded by:</span> {activity.recordedBy}
+          <span className="text-gray-600">Recorded by:</span> {getUserName(activity.actorUserId)}
         </div>
 
-        {activity.takenBy && (
+        {getPersonName(activity.personId) && (
           <div className="text-gray-700">
-            <span className="text-gray-600">Taken by:</span> {activity.takenBy}
+            <span className="text-gray-600">Taken by:</span> {getPersonName(activity.personId)}
           </div>
         )}
 
-        {activity.account && (
+        {getAccountName(activity.accountId) && (
           <div className="text-gray-700">
-            <span className="text-gray-600">{activity.recordType === 'customer' ? 'Customer' : 'Account'}:</span> {activity.account}
+            <span className="text-gray-600">Account:</span> {getAccountName(activity.accountId)}
           </div>
         )}
 
-        {activity.product && (
+        {getProductName(activity.productId) && (
           <div className="text-gray-700">
-            <span className="text-gray-600">Product:</span> {activity.product}
+            <span className="text-gray-600">Product:</span> {getProductName(activity.productId)}
           </div>
         )}
 
-        {activity.quantity !== undefined && (
-          <div className="text-gray-700">
-            <span className="text-gray-600">Quantity:</span> {activity.quantity > 0 ? '+' : ''}{activity.quantity} units
-          </div>
-        )}
-
-        {activity.newQuantity !== undefined && (
-          <div className="text-gray-700">
-            <span className="text-gray-600">New quantity:</span> {activity.newQuantity}
-          </div>
-        )}
-
-        {activity.previousQuantity !== undefined && activity.correctedQuantity !== undefined && (
+        {transaction && (
           <>
             <div className="text-gray-700">
-              <span className="text-gray-600">Previous:</span> {activity.previousQuantity} → <span className="text-gray-600">Corrected:</span> {activity.correctedQuantity}
+              <span className="text-gray-600">Quantity:</span> {transaction.quantityChange > 0 ? '+' : ''}{transaction.quantityChange} units
             </div>
             <div className="text-gray-700">
-              <span className="text-gray-600">Difference:</span> {activity.difference}
+              <span className="text-gray-600">New quantity:</span> {transaction.quantityAfter}
             </div>
           </>
         )}
 
-        {activity.paymentAmount !== undefined && (
-          <>
-            <div className="text-gray-700">
-              <span className="text-gray-600">Payment method:</span> {activity.paymentMethod}
-            </div>
-            <div className="text-gray-700">
-              <span className="text-gray-600">Amount:</span> ${activity.paymentAmount.toFixed(2)}
-            </div>
-          </>
-        )}
-
-        {activity.invoiceRecord && (
+        {paymentAmount !== undefined && (
           <div className="text-gray-700">
-            <span className="text-gray-600">Record type:</span> {activity.invoiceRecord}
+            <span className="text-gray-600">Payment amount:</span> {formatCurrency(paymentAmount)}
           </div>
         )}
 
-        {activity.reason && (
+        {activity.invoiceRecordId && (
           <div className="text-gray-700">
-            <span className="text-gray-600">Reason:</span> {activity.reason}
+            <span className="text-gray-600">Related record:</span> {activity.invoiceRecordId}
           </div>
         )}
       </div>
@@ -363,5 +324,19 @@ function ActivityCard({ activity, onClick }: { activity: Activity; onClick: () =
         View Detail
       </button>
     </div>
+  );
+}
+
+function RecordTypeBadge({ recordBadge }: { recordBadge: RecordBadge }) {
+  const labels: Record<RecordBadge, string> = {
+    customer: 'Customer',
+    k2: 'K2',
+    family: 'Family',
+  };
+
+  return (
+    <span className="inline-block px-2 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded border border-gray-300 ml-2">
+      {labels[recordBadge]}
+    </span>
   );
 }
