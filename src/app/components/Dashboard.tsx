@@ -2,6 +2,8 @@ import { useNavigate } from 'react-router-dom';
 import { ShoppingCart, Package, FileText, Users, BarChart3, PlusCircle, Clock, DollarSign, AlertTriangle, TrendingUp } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
 import UserIcon from './shared/UserIcon';
+import { activityLogs, currentUser, inventorySummary } from '../data/mockData';
+import { formatCurrency } from '../utils/calculations';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -12,7 +14,7 @@ export default function Dashboard() {
       <div className="p-4 mb-2 flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 mb-1">C&C Feed Inventory</h1>
-          <p className="text-gray-600">Welcome back, Operator</p>
+<p className="text-gray-600">Welcome back, {currentUser.name}</p>
         </div>
         <UserIcon />
       </div>
@@ -24,17 +26,17 @@ export default function Dashboard() {
         <SummaryCard
           icon={<DollarSign size={20} />}
           label="Inventory Value"
-          value="$24,580"
+          value={formatCurrency(inventorySummary.totalInventoryValue)}
         />
         <SummaryCard
           icon={<AlertTriangle size={20} />}
           label="Low Stock"
-          value="3"
+          value={String(inventorySummary.lowStockCount)}
         />
         <SummaryCard
           icon={<TrendingUp size={20} />}
           label="Unpaid Invoices"
-          value="8"
+          value={formatCurrency(inventorySummary.unpaidTotal)}
         />
       </div>
 
@@ -87,15 +89,14 @@ export default function Dashboard() {
       {/* Recent Activity */}
       <div className="bg-white border border-gray-200 rounded-lg p-4">
         <h3 className="font-semibold text-gray-900 mb-3">Recent Activity</h3>
-        <div className="space-y-3">
-          <ActivityItem
-            text="Tessie sold 3 Garlic Salt Blocks"
-          />
-          <ActivityItem
-            text="Bill added 40 Redmond Mineral Salt"
-          />
-        </div>
-      </div>
+<div className="space-y-3">
+  {activityLogs.slice(0, 3).map((activity) => (
+    <ActivityItem
+      key={activity.id}
+      text={activity.summary}
+    />
+  ))}
+</div>      </div>
 
       {/* Workflow Annotation */}
       <div className="mt-6 p-3 bg-gray-50 border border-gray-300 rounded text-xs text-gray-600 leading-relaxed">
