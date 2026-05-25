@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Search, ArrowLeft, ShoppingCart, AlertCircle } from 'lucide-react';
+import BottomNav from './shared/BottomNav';
 
 interface Product {
   id: string;
@@ -188,6 +189,8 @@ export default function AddProducts() {
           onCancel={() => setSelectedProduct(null)}
         />
       )}
+
+      <BottomNav />
     </div>
   );
 }

@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, ChevronDown } from 'lucide-react';
-import BottomNav from './shared/BottomNav';
 import UserIcon from './shared/UserIcon';
+import BottomNav from './shared/BottomNav';
 
 export default function EditUser() {
   const navigate = useNavigate();
@@ -115,6 +115,8 @@ export default function EditUser() {
         >
           Cancel
         </button>
+
+        <BottomNav />
       </div>
     </div>
   );

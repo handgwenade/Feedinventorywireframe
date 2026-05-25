@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
+import BottomNav from './shared/BottomNav';
 
 interface Product {
   id: string;
@@ -118,6 +119,8 @@ export default function AdjustCount() {
           Adjust Count is for inventory corrections only. It does not create an invoice.
         </div>
       </div>
+
+      <BottomNav />
     </div>
   );
 }

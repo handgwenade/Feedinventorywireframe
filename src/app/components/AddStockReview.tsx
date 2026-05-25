@@ -1,5 +1,6 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
+import BottomNav from './shared/BottomNav';
 
 export default function AddStockReview() {
   const navigate = useNavigate();
@@ -110,6 +111,8 @@ export default function AddStockReview() {
           Add Stock increases product quantity and creates a restock transaction in Activity History. No invoice is created.
         </div>
       </div>
+
+      <BottomNav />
     </div>
   );
 }

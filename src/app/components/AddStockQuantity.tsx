@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
+import BottomNav from './shared/BottomNav';
 
 interface Product {
   id: string;
@@ -146,6 +147,8 @@ export default function AddStockQuantity() {
           Cost per unit is visible only to Admin and Manager users. It is hidden for Operators and View Only users.
         </div>
       </div>
+
+      <BottomNav />
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { CheckCircle2, Download, Printer, Send, DollarSign, Home, FileText } from 'lucide-react';
+import BottomNav from './shared/BottomNav';
 
 export default function K2StatementCreated() {
   const navigate = useNavigate();
@@ -101,6 +102,8 @@ export default function K2StatementCreated() {
           Back to Dashboard
         </button>
       </div>
+
+      <BottomNav />
     </div>
   );
 }

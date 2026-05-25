@@ -1,5 +1,6 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { CheckCircle2, PlusCircle, Package, Home } from 'lucide-react';
+import BottomNav from './shared/BottomNav';
 
 export default function AddStockSuccess() {
   const navigate = useNavigate();
@@ -72,6 +73,8 @@ export default function AddStockSuccess() {
           Back to Dashboard
         </button>
       </div>
+
+      <BottomNav />
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import UserIcon from './shared/UserIcon';
+import BottomNav from './shared/BottomNav';
 
 type AccountType = 'customer' | 'family';
 
@@ -183,6 +184,8 @@ export default function AddAccountPerson() {
           Only Admin/Manager should add or merge people/accounts by default. Operators may request or add new records if allowed, but new records should be reviewed.
         </div>
       </div>
+
+      <BottomNav />
     </div>
   );
 }

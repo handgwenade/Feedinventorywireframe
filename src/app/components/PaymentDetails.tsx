@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
+import BottomNav from './shared/BottomNav';
 
 type PaymentMethod = 'cash' | 'check' | 'other';
 
@@ -142,6 +143,8 @@ export default function PaymentDetails() {
           Save Payment
         </button>
       </div>
+
+      <BottomNav />
     </div>
   );
 }

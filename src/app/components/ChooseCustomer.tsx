@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, ArrowLeft, UserPlus, User } from 'lucide-react';
+import BottomNav from './shared/BottomNav';
 
 const RECENT_CUSTOMERS = [
   { id: '1', name: 'Anderson Cattle Co.' },
@@ -84,6 +85,8 @@ export default function ChooseCustomer() {
           Skip for Now / Unassigned Sale
         </button>
       </div>
+
+      <BottomNav />
     </div>
   );
 }

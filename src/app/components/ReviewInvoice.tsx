@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Edit2, Trash2, Plus } from 'lucide-react';
+import BottomNav from './shared/BottomNav';
 
 interface CartItem {
   productId: string;
@@ -240,6 +241,8 @@ export default function ReviewInvoice() {
           If <em>Paid Now</em> or <em>Partial Payment</em> is selected, the user goes to Payment Details before Invoice Created.
         </div>
       </div>
+
+      <BottomNav />
     </div>
   );
 }

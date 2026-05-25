@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
+import BottomNav from './shared/BottomNav';
 
 interface Invoice {
   number: string;
@@ -174,6 +175,8 @@ export default function RecordPayment() {
           Admin, Manager, and optionally Operator can record payments. View Only cannot record payments. Admin/Manager can void invoices.
         </div>
       </div>
+
+      <BottomNav />
     </div>
   );
 }

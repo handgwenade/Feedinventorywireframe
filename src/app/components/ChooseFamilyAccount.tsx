@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, ArrowLeft, UserPlus, User } from 'lucide-react';
+import BottomNav from './shared/BottomNav';
 
 const PEOPLE = [
   { id: '1', name: 'Bill Johnson' },
@@ -96,6 +97,8 @@ export default function ChooseFamilyAccount() {
           Family use must link to one controlled person record when possible. Search may support aliases, but records should use one official display name to avoid duplicates.
         </div>
       </div>
+
+      <BottomNav />
     </div>
   );
 }

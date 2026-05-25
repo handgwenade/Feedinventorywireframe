@@ -1,5 +1,6 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { CheckCircle2, Download, Printer, Send, DollarSign, Home, Users } from 'lucide-react';
+import BottomNav from './shared/BottomNav';
 
 export default function FamilyInvoiceCreated() {
   const navigate = useNavigate();
@@ -102,6 +103,8 @@ export default function FamilyInvoiceCreated() {
           Back to Dashboard
         </button>
       </div>
+
+      <BottomNav />
     </div>
   );
 }

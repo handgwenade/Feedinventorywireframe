@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Edit2, Trash2, Plus } from 'lucide-react';
+import BottomNav from './shared/BottomNav';
 
 interface CartItem {
   productId: string;
@@ -236,6 +237,8 @@ export default function K2ReviewStatement() {
           • Inventory transaction reason/type: K2 Account
         </div>
       </div>
+
+      <BottomNav />
     </div>
   );
 }

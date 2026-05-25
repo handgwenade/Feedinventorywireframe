@@ -1,5 +1,6 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { CheckCircle2, FileText, DollarSign, List, Home } from 'lucide-react';
+import BottomNav from './shared/BottomNav';
 
 export default function PaymentRecorded() {
   const navigate = useNavigate();
@@ -100,6 +101,8 @@ export default function PaymentRecorded() {
           Back to Dashboard
         </button>
       </div>
+
+      <BottomNav />
     </div>
   );
 }

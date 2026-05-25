@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Edit2, Trash2, Plus } from 'lucide-react';
+import BottomNav from './shared/BottomNav';
 
 interface CartItem {
   productId: string;
@@ -232,6 +233,8 @@ export default function FamilyReviewInvoice() {
           Family use is not a formal customer account, but each record must link to one controlled person record so reporting stays clean. It can remain unpaid, be paid, or be written off.
         </div>
       </div>
+
+      <BottomNav />
     </div>
   );
 }
