@@ -2,11 +2,14 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Package, AlertTriangle, Clock, Users, Truck, HomeIcon, FileText, DollarSign } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
 import UserIcon from './shared/UserIcon';
+import { inventorySummary, invoiceRecords, payments, products } from '../data/mockData';
+import { formatCurrency, isLowStock } from '../utils/calculations';
 
 interface ReportCard {
   id: string;
   name: string;
   helperText: string;
+  metric?: string;
   icon: React.ReactNode;
   route: string;
 }
@@ -16,58 +19,78 @@ const reports: ReportCard[] = [
     id: '1',
     name: 'Inventory Summary',
     helperText: 'Current quantity, value, and stock status by product.',
+    metric: formatCurrency(inventorySummary.totalInventoryValue),
     icon: <Package size={24} />,
-    route: '/report-inventory-summary'
+    route: '/report-inventory-summary',
   },
   {
     id: '2',
     name: 'Low Stock',
     helperText: 'Products at or below minimum quantity.',
+    metric: `${products.filter((product) => isLowStock(product)).length} products`,
     icon: <AlertTriangle size={24} />,
-    route: '/report-low-stock'
+    route: '/report-low-stock',
   },
   {
     id: '3',
     name: 'Activity History',
     helperText: 'All inventory, invoice, payment, and account changes.',
+    metric: 'Audit trail',
     icon: <Clock size={24} />,
-    route: '/activity-history'
+    route: '/activity-history',
   },
   {
     id: '4',
     name: 'Customer Sales',
     helperText: 'Sales to outside customers only.',
+    metric: formatCurrency(
+      invoiceRecords
+        .filter((record) => record.recordType === 'customer_invoice')
+        .reduce((total, record) => total + record.total, 0),
+    ),
     icon: <Users size={24} />,
-    route: '/report-customer-sales'
+    route: '/report-customer-sales',
   },
   {
     id: '5',
     name: 'K2 Account Use',
     helperText: 'Feed/products recorded to K2.',
+    metric: formatCurrency(
+      invoiceRecords
+        .filter((record) => record.recordType === 'k2_statement')
+        .reduce((total, record) => total + record.total, 0),
+    ),
     icon: <Truck size={24} />,
-    route: '/report-k2-use'
+    route: '/report-k2-use',
   },
   {
     id: '6',
     name: 'Family Use',
     helperText: 'Feed/products recorded to family/person records.',
+    metric: formatCurrency(
+      invoiceRecords
+        .filter((record) => record.recordType === 'family_use')
+        .reduce((total, record) => total + record.total, 0),
+    ),
     icon: <HomeIcon size={24} />,
-    route: '/report-family-use'
+    route: '/report-family-use',
   },
   {
     id: '7',
     name: 'Unpaid Invoices',
     helperText: 'Open balances by customer/account.',
+    metric: formatCurrency(inventorySummary.unpaidTotal),
     icon: <FileText size={24} />,
-    route: '/report-unpaid-invoices'
+    route: '/report-unpaid-invoices',
   },
   {
     id: '8',
     name: 'Payments Received',
     helperText: 'Cash, check, and other payments recorded.',
+    metric: formatCurrency(payments.reduce((total, payment) => total + payment.amount, 0)),
     icon: <DollarSign size={24} />,
-    route: '/report-payments-received'
-  }
+    route: '/report-payments-received',
+  },
 ];
 
 export default function ReportsList() {
@@ -97,7 +120,7 @@ export default function ReportsList() {
 
         {/* Report Cards */}
         <div className="space-y-3">
-          {reports.map(report => (
+          {reports.map((report) => (
             <ReportCardComponent
               key={report.id}
               report={report}
@@ -127,7 +150,7 @@ export default function ReportsList() {
 
 function ReportCardComponent({
   report,
-  onClick
+  onClick,
 }: {
   report: ReportCard;
   onClick: () => void;
@@ -140,7 +163,14 @@ function ReportCardComponent({
       <div className="flex items-start gap-3 mb-2">
         <div className="text-gray-700 mt-1">{report.icon}</div>
         <div className="flex-1">
-          <div className="font-semibold text-gray-900 mb-1">{report.name}</div>
+          <div className="flex items-start justify-between gap-3 mb-1">
+            <div className="font-semibold text-gray-900">{report.name}</div>
+            {report.metric && (
+              <div className="text-sm font-semibold text-gray-900 whitespace-nowrap">
+                {report.metric}
+              </div>
+            )}
+          </div>
           <div className="text-sm text-gray-600">{report.helperText}</div>
         </div>
       </div>
