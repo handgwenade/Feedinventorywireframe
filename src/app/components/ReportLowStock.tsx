@@ -2,34 +2,14 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Download, Printer, Plus } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
 import UserIcon from './shared/UserIcon';
+import { inventorySummary, products } from '../data/mockData';
+import type { Product } from '../types';
+import { isLowStock } from '../utils/calculations';
 
-interface LowStockItem {
-  id: string;
-  name: string;
-  currentQuantity: number;
-  minimumQuantity: number;
-  shortage: number;
-}
-
-const lowStockData: LowStockItem[] = [
-  {
-    id: '1',
-    name: 'SweetPro FiberMate 20',
-    currentQuantity: 6,
-    minimumQuantity: 8,
-    shortage: 2
-  },
-  {
-    id: '2',
-    name: 'RumenEdge Tubs',
-    currentQuantity: 4,
-    minimumQuantity: 12,
-    shortage: 8
-  }
-];
 
 export default function ReportLowStock() {
   const navigate = useNavigate();
+  const lowStockProducts = products.filter((product) => isLowStock(product));
 
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
@@ -51,13 +31,13 @@ export default function ReportLowStock() {
         {/* Summary Card */}
         <div className="bg-white border border-gray-200 rounded-lg p-4">
           <div className="text-sm text-gray-600 mb-1">Low Stock Items</div>
-          <div className="text-3xl font-bold text-gray-900">{lowStockData.length}</div>
+          <div className="text-3xl font-bold text-gray-900">{inventorySummary.lowStockCount}</div>
         </div>
 
         {/* Low Stock List */}
         <div className="space-y-3">
-          {lowStockData.map(item => (
-            <LowStockRow key={item.id} item={item} navigate={navigate} />
+          {lowStockProducts.map((product) => (
+            <LowStockRow key={product.id} product={product} navigate={navigate} />
           ))}
         </div>
 
@@ -79,26 +59,40 @@ export default function ReportLowStock() {
   );
 }
 
-function LowStockRow({ item, navigate }: { item: LowStockItem; navigate: any }) {
+function LowStockRow({
+  product,
+  navigate,
+}: {
+  product: Product;
+  navigate: (route: string, options?: { state?: unknown }) => void;
+}) {
+  const shortage = Math.max(product.minimumQuantity - product.currentQuantity, 0);
+
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-4">
-      <div className="font-semibold text-gray-900 mb-3">{item.name}</div>
+      <div className="font-semibold text-gray-900 mb-3">{product.name}</div>
       <div className="grid grid-cols-2 gap-3 text-sm mb-3">
         <div>
           <div className="text-gray-600 text-xs mb-1">Current</div>
-          <div className="font-medium text-gray-900">{item.currentQuantity}</div>
+          <div className="font-medium text-gray-900">
+            {product.currentQuantity} {product.unitLabel}
+          </div>
         </div>
         <div>
           <div className="text-gray-600 text-xs mb-1">Minimum</div>
-          <div className="font-medium text-gray-900">{item.minimumQuantity}</div>
+          <div className="font-medium text-gray-900">
+            {product.minimumQuantity} {product.unitLabel}
+          </div>
         </div>
       </div>
       <div className="mb-3 p-2 bg-gray-50 border border-gray-300 rounded text-sm">
         <span className="text-gray-600">Shortage:</span>{' '}
-        <span className="font-semibold text-gray-900">{item.shortage} units needed</span>
+        <span className="font-semibold text-gray-900">
+          {shortage} {product.unitLabel} needed
+        </span>
       </div>
       <button
-        onClick={() => navigate('/add-stock-select')}
+        onClick={() => navigate('/add-stock-quantity', { state: { product } })}
         className="w-full bg-gray-900 text-white py-2 rounded-lg font-medium text-sm active:bg-gray-800"
       >
         Add Stock
@@ -111,7 +105,7 @@ function ActionButton({
   icon,
   label,
   onClick,
-  primary = false
+  primary = false,
 }: {
   icon: React.ReactNode;
   label: string;
