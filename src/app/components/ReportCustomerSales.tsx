@@ -3,52 +3,49 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Download, Printer, FileText } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
 import UserIcon from './shared/UserIcon';
+import { accounts, invoiceLineItems, invoiceRecords } from '../data/mockData';
+import { formatCurrency } from '../utils/calculations';
+import type { InvoiceRecord } from '../types';
 
 type DateFilter = 'this-month' | 'last-month' | 'custom';
 type StatusFilter = 'all' | 'paid' | 'unpaid' | 'partial';
 
-interface SaleRecord {
-  id: string;
-  customer: string;
-  date: string;
-  products: string;
-  total: number;
-  status: 'paid' | 'unpaid' | 'partial';
+type CustomerSaleStatus = 'paid' | 'unpaid' | 'partial';
+
+function getCustomerName(accountId?: string): string {
+  if (!accountId) return 'Unknown Customer';
+  return accounts.find((account) => account.id === accountId)?.name ?? 'Unknown Customer';
 }
 
-const salesData: SaleRecord[] = [
-  {
-    id: '1',
-    customer: 'Anderson Cattle Co.',
-    date: '5/19/2026',
-    products: 'Garlic Salt Blocks, 10 units',
-    total: 171.50,
-    status: 'unpaid'
-  },
-  {
-    id: '2',
-    customer: 'Johnson Ranch',
-    date: '5/17/2026',
-    products: 'Redmond Mineral Salt, 10 units',
-    total: 97.90,
-    status: 'paid'
-  }
-];
+function getProductsSummary(recordId: string): string {
+  const items = invoiceLineItems.filter((item) => item.invoiceRecordId === recordId);
+
+  if (items.length === 0) return 'No line items';
+
+  return items
+    .map((item) => `${item.description}, ${item.quantity} ${item.quantity === 1 ? 'unit' : 'units'}`)
+    .join('; ');
+}
+
+function getCustomerSaleStatus(record: InvoiceRecord): CustomerSaleStatus {
+  if (record.status === 'paid') return 'paid';
+  if (record.status === 'partial') return 'partial';
+  return 'unpaid';
+}
 
 export default function ReportCustomerSales() {
   const navigate = useNavigate();
   const [dateFilter, setDateFilter] = useState<DateFilter>('this-month');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
 
-  const totalSales = salesData.reduce((sum, sale) => sum + sale.total, 0);
-  const invoiceCount = salesData.length;
-  const unpaidBalance = salesData
-    .filter(s => s.status === 'unpaid' || s.status === 'partial')
-    .reduce((sum, sale) => sum + sale.total, 0);
+  const customerSales = invoiceRecords.filter((record) => record.recordType === 'customer_invoice');
+  const totalSales = customerSales.reduce((sum, sale) => sum + sale.total, 0);
+  const invoiceCount = customerSales.length;
+  const unpaidBalance = customerSales.reduce((sum, sale) => sum + sale.balanceDue, 0);
 
-  const filteredData = salesData.filter(sale => {
+  const filteredData = customerSales.filter((sale) => {
     if (statusFilter === 'all') return true;
-    return sale.status === statusFilter;
+    return getCustomerSaleStatus(sale) === statusFilter;
   });
 
   return (
@@ -75,9 +72,9 @@ export default function ReportCustomerSales() {
 
         {/* Summary Cards */}
         <div className="grid grid-cols-3 gap-3">
-          <SummaryCard label="Customer Sales Total" value={`$${totalSales.toFixed(2)}`} />
+          <SummaryCard label="Customer Sales Total" value={formatCurrency(totalSales)} />
           <SummaryCard label="Invoices" value={invoiceCount.toString()} />
-          <SummaryCard label="Unpaid Balance" value={`$${unpaidBalance.toFixed(2)}`} />
+          <SummaryCard label="Unpaid Balance" value={formatCurrency(unpaidBalance)} />
         </div>
 
         {/* Date Filter */}
@@ -103,7 +100,7 @@ export default function ReportCustomerSales() {
 
         {/* Sales List */}
         <div className="space-y-3">
-          {filteredData.map(sale => (
+          {filteredData.map((sale) => (
             <SaleRow key={sale.id} sale={sale} navigate={navigate} />
           ))}
         </div>
@@ -155,32 +152,46 @@ function FilterChip({ label, active, onClick }: { label: string; active: boolean
   );
 }
 
-function SaleRow({ sale, navigate }: { sale: SaleRecord; navigate: any }) {
+function SaleRow({
+  sale,
+  navigate,
+}: {
+  sale: InvoiceRecord;
+  navigate: (route: string, options?: { state?: unknown }) => void;
+}) {
+  const status = getCustomerSaleStatus(sale);
+
   const getStatusLabel = () => {
-    if (sale.status === 'paid') return 'Paid';
-    if (sale.status === 'unpaid') return 'Unpaid';
-    if (sale.status === 'partial') return 'Partial';
-    return sale.status;
+    if (status === 'paid') return 'Paid';
+    if (status === 'unpaid') return 'Unpaid';
+    if (status === 'partial') return 'Partial';
+    return status;
   };
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-4">
-      <div className="flex justify-between items-start mb-2">
+      <div className="flex justify-between items-start mb-2 gap-3">
         <div>
-          <div className="font-semibold text-gray-900 mb-1">{sale.customer}</div>
-          <div className="text-sm text-gray-600">{sale.date}</div>
+          <div className="font-semibold text-gray-900 mb-1">{getCustomerName(sale.accountId)}</div>
+          <div className="text-sm text-gray-600">{new Date(sale.issueDate).toLocaleDateString()}</div>
         </div>
         <span className="text-xs px-2 py-1 rounded border bg-gray-100 border-gray-300 text-gray-700 capitalize">
           {getStatusLabel()}
         </span>
       </div>
-      <div className="text-sm text-gray-700 mb-2">{sale.products}</div>
+      <div className="text-sm text-gray-700 mb-2">{getProductsSummary(sale.id)}</div>
       <div className="flex justify-between items-center pt-2 border-t border-gray-200 mb-3">
         <span className="text-gray-600 text-sm">Total</span>
-        <span className="font-semibold text-gray-900">${sale.total.toFixed(2)}</span>
+        <span className="font-semibold text-gray-900">{formatCurrency(sale.total)}</span>
       </div>
+      {sale.balanceDue > 0 && (
+        <div className="flex justify-between items-center mb-3 text-sm">
+          <span className="text-gray-600">Balance Due</span>
+          <span className="font-semibold text-gray-900">{formatCurrency(sale.balanceDue)}</span>
+        </div>
+      )}
       <button
-        onClick={() => navigate('/invoices')}
+        onClick={() => navigate('/invoice-detail', { state: { invoice: sale } })}
         className="w-full bg-white border border-gray-300 text-gray-900 py-2 rounded-lg font-medium text-sm flex items-center justify-center gap-2 active:bg-gray-50"
       >
         <FileText size={16} />
