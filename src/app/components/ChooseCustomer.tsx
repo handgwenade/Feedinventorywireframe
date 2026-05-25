@@ -2,25 +2,21 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, ArrowLeft, UserPlus, User } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
-
-const RECENT_CUSTOMERS = [
-  { id: '1', name: 'Anderson Cattle Co.' },
-  { id: '2', name: 'Johnson Ranch' },
-  { id: '3', name: 'Miller Family Farm' },
-  { id: '4', name: 'Thompson Livestock' },
-];
+import { accounts } from '../data/mockData';
 
 export default function ChooseCustomer() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filteredCustomers = RECENT_CUSTOMERS.filter(customer =>
+  const customerAccounts = accounts.filter((account) => account.accountType === 'customer');
+
+  const filteredCustomers = customerAccounts.filter((customer) =>
     customer.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const handleSelectCustomer = (customerId: string, customerName: string) => {
     navigate('/add-products', {
-      state: { customerId, customerName }
+      state: { customerId, customerName, accountId: customerId }
     });
   };
 
@@ -46,14 +42,17 @@ export default function ChooseCustomer() {
               type="text"
               placeholder="Search customers or accounts..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(event) => setSearchQuery(event.target.value)}
               className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
         </div>
 
         {/* Add New Customer Button */}
-        <button className="w-full bg-white border-2 border-dashed border-gray-300 p-4 rounded-lg mb-6 flex items-center justify-center gap-2 text-gray-600 active:bg-gray-50">
+        <button
+          onClick={() => navigate('/add-account-person')}
+          className="w-full bg-white border-2 border-dashed border-gray-300 p-4 rounded-lg mb-6 flex items-center justify-center gap-2 text-gray-600 active:bg-gray-50"
+        >
           <UserPlus size={20} />
           <span className="font-medium">Add New Customer</span>
         </button>
