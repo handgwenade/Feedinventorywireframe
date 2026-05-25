@@ -45,6 +45,16 @@ import ManageUsers from './components/ManageUsers';
 import EditUser from './components/EditUser';
 import Login from './components/Login';
 import SessionExpired from './components/SessionExpired';
+import EmptyInventory from './components/EmptyInventory';
+import EmptyInvoices from './components/EmptyInvoices';
+import EmptyAccounts from './components/EmptyAccounts';
+import EmptyReports from './components/EmptyReports';
+import LowStockWarning from './components/LowStockWarning';
+import NotEnoughInventoryError from './components/NotEnoughInventoryError';
+import MissingPriceWarning from './components/MissingPriceWarning';
+import PermissionNeeded from './components/PermissionNeeded';
+import CannotEditActivityWarning from './components/CannotEditActivityWarning';
+import UtilityScreensReference from './components/UtilityScreensReference';
 
 export default function App() {
   return (
@@ -97,6 +107,16 @@ export default function App() {
           <Route path="/edit-user" element={<EditUser />} />
           <Route path="/login" element={<Login />} />
           <Route path="/session-expired" element={<SessionExpired />} />
+          <Route path="/empty-inventory" element={<EmptyInventory />} />
+          <Route path="/empty-invoices" element={<EmptyInvoices />} />
+          <Route path="/empty-accounts" element={<EmptyAccounts />} />
+          <Route path="/empty-reports" element={<EmptyReports />} />
+          <Route path="/low-stock-warning" element={<LowStockWarning />} />
+          <Route path="/not-enough-inventory-error" element={<NotEnoughInventoryError />} />
+          <Route path="/missing-price-warning" element={<MissingPriceWarning />} />
+          <Route path="/permission-needed" element={<PermissionNeeded />} />
+          <Route path="/cannot-edit-activity-warning" element={<CannotEditActivityWarning />} />
+          <Route path="/utility-screens" element={<UtilityScreensReference />} />
         </Routes>
       </div>
     </BrowserRouter>
