@@ -25,6 +25,22 @@ export interface InvoiceListItem {
   number: string;
   account: string;
   balance: number;
+  taxAmount: number;
+  amountPaid: number;
+}
+
+export interface InvoiceDetailLineItem {
+  id: string;
+  productId?: string;
+  description: string;
+  quantity: number;
+  unitLabel: string;
+  unitPrice: number;
+  lineTotal: number;
+}
+
+export interface InvoiceDetailRecord extends InvoiceListItem {
+  lineItems: InvoiceDetailLineItem[];
 }
 
 interface InvoiceRecordRow {
@@ -44,10 +60,26 @@ interface InvoiceRecordRow {
 }
 
 interface InvoiceLineItemRow {
+  id?: string;
   invoice_record_id: string;
+  product_id?: string | null;
   description: string;
   quantity: number | string;
   unit_label: string;
+  unit_price?: number | string;
+  line_total?: number | string;
+}
+
+function mapLineItem(row: InvoiceLineItemRow): InvoiceDetailLineItem {
+  return {
+    id: row.id ?? `${row.invoice_record_id}-${row.description}`,
+    productId: row.product_id ?? undefined,
+    description: row.description,
+    quantity: Number(row.quantity),
+    unitLabel: row.unit_label,
+    unitPrice: Number(row.unit_price ?? 0),
+    lineTotal: Number(row.line_total ?? 0),
+  };
 }
 
 function getInvoiceType(recordType: InvoiceListRecordType): InvoiceListType {
@@ -67,6 +99,63 @@ function getProductsSummary(invoiceId: string, lineItems: InvoiceLineItemRow[]):
       return `${item.description}, ${quantity} ${item.unit_label || (quantity === 1 ? 'unit' : 'units')}`;
     })
     .join('; ');
+}
+
+function getDetailProductsSummary(lineItems: InvoiceDetailLineItem[]): string {
+  if (lineItems.length === 0) return 'No line items';
+
+  return lineItems
+    .map((item) => `${item.description}, ${item.quantity} ${item.unitLabel}`)
+    .join('; ');
+}
+
+function mapInvoiceRow(
+  invoice: InvoiceRecordRow,
+  accountName: string,
+  productsSummary: string,
+): InvoiceListItem {
+  const type = getInvoiceType(invoice.record_type);
+  const total = Number(invoice.total);
+  const balanceDue = Number(invoice.balance_due);
+  const tax = Number(invoice.tax);
+
+  return {
+    id: invoice.id,
+    displayNumber: invoice.display_number,
+    recordType: invoice.record_type,
+    accountId: invoice.account_id ?? undefined,
+    personId: invoice.person_id ?? undefined,
+    issueDate: invoice.issue_date,
+    createdAt: invoice.created_at,
+    subtotal: Number(invoice.subtotal),
+    tax,
+    total,
+    balanceDue,
+    status: invoice.status,
+    notes: invoice.notes ?? undefined,
+    accountName,
+    type,
+    productsSummary,
+    number: invoice.display_number,
+    account: accountName,
+    balance: balanceDue,
+    taxAmount: tax,
+    amountPaid: Math.max(total - balanceDue, 0),
+  };
+}
+
+async function resolveAccountName(invoice: InvoiceRecordRow): Promise<string> {
+  if (invoice.account_id) {
+    const accounts = await accountsService.listActive();
+    return accounts.find((account) => account.id === invoice.account_id)?.name ?? 'Unknown Account';
+  }
+
+  if (invoice.person_id) {
+    const people = await peopleService.list();
+    return people.find((person) => person.id === invoice.person_id)?.officialDisplayName ?? 'Unknown Person';
+  }
+
+  return 'Unknown';
 }
 
 async function listFromSupabase(): Promise<InvoiceListItem[]> {
@@ -105,30 +194,54 @@ async function listFromSupabase(): Promise<InvoiceListItem[]> {
     const balanceDue = Number(invoice.balance_due);
 
     return {
-      id: invoice.id,
-      displayNumber: invoice.display_number,
-      recordType: invoice.record_type,
-      accountId: invoice.account_id ?? undefined,
-      personId: invoice.person_id ?? undefined,
-      issueDate: invoice.issue_date,
-      createdAt: invoice.created_at,
-      subtotal: Number(invoice.subtotal),
-      tax: Number(invoice.tax),
-      total: Number(invoice.total),
-      balanceDue,
-      status: invoice.status,
-      notes: invoice.notes ?? undefined,
-      accountName,
+      ...mapInvoiceRow(invoice, accountName, getProductsSummary(invoice.id, lineItems)),
       type,
-      productsSummary: getProductsSummary(invoice.id, lineItems),
-      number: invoice.display_number,
-      account: accountName,
-      balance: balanceDue,
+      balanceDue,
     };
   });
 }
 
+async function getByIdFromSupabase(invoiceId: string): Promise<InvoiceDetailRecord | null> {
+  const { data: invoiceRow, error: invoiceError } = await supabase
+    .from('invoice_records')
+    .select('id, display_number, record_type, account_id, person_id, issue_date, created_at, subtotal, tax, total, balance_due, status, notes')
+    .eq('id', invoiceId)
+    .maybeSingle();
+
+  if (invoiceError) {
+    throw new Error(`${invoiceError.message}${invoiceError.details ? ` — ${invoiceError.details}` : ''}`);
+  }
+
+  if (!invoiceRow) {
+    return null;
+  }
+
+  const invoice = invoiceRow as InvoiceRecordRow;
+
+  const { data: lineItemRows, error: lineItemError } = await supabase
+    .from('invoice_line_items')
+    .select('id, invoice_record_id, product_id, description, quantity, unit_label, unit_price, line_total')
+    .eq('invoice_record_id', invoiceId)
+    .order('created_at', { ascending: true });
+
+  if (lineItemError) {
+    throw new Error(`${lineItemError.message}${lineItemError.details ? ` — ${lineItemError.details}` : ''}`);
+  }
+
+  const lineItems = ((lineItemRows ?? []) as InvoiceLineItemRow[]).map(mapLineItem);
+  const accountName = await resolveAccountName(invoice);
+
+  return {
+    ...mapInvoiceRow(invoice, accountName, getDetailProductsSummary(lineItems)),
+    lineItems,
+  };
+}
+
 export const invoicesService = {
+  async getById(invoiceId: string): Promise<InvoiceDetailRecord | null> {
+    return getByIdFromSupabase(invoiceId);
+  },
+
   async list(): Promise<InvoiceListItem[]> {
     return listFromSupabase();
   },

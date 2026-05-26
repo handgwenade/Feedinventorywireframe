@@ -1,49 +1,116 @@
+import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Download, Printer, Send, DollarSign, XCircle, Trash2 } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
 import UserIcon from './shared/UserIcon';
-import { accounts, invoiceLineItems, invoiceRecords, people, products } from '../data/mockData';
+import { invoicesService } from '../services/invoicesService';
 import { formatCurrency } from '../utils/calculations';
-import type { InvoiceRecord } from '../types';
+import type { InvoiceDetailRecord, InvoiceListItem } from '../services/invoicesService';
 
-type InvoiceDetailState = Partial<InvoiceRecord> & {
-  number?: string;
-  account?: string;
-  type?: 'customer' | 'k2' | 'family';
-  balance?: number;
-};
+function getInitialInvoice(locationState: unknown): InvoiceDetailRecord | null {
+  const routedInvoice = (locationState as { invoice?: InvoiceListItem } | null)?.invoice;
 
-function getInvoiceType(invoice: InvoiceRecord): 'customer' | 'k2' | 'family' {
-  if (invoice.recordType === 'k2_statement') return 'k2';
-  if (invoice.recordType === 'family_use') return 'family';
-  return 'customer';
-}
+  if (!routedInvoice?.id) return null;
 
-function getAccountName(invoice: InvoiceRecord): string {
-  if (invoice.accountId) {
-    return accounts.find((account) => account.id === invoice.accountId)?.name ?? 'Unknown Account';
-  }
-
-  if (invoice.personId) {
-    return people.find((person) => person.id === invoice.personId)?.officialDisplayName ?? 'Unknown Person';
-  }
-
-  return 'Unknown';
+  return {
+    ...routedInvoice,
+    lineItems: [],
+  };
 }
 
 export default function InvoiceDetail() {
   const navigate = useNavigate();
   const location = useLocation();
-  const fallbackInvoice = invoiceRecords.find((record) => record.balanceDue > 0) ?? invoiceRecords[0];
-  const routedInvoice = ((location.state as { invoice?: InvoiceDetailState } | null)?.invoice ?? fallbackInvoice);
-  const invoice = routedInvoice.id
-    ? invoiceRecords.find((record) => record.id === routedInvoice.id) ?? fallbackInvoice
-    : fallbackInvoice;
-  const invoiceType = routedInvoice.type ?? getInvoiceType(invoice);
-  const accountName = routedInvoice.account ?? getAccountName(invoice);
-  const displayNumber = routedInvoice.number ?? routedInvoice.displayNumber ?? invoice.displayNumber;
-  const balanceDue = routedInvoice.balance ?? routedInvoice.balanceDue ?? invoice.balanceDue;
-  const lineItems = invoiceLineItems.filter((item) => item.invoiceRecordId === invoice.id);
+  const routedInvoice = getInitialInvoice(location.state);
+  const [invoice, setInvoice] = useState<InvoiceDetailRecord | null>(routedInvoice);
+  const [isLoading, setIsLoading] = useState(Boolean(routedInvoice?.id));
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [wasMissing, setWasMissing] = useState(false);
+
+  useEffect(() => {
+    if (!routedInvoice?.id) {
+      setIsLoading(false);
+      setWasMissing(false);
+      return;
+    }
+
+    let isMounted = true;
+
+    async function loadInvoice() {
+      setIsLoading(true);
+      setErrorMessage(null);
+      setWasMissing(false);
+
+      try {
+        const liveInvoice = await invoicesService.getById(routedInvoice.id);
+
+        if (!isMounted) return;
+
+        if (!liveInvoice) {
+          setInvoice(null);
+          setWasMissing(true);
+          return;
+        }
+
+        setInvoice(liveInvoice);
+      } catch (error) {
+        if (!isMounted) return;
+
+        setErrorMessage(error instanceof Error ? error.message : 'Unable to load invoice.');
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    loadInvoice();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [routedInvoice?.id]);
+
+  if (!invoice) {
+    return (
+      <div className="min-h-screen bg-gray-50 pb-24">
+        <div className="bg-white border-b border-gray-200 p-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate('/invoices')}
+              className="text-gray-600 active:text-gray-900"
+            >
+              <ArrowLeft size={24} />
+            </button>
+            <h1 className="text-xl font-semibold text-gray-900">Invoice Detail</h1>
+          </div>
+          <UserIcon />
+        </div>
+
+        <div className="p-4">
+          <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
+            <div className="text-sm text-gray-700">
+              {wasMissing ? 'Invoice not found.' : 'Select an invoice before continuing.'}
+            </div>
+            <button
+              onClick={() => navigate('/invoices')}
+              className="w-full bg-white border border-gray-300 text-gray-900 py-3 rounded-lg font-semibold active:bg-gray-50"
+            >
+              Back to Invoices
+            </button>
+          </div>
+        </div>
+
+        <BottomNav />
+      </div>
+    );
+  }
+
+  const invoiceType = invoice.type;
+  const accountName = invoice.accountName;
+  const displayNumber = invoice.displayNumber;
+  const balanceDue = invoice.balanceDue;
+  const lineItems = invoice.lineItems;
   const paymentInvoice = {
     ...invoice,
     number: displayNumber,
@@ -53,7 +120,7 @@ export default function InvoiceDetail() {
   };
 
   const invoiceDate = new Date(invoice.issueDate).toLocaleDateString();
-  const dueDate = invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString() : 'Due on receipt';
+  const dueDate = 'Due on receipt';
   const amountPaid = invoice.amountPaid;
 
   return (
@@ -73,6 +140,18 @@ export default function InvoiceDetail() {
       </div>
 
       <div className="p-4 space-y-4">
+        {isLoading && (
+          <div className="bg-white border border-gray-200 rounded-lg p-4 text-sm text-gray-700">
+            Loading invoice details...
+          </div>
+        )}
+
+        {errorMessage && (
+          <div className="bg-white border border-gray-300 rounded-lg p-4 text-sm text-gray-900">
+            {errorMessage}
+          </div>
+        )}
+
         {/* Invoice Header */}
         <div className="bg-white border border-gray-200 rounded-lg p-4">
           <div className="flex justify-between items-start mb-3">
@@ -109,28 +188,24 @@ export default function InvoiceDetail() {
             <h2 className="font-semibold text-gray-900">Line Items</h2>
           </div>
           <div className="divide-y divide-gray-200">
-            {lineItems.map((item) => {
-              const product = products.find((candidate) => candidate.id === item.productId);
-
-              return (
-                <div key={item.id} className="p-4">
-                  <div className="flex justify-between items-start mb-2">
-                    <div className="flex-1">
-                      <div className="font-medium text-gray-900 mb-1">{item.description}</div>
-                      <div className="text-sm text-gray-600">
-                        Quantity: {item.quantity} {product?.unitLabel ?? 'units'}
-                      </div>
-                      <div className="text-sm text-gray-600">
-                        Unit price: {formatCurrency(item.unitPrice)}
-                      </div>
+            {lineItems.map((item) => (
+              <div key={item.id} className="p-4">
+                <div className="flex justify-between items-start mb-2">
+                  <div className="flex-1">
+                    <div className="font-medium text-gray-900 mb-1">{item.description}</div>
+                    <div className="text-sm text-gray-600">
+                      Quantity: {item.quantity} {item.unitLabel}
                     </div>
-                    <div className="font-semibold text-gray-900 text-lg">
-                      {formatCurrency(item.lineTotal)}
+                    <div className="text-sm text-gray-600">
+                      Unit price: {formatCurrency(item.unitPrice)}
                     </div>
                   </div>
+                  <div className="font-semibold text-gray-900 text-lg">
+                    {formatCurrency(item.lineTotal)}
+                  </div>
                 </div>
-              );
-            })}
+              </div>
+            ))}
             {lineItems.length === 0 && (
               <div className="p-4">
                 <div className="text-sm text-gray-600">No line items recorded.</div>
