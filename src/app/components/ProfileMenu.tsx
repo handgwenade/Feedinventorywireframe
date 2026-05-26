@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, User, Settings, Shield, HelpCircle, LogOut, Users, Lock, Building } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
 import UserIcon from './shared/UserIcon';
+import { supabase } from '../services/supabaseClient';
 
 // In a real app, this would come from auth context
 const currentUser = {
@@ -15,6 +16,11 @@ const userRole: 'admin' | 'manager' | 'operator' | 'view-only' = 'operator';
 
 export default function ProfileMenu() {
   const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    navigate('/login');
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
@@ -101,7 +107,7 @@ export default function ProfileMenu() {
             <MenuOption
               icon={<LogOut size={20} />}
               label="Sign Out"
-              onClick={() => navigate('/login')}
+              onClick={handleSignOut}
               danger
             />
           </div>
