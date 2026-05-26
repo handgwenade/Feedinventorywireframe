@@ -1,14 +1,48 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, ArrowLeft, UserPlus, User } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
-import { accounts } from '../data/mockData';
+import { accountsService } from '../services/accountsService';
+import type { Account } from '../types';
 
 export default function ChooseCustomer() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
+  const [customerAccounts, setCustomerAccounts] = useState<Account[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const customerAccounts = accounts.filter((account) => account.accountType === 'customer');
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadCustomers() {
+      setIsLoading(true);
+      setErrorMessage(null);
+
+      try {
+        const customers = await accountsService.listCustomers();
+
+        if (!isMounted) return;
+
+        setCustomerAccounts(customers);
+      } catch (error) {
+        if (!isMounted) return;
+
+        setCustomerAccounts([]);
+        setErrorMessage(error instanceof Error ? error.message : 'Unable to load customers.');
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    loadCustomers();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const filteredCustomers = customerAccounts.filter((customer) =>
     customer.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -61,7 +95,25 @@ export default function ChooseCustomer() {
         <div className="mb-6">
           <h2 className="text-sm font-medium text-gray-700 mb-3">Recent Customers</h2>
           <div className="space-y-2">
-            {filteredCustomers.map((customer) => (
+            {isLoading && (
+              <div className="bg-white border border-gray-200 rounded-lg p-4 text-sm text-gray-700">
+                Loading customers...
+              </div>
+            )}
+
+            {!isLoading && errorMessage && (
+              <div className="bg-white border border-gray-300 rounded-lg p-4 text-sm text-gray-900">
+                {errorMessage}
+              </div>
+            )}
+
+            {!isLoading && !errorMessage && filteredCustomers.length === 0 && (
+              <div className="bg-white border border-gray-200 rounded-lg p-4 text-sm text-gray-700">
+                No customers found.
+              </div>
+            )}
+
+            {!isLoading && !errorMessage && filteredCustomers.map((customer) => (
               <button
                 key={customer.id}
                 onClick={() => handleSelectCustomer(customer.id, customer.name)}

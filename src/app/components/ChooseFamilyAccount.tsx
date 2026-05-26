@@ -1,12 +1,48 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, ArrowLeft, UserPlus, User } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
-import { people } from '../data/mockData';
+import { peopleService } from '../services/peopleService';
+import type { Person } from '../types';
 
 export default function ChooseFamilyAccount() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
+  const [people, setPeople] = useState<Person[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadPeople() {
+      setIsLoading(true);
+      setErrorMessage(null);
+
+      try {
+        const familyPeople = await peopleService.list();
+
+        if (!isMounted) return;
+
+        setPeople(familyPeople);
+      } catch (error) {
+        if (!isMounted) return;
+
+        setPeople([]);
+        setErrorMessage(error instanceof Error ? error.message : 'Unable to load people.');
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    loadPeople();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const filteredPeople = people.filter((person) =>
     person.officialDisplayName.toLowerCase().includes(searchQuery.toLowerCase())
@@ -64,7 +100,25 @@ export default function ChooseFamilyAccount() {
         <div className="mb-6">
           <h2 className="text-sm font-medium text-gray-700 mb-3">Recent People</h2>
           <div className="space-y-2">
-            {filteredPeople.map((person) => (
+            {isLoading && (
+              <div className="bg-white border border-gray-200 rounded-lg p-4 text-sm text-gray-700">
+                Loading people...
+              </div>
+            )}
+
+            {!isLoading && errorMessage && (
+              <div className="bg-white border border-gray-300 rounded-lg p-4 text-sm text-gray-900">
+                {errorMessage}
+              </div>
+            )}
+
+            {!isLoading && !errorMessage && filteredPeople.length === 0 && (
+              <div className="bg-white border border-gray-200 rounded-lg p-4 text-sm text-gray-700">
+                No people found.
+              </div>
+            )}
+
+            {!isLoading && !errorMessage && filteredPeople.map((person) => (
               <button
                 key={person.id}
                 onClick={() => handleSelectPerson(person.id, person.officialDisplayName)}
