@@ -2,19 +2,46 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ShoppingCart, PlusCircle, Edit3, Clock, Package } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
 import UserIcon from './shared/UserIcon';
-import { activityLogs, products } from '../data/mockData';
+import { activityLogs } from '../data/mockData';
 import { calculateInventoryValue, formatCurrency, isLowStock } from '../utils/calculations';
 import type { Product } from '../types';
 
-function getSelectedProduct(locationState: unknown): Product {
+function getSelectedProduct(locationState: unknown): Product | null {
   const state = locationState as { product?: Product } | null;
-  return state?.product ?? products[0];
+  return state?.product ?? null;
 }
 
 export default function ProductDetail() {
   const navigate = useNavigate();
   const location = useLocation();
   const product = getSelectedProduct(location.state);
+
+  if (!product) {
+    return (
+      <div className="min-h-screen bg-gray-50 pb-24">
+        <div className="bg-white border-b border-gray-200 p-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate('/inventory')}
+              className="text-gray-600 active:text-gray-900"
+            >
+              <ArrowLeft size={24} />
+            </button>
+            <h1 className="text-xl font-semibold text-gray-900">Product Detail</h1>
+          </div>
+          <UserIcon />
+        </div>
+
+        <div className="p-4">
+          <div className="bg-white border border-gray-200 rounded-lg p-4 text-sm text-gray-700">
+            Select a product from Inventory to view details.
+          </div>
+        </div>
+
+        <BottomNav />
+      </div>
+    );
+  }
 
   const inventoryValue = calculateInventoryValue(product);
   const lowStock = isLowStock(product);
