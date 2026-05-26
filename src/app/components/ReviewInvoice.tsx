@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Edit2, Trash2, Plus } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
+import { takeFeedService } from '../services/takeFeedService';
 import { calculateLineTotal, formatCurrency } from '../utils/calculations';
 
 interface CartItem {
@@ -23,6 +24,8 @@ export default function ReviewInvoice() {
   const [taxEnabled, setTaxEnabled] = useState(false);
   const [notes, setNotes] = useState('');
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>('unpaid');
+  const [isCreating, setIsCreating] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const invoiceNumber = 'INV-1001';
 
@@ -47,11 +50,46 @@ export default function ReviewInvoice() {
     });
   };
 
-  const handleCreateInvoice = () => {
+  const handleCreateInvoice = async () => {
+    setErrorMessage(null);
+
     if (paymentStatus === 'unpaid') {
-      navigate('/invoice-created', {
-        state: { customerName, customerId, accountId, cart, subtotal, tax, total, balanceDue: total, notes }
-      });
+      const selectedCustomerId = accountId ?? customerId;
+
+      if (!selectedCustomerId || selectedCustomerId === 'unassigned') {
+        setErrorMessage('Select a customer before creating an unpaid invoice.');
+        return;
+      }
+
+      try {
+        setIsCreating(true);
+        const createdInvoice = await takeFeedService.createCustomerUnpaidInvoice({
+          customerId: selectedCustomerId,
+          cart,
+          notes,
+          tax,
+        });
+
+        navigate('/invoice-created', {
+          state: {
+            customerName,
+            customerId,
+            accountId: selectedCustomerId,
+            cart,
+            invoiceId: createdInvoice.invoiceId,
+            displayNumber: createdInvoice.displayNumber,
+            subtotal: createdInvoice.subtotal,
+            tax: createdInvoice.tax,
+            total: createdInvoice.total,
+            balanceDue: createdInvoice.balanceDue,
+            notes,
+          }
+        });
+      } catch (error) {
+        setErrorMessage(error instanceof Error ? error.message : 'Unable to create invoice.');
+      } finally {
+        setIsCreating(false);
+      }
     } else {
       navigate('/payment-details', {
         state: { customerName, customerId, accountId, cart, subtotal, tax, total, paymentStatus, notes }
@@ -73,6 +111,12 @@ export default function ReviewInvoice() {
       </div>
 
       <div className="p-4 space-y-4">
+        {errorMessage && (
+          <div className="bg-white border border-gray-300 rounded-lg p-4 text-sm text-gray-900">
+            {errorMessage}
+          </div>
+        )}
+
         {/* Customer Info & Invoice Number */}
         <div className="bg-white border border-gray-200 rounded-lg p-4">
           <div className="flex items-start justify-between mb-3">
@@ -231,9 +275,10 @@ export default function ReviewInvoice() {
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-gray-900 p-4 max-w-md mx-auto">
         <button
           onClick={handleCreateInvoice}
-          className="w-full bg-gray-900 text-white py-4 rounded-lg font-semibold active:bg-gray-800"
+          disabled={isCreating}
+          className="w-full bg-gray-900 text-white py-4 rounded-lg font-semibold active:bg-gray-800 disabled:bg-gray-400"
         >
-          Create Invoice
+          {isCreating ? 'Creating Invoice...' : 'Create Invoice'}
         </button>
         {/* Payment Flow Annotation */}
         <div className="mt-3 p-3 bg-gray-50 border border-gray-300 rounded text-xs text-gray-600 leading-relaxed">

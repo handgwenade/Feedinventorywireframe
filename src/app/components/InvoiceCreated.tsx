@@ -10,6 +10,7 @@ export default function InvoiceCreated() {
   const state = (location.state ?? {}) as {
     customerName?: string;
     accountId?: string;
+    displayNumber?: string;
     total?: number;
     balanceDue?: number;
   };
@@ -18,7 +19,7 @@ export default function InvoiceCreated() {
   const customerName = state.customerName ?? fallbackAccount?.name ?? 'Anderson Cattle Co.';
   const total = state.total ?? fallbackInvoice.total;
   const balanceDue = state.balanceDue ?? fallbackInvoice.balanceDue;
-  const invoiceNumber = fallbackInvoice.displayNumber;
+  const invoiceNumber = state.displayNumber ?? fallbackInvoice.displayNumber;
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
