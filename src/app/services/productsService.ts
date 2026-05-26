@@ -46,7 +46,7 @@ async function listFromSupabase(): Promise<Product[]> {
     .order('name', { ascending: true });
 
   if (error) {
-    throw error;
+    throw new Error(`${error.message}${error.details ? ` — ${error.details}` : ''}`);
   }
 
   return (data ?? []).map((row) => mapProductRow(row as ProductRow));
