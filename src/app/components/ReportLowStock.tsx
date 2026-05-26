@@ -1,14 +1,51 @@
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Download, Printer, Plus } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
 import UserIcon from './shared/UserIcon';
-import { inventorySummary, products } from '../data/mockData';
+import { productsService } from '../services/productsService';
 import type { Product } from '../types';
 import { isLowStock } from '../utils/calculations';
 
 
 export default function ReportLowStock() {
   const navigate = useNavigate();
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadProducts() {
+      setIsLoading(true);
+      setErrorMessage(null);
+
+      try {
+        const liveProducts = await productsService.list();
+
+        if (!isMounted) return;
+
+        setProducts(liveProducts);
+      } catch (error) {
+        if (!isMounted) return;
+
+        setProducts([]);
+        setErrorMessage(error instanceof Error ? error.message : 'Unable to load low stock report.');
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    loadProducts();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const lowStockProducts = products.filter((product) => isLowStock(product));
 
   return (
@@ -31,12 +68,30 @@ export default function ReportLowStock() {
         {/* Summary Card */}
         <div className="bg-white border border-gray-200 rounded-lg p-4">
           <div className="text-sm text-gray-600 mb-1">Low Stock Items</div>
-          <div className="text-3xl font-bold text-gray-900">{inventorySummary.lowStockCount}</div>
+          <div className="text-3xl font-bold text-gray-900">{lowStockProducts.length}</div>
         </div>
 
         {/* Low Stock List */}
         <div className="space-y-3">
-          {lowStockProducts.map((product) => (
+          {isLoading && (
+            <div className="bg-white border border-gray-200 rounded-lg p-4 text-sm text-gray-700">
+              Loading low stock report...
+            </div>
+          )}
+
+          {!isLoading && errorMessage && (
+            <div className="bg-white border border-gray-300 rounded-lg p-4 text-sm text-gray-900">
+              {errorMessage}
+            </div>
+          )}
+
+          {!isLoading && !errorMessage && lowStockProducts.length === 0 && (
+            <div className="bg-white border border-gray-200 rounded-lg p-4 text-sm text-gray-700">
+              No low stock products found.
+            </div>
+          )}
+
+          {!isLoading && !errorMessage && lowStockProducts.map((product) => (
             <LowStockRow key={product.id} product={product} navigate={navigate} />
           ))}
         </div>

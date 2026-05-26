@@ -1,29 +1,71 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Search, Download, Printer } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
 import UserIcon from './shared/UserIcon';
-import { inventorySummary, productCategories, products } from '../data/mockData';
+import { productsService } from '../services/productsService';
 import { calculateInventoryValue, formatCurrency, isLowStock } from '../utils/calculations';
 import type { Product } from '../types';
 
 type FilterType = 'all' | 'low-stock' | 'salt' | 'mineral' | 'tubs' | 'blocks';
 
-function getProductCategoryName(categoryId: string): string {
-  return productCategories.find((category) => category.id === categoryId)?.name ?? 'Other';
+function inferProductCategoryName(product: Product): string {
+  const name = product.name.toLowerCase();
+
+  if (name.includes('salt')) return 'salt';
+  if (name.includes('mineral')) return 'mineral';
+  if (name.includes('tub')) return 'tubs';
+  if (name.includes('block')) return 'blocks';
+
+  return product.categoryId?.toLowerCase() ?? 'other';
 }
 
 export default function ReportInventorySummary() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const totalValue = inventorySummary.totalInventoryValue;
-  const totalUnits = inventorySummary.totalUnits;
-  const lowStockCount = inventorySummary.lowStockCount;
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadProducts() {
+      setIsLoading(true);
+      setErrorMessage(null);
+
+      try {
+        const liveProducts = await productsService.list();
+
+        if (!isMounted) return;
+
+        setProducts(liveProducts);
+      } catch (error) {
+        if (!isMounted) return;
+
+        setProducts([]);
+        setErrorMessage(error instanceof Error ? error.message : 'Unable to load inventory summary.');
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    loadProducts();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const totalValue = products.reduce((total, product) => total + calculateInventoryValue(product), 0);
+  const totalUnits = products.reduce((total, product) => total + product.currentQuantity, 0);
+  const lowStockCount = products.filter((product) => isLowStock(product)).length;
 
   const filteredData = products.filter((product) => {
-    const categoryName = getProductCategoryName(product.categoryId).toLowerCase();
+    const categoryName = inferProductCategoryName(product);
     const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase());
 
     if (activeFilter === 'all') return matchesSearch;
@@ -84,7 +126,25 @@ export default function ReportInventorySummary() {
 
         {/* Inventory List */}
         <div className="space-y-3">
-          {filteredData.map((product) => (
+          {isLoading && (
+            <div className="bg-white border border-gray-200 rounded-lg p-4 text-sm text-gray-700">
+              Loading inventory summary...
+            </div>
+          )}
+
+          {!isLoading && errorMessage && (
+            <div className="bg-white border border-gray-300 rounded-lg p-4 text-sm text-gray-900">
+              {errorMessage}
+            </div>
+          )}
+
+          {!isLoading && !errorMessage && filteredData.length === 0 && (
+            <div className="bg-white border border-gray-200 rounded-lg p-4 text-sm text-gray-700">
+              No products found.
+            </div>
+          )}
+
+          {!isLoading && !errorMessage && filteredData.map((product) => (
             <InventoryRow key={product.id} product={product} />
           ))}
         </div>
