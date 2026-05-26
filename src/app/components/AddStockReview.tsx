@@ -1,7 +1,6 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
-import { products } from '../data/mockData';
 import type { Product } from '../types';
 
 export default function AddStockReview() {
@@ -14,11 +13,42 @@ export default function AddStockReview() {
     vendorNote?: string;
     notes?: string;
   };
-  const product = state.product ?? products[0];
+  const product = state.product;
   const quantityAdded = state.quantityAdded ?? 40;
-  const newQuantity = state.newQuantity ?? product.currentQuantity + quantityAdded;
   const vendorNote = state.vendorNote ?? '';
   const notes = state.notes ?? '';
+
+  if (!product) {
+    return (
+      <div className="min-h-screen bg-gray-50 pb-24">
+        <div className="bg-white border-b border-gray-200 p-4 flex items-center gap-3">
+          <button
+            onClick={() => navigate('/add-stock-select')}
+            className="text-gray-600 active:text-gray-900"
+          >
+            <ArrowLeft size={24} />
+          </button>
+          <h1 className="text-xl font-semibold text-gray-900">Review Stock Update</h1>
+        </div>
+
+        <div className="p-4">
+          <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
+            <div className="text-sm text-gray-700">Select a product before continuing.</div>
+            <button
+              onClick={() => navigate('/add-stock-select')}
+              className="w-full bg-white border border-gray-300 text-gray-900 py-3 rounded-lg font-semibold active:bg-gray-50"
+            >
+              Back to Product Selection
+            </button>
+          </div>
+        </div>
+
+        <BottomNav />
+      </div>
+    );
+  }
+
+  const newQuantity = state.newQuantity ?? product.currentQuantity + quantityAdded;
 
   const handleAddStock = () => {
     navigate('/add-stock-success', {
@@ -43,7 +73,7 @@ export default function AddStockReview() {
       {/* Header */}
       <div className="bg-white border-b border-gray-200 p-4 flex items-center gap-3">
         <button
-          onClick={() => navigate('/add-stock-quantity')}
+          onClick={() => navigate('/add-stock-quantity', { state: { product } })}
           className="text-gray-600 active:text-gray-900"
         >
           <ArrowLeft size={24} />

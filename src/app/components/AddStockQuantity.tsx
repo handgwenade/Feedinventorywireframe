@@ -27,8 +27,14 @@ export default function AddStockQuantity() {
         </div>
 
         <div className="p-4">
-          <div className="bg-white border border-gray-200 rounded-lg p-4 text-sm text-gray-700">
-            Select a product before adding stock.
+          <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
+            <div className="text-sm text-gray-700">Select a product before continuing.</div>
+            <button
+              onClick={() => navigate('/add-stock-select')}
+              className="w-full bg-white border border-gray-300 text-gray-900 py-3 rounded-lg font-semibold active:bg-gray-50"
+            >
+              Back to Product Selection
+            </button>
           </div>
         </div>
 

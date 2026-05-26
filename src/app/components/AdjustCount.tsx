@@ -2,16 +2,45 @@ import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
-import { products } from '../data/mockData';
 import type { Product } from '../types';
 
 export default function AdjustCount() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { product = products[0] } = (location.state ?? {}) as { product?: Product };
+  const { product } = (location.state ?? {}) as { product?: Product };
 
   const [physicalCount, setPhysicalCount] = useState('');
   const [reasonNote, setReasonNote] = useState('');
+
+  if (!product) {
+    return (
+      <div className="min-h-screen bg-gray-50 pb-24">
+        <div className="bg-white border-b border-gray-200 p-4 flex items-center gap-3">
+          <button
+            onClick={() => navigate('/inventory')}
+            className="text-gray-600 active:text-gray-900"
+          >
+            <ArrowLeft size={24} />
+          </button>
+          <h1 className="text-xl font-semibold text-gray-900">Adjust Count</h1>
+        </div>
+
+        <div className="p-4">
+          <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
+            <div className="text-sm text-gray-700">Select a product before continuing.</div>
+            <button
+              onClick={() => navigate('/inventory')}
+              className="w-full bg-white border border-gray-300 text-gray-900 py-3 rounded-lg font-semibold active:bg-gray-50"
+            >
+              Back to Inventory
+            </button>
+          </div>
+        </div>
+
+        <BottomNav />
+      </div>
+    );
+  }
 
   const parsedPhysicalCount = parseInt(physicalCount);
   const difference = physicalCount ? parsedPhysicalCount - product.currentQuantity : 0;
