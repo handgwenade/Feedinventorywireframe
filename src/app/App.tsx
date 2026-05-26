@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import Dashboard from './components/Dashboard';
 import ChooseSaleType from './components/ChooseSaleType';
 import ChooseCustomer from './components/ChooseCustomer';
@@ -58,10 +59,55 @@ import CannotEditActivityWarning from './components/CannotEditActivityWarning';
 import UtilityScreensReference from './components/UtilityScreensReference';
 import SupabaseProductsTest from './components/SupabaseProductsTest';
 
-export default function App() {
+import { supabase } from './services/supabaseClient';
+
+const PUBLIC_ROUTES = ['/login', '/update-password', '/session-expired'];
+
+function AppRoutes() {
+  const location = useLocation();
+  const [authStatus, setAuthStatus] = useState<'checking' | 'authenticated' | 'anonymous'>('checking');
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function checkSession() {
+      const { data } = await supabase.auth.getSession();
+
+      if (!isMounted) return;
+
+      setAuthStatus(data.session ? 'authenticated' : 'anonymous');
+    }
+
+    checkSession();
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setAuthStatus(session ? 'authenticated' : 'anonymous');
+    });
+
+    return () => {
+      isMounted = false;
+      authListener.subscription.unsubscribe();
+    };
+  }, []);
+
+  const isPublicRoute = PUBLIC_ROUTES.includes(location.pathname);
+
+  if (authStatus === 'checking') {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="bg-white border border-gray-200 rounded-lg p-4 text-sm text-gray-700">
+          Checking session...
+        </div>
+      </div>
+    );
+  }
+
+  if (authStatus === 'anonymous' && !isPublicRoute) {
+    return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+  }
+
   return (
-    <BrowserRouter>
-      <div className="size-full max-w-md mx-auto bg-white">
+
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/choose-sale-type" element={<ChooseSaleType />} />
@@ -122,6 +168,14 @@ export default function App() {
           <Route path="/utility-screens" element={<UtilityScreensReference />} />
           <Route path="/supabase-test" element={<SupabaseProductsTest />} />
         </Routes>
+    );
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <div className="size-full max-w-md mx-auto bg-white">
+        <AppRoutes />
       </div>
     </BrowserRouter>
   );
