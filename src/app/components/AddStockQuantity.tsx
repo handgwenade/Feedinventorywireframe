@@ -2,17 +2,40 @@ import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
-import { products } from '../data/mockData';
 import type { Product } from '../types';
 
 export default function AddStockQuantity() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { product = products[0] } = (location.state ?? {}) as { product?: Product };
+  const { product } = (location.state ?? {}) as { product?: Product };
 
   const [quantityAdded, setQuantityAdded] = useState(40);
   const [vendorNote, setVendorNote] = useState('');
   const [notes, setNotes] = useState('');
+
+  if (!product) {
+    return (
+      <div className="min-h-screen bg-gray-50 pb-24">
+        <div className="bg-white border-b border-gray-200 p-4 flex items-center gap-3">
+          <button
+            onClick={() => navigate('/add-stock-select')}
+            className="text-gray-600 active:text-gray-900"
+          >
+            <ArrowLeft size={24} />
+          </button>
+          <h1 className="text-xl font-semibold text-gray-900">Add Stock</h1>
+        </div>
+
+        <div className="p-4">
+          <div className="bg-white border border-gray-200 rounded-lg p-4 text-sm text-gray-700">
+            Select a product before adding stock.
+          </div>
+        </div>
+
+        <BottomNav />
+      </div>
+    );
+  }
 
   const newQuantity = product.currentQuantity + quantityAdded;
 
@@ -69,7 +92,7 @@ export default function AddStockQuantity() {
             <input
               type="number"
               value={quantityAdded}
-              onChange={(e) => setQuantityAdded(Math.max(1, parseInt(e.target.value) || 1))}
+              onChange={(event) => setQuantityAdded(Math.max(1, parseInt(event.target.value) || 1))}
               className="flex-1 text-center text-2xl font-semibold text-gray-900 border border-gray-300 rounded-lg py-2"
             />
             <button
@@ -114,7 +137,7 @@ export default function AddStockQuantity() {
           <input
             type="text"
             value={vendorNote}
-            onChange={(e) => setVendorNote(e.target.value)}
+            onChange={(event) => setVendorNote(event.target.value)}
             placeholder="Vendor, delivery, or source..."
             className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900"
           />
@@ -127,7 +150,7 @@ export default function AddStockQuantity() {
           </label>
           <textarea
             value={notes}
-            onChange={(e) => setNotes(e.target.value)}
+            onChange={(event) => setNotes(event.target.value)}
             placeholder="Add restock note..."
             rows={3}
             className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-gray-900 text-gray-900"
