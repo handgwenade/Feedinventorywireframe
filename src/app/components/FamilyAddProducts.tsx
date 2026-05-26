@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Search, ArrowLeft, AlertCircle, Package } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
-import { products } from '../data/mockData';
+import { productsService } from '../services/productsService';
 import { calculateLineTotal, formatCurrency, isLowStock } from '../utils/calculations';
 import type { Product } from '../types';
 
@@ -17,24 +17,67 @@ interface CartItem {
 export default function FamilyAddProducts() {
   const navigate = useNavigate();
   const location = useLocation();
+  const routeState = (location.state ?? {}) as {
+    personId?: string;
+    personName?: string;
+    cart?: CartItem[];
+    editingIndex?: number;
+  };
   const {
     personId,
     personName = 'Bill Johnson',
     cart: initialCart = [],
     editingIndex
-  } = location.state || {};
-  const initialEditingProduct = typeof editingIndex === 'number'
-    ? products.find((product) => product.id === initialCart[editingIndex]?.productId) ?? null
-    : null;
+  } = routeState;
 
   const [searchQuery, setSearchQuery] = useState('');
+  const [productOptions, setProductOptions] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [cart, setCart] = useState<CartItem[]>(initialCart);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(initialEditingProduct);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [editingCartIndex, setEditingCartIndex] = useState<number | null>(
     typeof editingIndex === 'number' ? editingIndex : null
   );
 
-  const filteredProducts = products.filter((product) =>
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadProducts() {
+      setIsLoading(true);
+      setErrorMessage(null);
+
+      try {
+        const liveProducts = await productsService.list();
+
+        if (!isMounted) return;
+
+        setProductOptions(liveProducts);
+
+        if (typeof editingIndex === 'number') {
+          const productToEdit = liveProducts.find((product) => product.id === initialCart[editingIndex]?.productId);
+          setSelectedProduct(productToEdit ?? null);
+        }
+      } catch (error) {
+        if (!isMounted) return;
+
+        setProductOptions([]);
+        setErrorMessage(error instanceof Error ? error.message : 'Unable to load products.');
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    loadProducts();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const filteredProducts = productOptions.filter((product) =>
     product.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -126,7 +169,25 @@ export default function FamilyAddProducts() {
       </div>
 
       <div className="flex-1 p-4 space-y-3">
-        {filteredProducts.map((product) => {
+        {isLoading && (
+          <div className="bg-white border border-gray-200 rounded-lg p-4 text-sm text-gray-700">
+            Loading products...
+          </div>
+        )}
+
+        {!isLoading && errorMessage && (
+          <div className="bg-white border border-gray-300 rounded-lg p-4 text-sm text-gray-900">
+            {errorMessage}
+          </div>
+        )}
+
+        {!isLoading && !errorMessage && filteredProducts.length === 0 && (
+          <div className="bg-white border border-gray-200 rounded-lg p-4 text-sm text-gray-700">
+            No products found.
+          </div>
+        )}
+
+        {!isLoading && !errorMessage && filteredProducts.map((product) => {
           const lowStock = isLowStock(product);
 
           return (
