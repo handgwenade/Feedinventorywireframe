@@ -41,7 +41,26 @@ async function listCustomersFromSupabase(): Promise<Account[]> {
   return (data ?? []).map((row) => mapAccountRow(row as AccountRow));
 }
 
+async function listActiveFromSupabase(): Promise<Account[]> {
+  const { data, error } = await supabase
+    .from('accounts')
+    .select('id, account_type, name, phone, email, billing_address, notes, is_active')
+    .eq('is_active', true)
+    .order('account_type', { ascending: true })
+    .order('name', { ascending: true });
+
+  if (error) {
+    throw new Error(`${error.message}${error.details ? ` — ${error.details}` : ''}`);
+  }
+
+  return (data ?? []).map((row) => mapAccountRow(row as AccountRow));
+}
+
 export const accountsService = {
+  async listActive(): Promise<Account[]> {
+    return listActiveFromSupabase();
+  },
+
   async listCustomers(): Promise<Account[]> {
     return listCustomersFromSupabase();
   },

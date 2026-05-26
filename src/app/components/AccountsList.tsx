@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Plus } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
 import UserIcon from './shared/UserIcon';
-import { accounts, activityLogs, invoiceRecords, people } from '../data/mockData';
+import { activityLogs, invoiceRecords } from '../data/mockData';
+import { accountsService } from '../services/accountsService';
+import { peopleService } from '../services/peopleService';
 import { formatCurrency } from '../utils/calculations';
 import type { Account, Person } from '../types';
 
@@ -43,7 +45,7 @@ function getLastActivity(entityId: string): string {
   return new Date(activity.createdAt).toLocaleDateString();
 }
 
-function buildAccountListItems(): AccountListItem[] {
+function buildAccountListItems(accounts: Account[], people: Person[]): AccountListItem[] {
   const accountItems: AccountListItem[] = accounts.map((account) => ({
     id: account.id,
     name: account.name,
@@ -72,8 +74,49 @@ export default function AccountsList() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<AccountFilter>('all');
+  const [accounts, setAccounts] = useState<Account[]>([]);
+  const [people, setPeople] = useState<Person[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const listItems = buildAccountListItems();
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadAccountsAndPeople() {
+      setIsLoading(true);
+      setErrorMessage(null);
+
+      try {
+        const [liveAccounts, livePeople] = await Promise.all([
+          accountsService.listActive(),
+          peopleService.list(),
+        ]);
+
+        if (!isMounted) return;
+
+        setAccounts(liveAccounts);
+        setPeople(livePeople);
+      } catch (error) {
+        if (!isMounted) return;
+
+        setAccounts([]);
+        setPeople([]);
+        setErrorMessage(error instanceof Error ? error.message : 'Unable to load accounts.');
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    loadAccountsAndPeople();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const listItems = buildAccountListItems(accounts, people);
 
   const filteredAccounts = listItems.filter((account) => {
     const matchesSearch = account.name.toLowerCase().includes(searchQuery.toLowerCase());
@@ -127,7 +170,25 @@ export default function AccountsList() {
         </button>
 
         <div className="space-y-3">
-          {filteredAccounts.map((account) => (
+          {isLoading && (
+            <div className="bg-white border border-gray-200 rounded-lg p-4 text-sm text-gray-700">
+              Loading accounts...
+            </div>
+          )}
+
+          {!isLoading && errorMessage && (
+            <div className="bg-white border border-gray-300 rounded-lg p-4 text-sm text-gray-900">
+              {errorMessage}
+            </div>
+          )}
+
+          {!isLoading && !errorMessage && filteredAccounts.length === 0 && (
+            <div className="bg-white border border-gray-200 rounded-lg p-4 text-sm text-gray-700">
+              No accounts found.
+            </div>
+          )}
+
+          {!isLoading && !errorMessage && filteredAccounts.map((account) => (
             <AccountCard
               key={account.id}
               account={account}
