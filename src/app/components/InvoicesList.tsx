@@ -1,49 +1,14 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, ChevronDown, DollarSign, AlertCircle, TrendingUp } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
 import UserIcon from './shared/UserIcon';
-import { accounts, invoiceLineItems, invoiceRecords, people } from '../data/mockData';
+import { invoicesService } from '../services/invoicesService';
 import { formatCurrency } from '../utils/calculations';
-import type { InvoiceRecord, InvoiceRecordType, InvoiceStatus } from '../types';
+import type { InvoiceListItem, InvoiceListType } from '../services/invoicesService';
 
 type FilterType = 'all' | 'unpaid' | 'paid' | 'customer' | 'k2' | 'family';
 type SortType = 'date' | 'balance' | 'account';
-type InvoiceListType = 'customer' | 'k2' | 'family';
-
-interface InvoiceListItem extends InvoiceRecord {
-  accountName: string;
-  type: InvoiceListType;
-  productsSummary: string;
-}
-
-function getInvoiceType(recordType: InvoiceRecordType): InvoiceListType {
-  if (recordType === 'customer_invoice') return 'customer';
-  if (recordType === 'k2_statement') return 'k2';
-  return 'family';
-}
-
-function getAccountName(invoice: InvoiceRecord): string {
-  if (invoice.accountId) {
-    return accounts.find((account) => account.id === invoice.accountId)?.name ?? 'Unknown Account';
-  }
-
-  if (invoice.personId) {
-    return people.find((person) => person.id === invoice.personId)?.officialDisplayName ?? 'Unknown Person';
-  }
-
-  return 'Unknown';
-}
-
-function getProductsSummary(invoiceId: string): string {
-  const items = invoiceLineItems.filter((item) => item.invoiceRecordId === invoiceId);
-
-  if (items.length === 0) return 'No line items';
-
-  return items
-    .map((item) => `${item.description}, ${item.quantity} ${item.quantity === 1 ? 'unit' : 'units'}`)
-    .join('; ');
-}
 
 export default function InvoicesList() {
   const navigate = useNavigate();
@@ -51,13 +16,41 @@ export default function InvoicesList() {
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
   const [sortBy, setSortBy] = useState<SortType>('date');
   const [showSortMenu, setShowSortMenu] = useState(false);
+  const [invoices, setInvoices] = useState<InvoiceListItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const invoices: InvoiceListItem[] = invoiceRecords.map((invoice) => ({
-    ...invoice,
-    accountName: getAccountName(invoice),
-    type: getInvoiceType(invoice.recordType),
-    productsSummary: getProductsSummary(invoice.id),
-  }));
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadInvoices() {
+      setIsLoading(true);
+      setErrorMessage(null);
+
+      try {
+        const liveInvoices = await invoicesService.list();
+
+        if (!isMounted) return;
+
+        setInvoices(liveInvoices);
+      } catch (error) {
+        if (!isMounted) return;
+
+        setInvoices([]);
+        setErrorMessage(error instanceof Error ? error.message : 'Unable to load invoices.');
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    loadInvoices();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const filteredInvoices = invoices
     .filter((invoice) => {
@@ -78,11 +71,11 @@ export default function InvoicesList() {
       if (sortBy === 'balance') return b.balanceDue - a.balanceDue;
       if (sortBy === 'account') return a.accountName.localeCompare(b.accountName);
       return 0;
-    });
+  });
 
-  const unpaidTotal = invoiceRecords.reduce((sum, invoice) => sum + invoice.balanceDue, 0);
-  const overdue = invoiceRecords.filter((invoice) => invoice.status === 'overdue').length;
-  const paidThisMonth = invoiceRecords.filter((invoice) => invoice.status === 'paid').length;
+  const unpaidTotal = invoices.reduce((sum, invoice) => sum + invoice.balanceDue, 0);
+  const overdue = invoices.filter((invoice) => invoice.status === 'overdue').length;
+  const paidThisMonth = invoices.filter((invoice) => invoice.status === 'paid').length;
 
   const handleViewInvoice = (invoice: InvoiceListItem) => {
     navigate('/invoice-detail', { state: { invoice } });
@@ -188,7 +181,25 @@ export default function InvoicesList() {
 
       {/* Invoices */}
       <div className="p-4 space-y-3">
-        {filteredInvoices.map((invoice) => (
+        {isLoading && (
+          <div className="bg-white border border-gray-200 rounded-lg p-4 text-sm text-gray-700">
+            Loading invoices...
+          </div>
+        )}
+
+        {!isLoading && errorMessage && (
+          <div className="bg-white border border-gray-300 rounded-lg p-4 text-sm text-gray-900">
+            {errorMessage}
+          </div>
+        )}
+
+        {!isLoading && !errorMessage && filteredInvoices.length === 0 && (
+          <div className="bg-white border border-gray-200 rounded-lg p-4 text-sm text-gray-700">
+            No invoices found.
+          </div>
+        )}
+
+        {!isLoading && !errorMessage && filteredInvoices.map((invoice) => (
           <button
             key={invoice.id}
             onClick={() => handleViewInvoice(invoice)}
@@ -261,8 +272,8 @@ function TypeBadge({ type }: { type: InvoiceListType }) {
   );
 }
 
-function StatusBadge({ status }: { status: InvoiceStatus }) {
-  const labels: Record<InvoiceStatus, string> = {
+function StatusBadge({ status }: { status: string }) {
+  const labels: Record<string, string> = {
     unpaid: 'Unpaid',
     paid: 'Paid',
     partial: 'Partial',
@@ -270,13 +281,14 @@ function StatusBadge({ status }: { status: InvoiceStatus }) {
     void: 'Void',
     written_off: 'Written Off',
     internal_transfer: 'Internal Transfer',
+    internal: 'Internal',
     track_only: 'Track Only',
     needs_payment: 'Needs Payment',
   };
 
   return (
     <span className="inline-block px-2 py-0.5 bg-gray-100 text-gray-700 text-xs font-medium rounded border border-gray-300">
-      {labels[status]}
+      {labels[status] ?? status}
     </span>
   );
 }
