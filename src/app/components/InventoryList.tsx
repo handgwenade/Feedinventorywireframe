@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, AlertCircle, ChevronDown, Package } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
 import UserIcon from './shared/UserIcon';
 
-import { products, productCategories } from '../data/mockData';
+import { productsService } from '../services/productsService';
 import { calculateInventoryValue, formatCurrency, isLowStock } from '../utils/calculations';
 import type { Product } from '../types';
 
@@ -12,8 +12,16 @@ import type { Product } from '../types';
 type FilterType = 'all' | 'low-stock' | 'salt' | 'mineral' | 'tubs' | 'blocks';
 type SortType = 'name' | 'quantity' | 'low-stock';
 
-function getProductCategoryName(categoryId: string): string {
-  return productCategories.find((category) => category.id === categoryId)?.name ?? 'Other';
+
+function inferProductCategoryName(product: Product): string {
+  const name = product.name.toLowerCase();
+
+  if (name.includes('salt')) return 'salt';
+  if (name.includes('mineral')) return 'mineral';
+  if (name.includes('tub')) return 'tubs';
+  if (name.includes('block')) return 'blocks';
+
+  return product.categoryId?.toLowerCase() ?? 'other';
 }
 
 export default function InventoryList() {
@@ -23,9 +31,45 @@ export default function InventoryList() {
   const [sortBy, setSortBy] = useState<SortType>('name');
   const [showSortMenu, setShowSortMenu] = useState(false);
 
-  const filteredProducts = products
+  const [inventoryProducts, setInventoryProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadProducts() {
+      setIsLoading(true);
+      setErrorMessage(null);
+
+      try {
+        const liveProducts = await productsService.list();
+
+        if (!isMounted) return;
+
+        setInventoryProducts(liveProducts);
+      } catch (error) {
+        if (!isMounted) return;
+
+        setInventoryProducts([]);
+        setErrorMessage(error instanceof Error ? error.message : 'Unable to load inventory.');
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    loadProducts();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const filteredProducts = inventoryProducts
     .filter((product) => {
-      const categoryName = getProductCategoryName(product.categoryId).toLowerCase();
+      const categoryName = inferProductCategoryName(product);
       const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase());
 
       if (activeFilter === 'all') return matchesSearch;
@@ -146,7 +190,25 @@ export default function InventoryList() {
 
       {/* Products */}
       <div className="p-4 space-y-3">
-        {filteredProducts.map((product) => {
+        {isLoading && (
+          <div className="bg-white border border-gray-200 rounded-lg p-4 text-sm text-gray-700">
+            Loading inventory...
+          </div>
+        )}
+
+        {!isLoading && errorMessage && (
+          <div className="bg-white border border-gray-300 rounded-lg p-4 text-sm text-gray-900">
+            {errorMessage}
+          </div>
+        )}
+
+        {!isLoading && !errorMessage && filteredProducts.length === 0 && (
+          <div className="bg-white border border-gray-200 rounded-lg p-4 text-sm text-gray-700">
+            No products found.
+          </div>
+        )}
+
+        {!isLoading && !errorMessage && filteredProducts.map((product) => {
           const inventoryValue = calculateInventoryValue(product);
           const lowStock = isLowStock(product);
           return (
