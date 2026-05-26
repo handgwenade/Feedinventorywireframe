@@ -44,6 +44,7 @@ import Settings from './components/Settings';
 import ManageUsers from './components/ManageUsers';
 import EditUser from './components/EditUser';
 import Login from './components/Login';
+import UpdatePassword from './components/UpdatePassword';
 import SessionExpired from './components/SessionExpired';
 import EmptyInventory from './components/EmptyInventory';
 import EmptyInvoices from './components/EmptyInvoices';
@@ -55,6 +56,7 @@ import MissingPriceWarning from './components/MissingPriceWarning';
 import PermissionNeeded from './components/PermissionNeeded';
 import CannotEditActivityWarning from './components/CannotEditActivityWarning';
 import UtilityScreensReference from './components/UtilityScreensReference';
+import SupabaseProductsTest from './components/SupabaseProductsTest';
 
 export default function App() {
   return (
@@ -106,6 +108,7 @@ export default function App() {
           <Route path="/manage-users" element={<ManageUsers />} />
           <Route path="/edit-user" element={<EditUser />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/update-password" element={<UpdatePassword />} />
           <Route path="/session-expired" element={<SessionExpired />} />
           <Route path="/empty-inventory" element={<EmptyInventory />} />
           <Route path="/empty-invoices" element={<EmptyInvoices />} />
@@ -117,6 +120,7 @@ export default function App() {
           <Route path="/permission-needed" element={<PermissionNeeded />} />
           <Route path="/cannot-edit-activity-warning" element={<CannotEditActivityWarning />} />
           <Route path="/utility-screens" element={<UtilityScreensReference />} />
+          <Route path="/supabase-test" element={<SupabaseProductsTest />} />
         </Routes>
       </div>
     </BrowserRouter>

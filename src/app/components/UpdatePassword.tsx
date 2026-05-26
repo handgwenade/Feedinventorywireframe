@@ -1,56 +1,50 @@
+
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Package } from 'lucide-react';
 import { supabase } from '../services/supabaseClient';
 
-export default function Login() {
+export default function UpdatePassword() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [inviteCode, setInviteCode] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
 
-  const handleSignIn = async () => {
-    setIsLoading(true);
-    setMessage('');
+  const handleUpdatePassword = async () => {
     setError('');
+    setMessage('');
 
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email,
+    if (!password) {
+      setError('Enter a new password.');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError('Passwords do not match.');
+      return;
+    }
+
+    setIsLoading(true);
+
+    const { error: updateError } = await supabase.auth.updateUser({
       password,
     });
 
     setIsLoading(false);
 
-    if (signInError) {
-      setError(signInError.message);
+    if (updateError) {
+      setError(updateError.message);
       return;
     }
 
-    navigate('/');
-  };
+    setMessage('Password updated. You can now sign in.');
 
-  const handleForgotPassword = async () => {
-    setMessage('');
-    setError('');
-
-    if (!email) {
-      setError('Enter your email first, then request a reset link.');
-      return;
-    }
-
-    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/update-password`,
-    });
-
-    if (resetError) {
-      setError(resetError.message);
-      return;
-    }
-
-    setMessage('Password reset email sent. Check your inbox.');
+    setTimeout(() => {
+      navigate('/login');
+    }, 1200);
   };
 
   return (
@@ -62,8 +56,8 @@ export default function Login() {
               <Package size={40} className="text-white" />
             </div>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">StockLog</h1>
-          <p className="text-gray-600 mt-1">Sign in to continue</p>
+          <h1 className="text-2xl font-bold text-gray-900">Update Password</h1>
+          <p className="text-gray-600 mt-1">Choose a new password for StockLog.</p>
         </div>
 
         <div className="bg-white border border-gray-200 rounded-lg p-6 space-y-4">
@@ -81,59 +75,44 @@ export default function Login() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Email
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              placeholder="Enter your email..."
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Password
+              New Password
             </label>
             <input
               type="password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              placeholder="Enter your password..."
+              placeholder="Enter new password..."
               className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900"
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Invite code (optional)
+              Confirm Password
             </label>
             <input
-              type="text"
-              value={inviteCode}
-              onChange={(event) => setInviteCode(event.target.value)}
-              placeholder="Enter invite code..."
+              type="password"
+              value={confirmPassword}
+              onChange={(event) => setConfirmPassword(event.target.value)}
+              placeholder="Confirm new password..."
               className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900"
             />
           </div>
 
           <button
-            onClick={handleSignIn}
+            onClick={handleUpdatePassword}
             disabled={isLoading}
             className="w-full bg-gray-900 text-white py-4 rounded-lg font-semibold active:bg-gray-800 disabled:bg-gray-400"
           >
-            {isLoading ? 'Signing In...' : 'Sign In'}
+            {isLoading ? 'Updating...' : 'Update Password'}
           </button>
 
-          <div className="text-center">
-            <button
-              onClick={handleForgotPassword}
-              className="text-sm text-gray-600 hover:text-gray-900 active:text-gray-900"
-            >
-              Forgot password?
-            </button>
-          </div>
+          <button
+            onClick={() => navigate('/login')}
+            className="w-full bg-white border border-gray-300 text-gray-900 py-3 rounded-lg font-medium active:bg-gray-50"
+          >
+            Back to Sign In
+          </button>
         </div>
       </div>
     </div>
