@@ -189,6 +189,7 @@ export default function FamilyAddProducts() {
 
         {!isLoading && !errorMessage && filteredProducts.map((product) => {
           const lowStock = isLowStock(product);
+          const cartItem = cart.find((item) => item.productId === product.id);
 
           return (
             <div key={product.id} className="bg-white border border-gray-200 rounded-lg p-4">
@@ -207,6 +208,11 @@ export default function FamilyAddProducts() {
                       <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 text-gray-700 text-xs font-medium rounded border border-gray-300">
                         <AlertCircle size={12} />
                         Low Stock
+                      </span>
+                    )}
+                    {cartItem && (
+                      <span className="inline-flex px-2 py-0.5 bg-gray-100 text-gray-700 text-xs font-medium rounded border border-gray-300">
+                        In family use: {cartItem.quantity}
                       </span>
                     )}
                   </div>
@@ -229,11 +235,22 @@ export default function FamilyAddProducts() {
 
       {cart.length > 0 && (
         <div className="fixed bottom-0 left-0 right-0 bg-gray-900 text-white p-4 shadow-lg max-w-md mx-auto">
-          <div className="flex items-center justify-between mb-3">
+          <div
+            onClick={handleReviewInvoice}
+            className="flex items-center justify-between mb-3 cursor-pointer active:opacity-80"
+            role="button"
+            tabIndex={0}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' || event.key === ' ') handleReviewInvoice();
+            }}
+          >
             <div className="flex items-center gap-2">
-              <span className="font-medium">
-                {cartItemCount} {cartItemCount === 1 ? 'item' : 'items'}
-              </span>
+              <div>
+                <div className="font-medium">
+                  {cartItemCount} {cartItemCount === 1 ? 'item' : 'items'} in family use
+                </div>
+                <div className="text-xs text-gray-300">Tap to review</div>
+              </div>
             </div>
             <div className="text-xl font-bold">
               {formatCurrency(cartTotal)}
