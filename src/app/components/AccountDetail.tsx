@@ -1,9 +1,13 @@
+import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ShoppingCart, FileText, DollarSign, Activity, Edit, List } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
 import UserIcon from './shared/UserIcon';
-import { accounts, activityLogs, invoiceLineItems, invoiceRecords, people } from '../data/mockData';
+import { activityService } from '../services/activityService';
+import { invoicesService } from '../services/invoicesService';
 import { formatCurrency } from '../utils/calculations';
+import type { ActivityItem as LiveActivityItem } from '../services/activityService';
+import type { InvoiceListItem } from '../services/invoicesService';
 import type { Account, Person } from '../types';
 
 type AccountListType = 'customer' | 'k2' | 'family';
@@ -19,62 +23,39 @@ interface AccountListItem {
   source: Account | Person;
 }
 
-function getSelectedAccount(locationState: unknown): AccountListItem {
-  const state = locationState as { account?: AccountListItem } | null;
-
-  if (state?.account) return state.account;
-
-  const fallbackAccount = accounts[0];
-  return {
-    id: fallbackAccount.id,
-    name: fallbackAccount.name,
-    type: fallbackAccount.accountType === 'k2' ? 'k2' : 'customer',
-    balance: getAccountBalance(fallbackAccount.id),
-    lastActivity: getLastActivity(fallbackAccount.id),
-    phone: fallbackAccount.phone,
-    email: fallbackAccount.email,
-    source: fallbackAccount,
-  };
+function getSelectedAccount(locationState: unknown): AccountListItem | null {
+  return ((locationState as { account?: AccountListItem } | null)?.account ?? null);
 }
 
-function getAccountBalance(accountId: string): number {
-  return invoiceRecords
-    .filter((record) => record.accountId === accountId)
-    .reduce((total, record) => total + record.balanceDue, 0);
-}
-
-function getPersonBalance(personId: string): number {
-  return invoiceRecords
-    .filter((record) => record.personId === personId)
-    .reduce((total, record) => total + record.balanceDue, 0);
-}
-
-function getRelatedRecords(account: AccountListItem) {
+function getRelatedRecords(account: AccountListItem, records: InvoiceListItem[]): InvoiceListItem[] {
   if (account.type === 'family') {
-    return invoiceRecords.filter((record) => record.personId === account.id);
+    return records.filter((record) => record.personId === account.id);
   }
 
-  return invoiceRecords.filter((record) => record.accountId === account.id);
+  return records.filter((record) => record.accountId === account.id);
 }
 
-function getRelatedActivity(account: AccountListItem) {
-  return activityLogs
-    .filter((activity) => activity.accountId === account.id || activity.personId === account.id)
+function getRelatedActivity(account: AccountListItem, activities: LiveActivityItem[], records: InvoiceListItem[]): LiveActivityItem[] {
+  const recordIds = new Set(records.map((record) => record.id));
+
+  return activities
+    .filter((activity) => (
+      activity.accountId === account.id ||
+      activity.personId === account.id ||
+      Boolean(activity.invoiceRecordId && recordIds.has(activity.invoiceRecordId))
+    ))
     .slice(0, 3);
 }
 
-function getLastActivity(entityId: string): string {
-  const activity = activityLogs.find(
-    (item) => item.accountId === entityId || item.personId === entityId,
-  );
+function getLastActivity(activities: LiveActivityItem[]): string {
+  const activity = activities[0];
 
   if (!activity) return 'No activity yet';
 
   return new Date(activity.createdAt).toLocaleDateString();
 }
 
-function getLastRecordDate(account: AccountListItem): string {
-  const records = getRelatedRecords(account);
+function getLastRecordDate(records: InvoiceListItem[]): string {
   const latest = records[0];
 
   if (!latest) return '—';
@@ -82,35 +63,107 @@ function getLastRecordDate(account: AccountListItem): string {
   return new Date(latest.issueDate).toLocaleDateString();
 }
 
-function getTotalRecordValue(account: AccountListItem): number {
-  return getRelatedRecords(account).reduce((total, record) => total + record.total, 0);
-}
-
-function getRecordDescription(recordId: string): string {
-  const items = invoiceLineItems.filter((item) => item.invoiceRecordId === recordId);
-
-  if (items.length === 0) return 'No line items';
-
-  return items
-    .map((item) => `${item.description} — ${item.quantity} ${item.quantity === 1 ? 'unit' : 'units'} — ${formatCurrency(item.lineTotal)}`)
-    .join('; ');
+function getTotalRecordValue(records: InvoiceListItem[]): number {
+  return records.reduce((total, record) => total + record.total, 0);
 }
 
 function getStatusLabel(status: string): string {
   return status
-    .split('_')
+    .split(/[_-]/)
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
+}
+
+function getNotes(account: AccountListItem): string {
+  return 'notes' in account.source ? account.source.notes ?? '—' : '—';
 }
 
 export default function AccountDetail() {
   const navigate = useNavigate();
   const location = useLocation();
   const account = getSelectedAccount(location.state);
-  const records = getRelatedRecords(account);
-  const recentActivity = getRelatedActivity(account);
-  const totalValue = getTotalRecordValue(account);
-  const balance = account.type === 'family' ? getPersonBalance(account.id) : getAccountBalance(account.id);
+  const [allRecords, setAllRecords] = useState<InvoiceListItem[]>([]);
+  const [allActivity, setAllActivity] = useState<LiveActivityItem[]>([]);
+  const [isLoading, setIsLoading] = useState(Boolean(account));
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!account) return;
+
+    let isMounted = true;
+
+    async function loadAccountDetail() {
+      setIsLoading(true);
+      setErrorMessage(null);
+
+      try {
+        const [liveRecords, liveActivity] = await Promise.all([
+          invoicesService.list(),
+          activityService.list(),
+        ]);
+
+        if (!isMounted) return;
+
+        setAllRecords(liveRecords);
+        setAllActivity(liveActivity);
+      } catch (error) {
+        if (!isMounted) return;
+
+        setErrorMessage(error instanceof Error ? error.message : 'Unable to load account details.');
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    loadAccountDetail();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [account?.id]);
+
+  if (!account) {
+    return (
+      <div className="min-h-screen bg-gray-50 pb-24">
+        <div className="bg-white border-b border-gray-200 p-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate('/accounts')}
+              className="text-gray-600 active:text-gray-900"
+            >
+              <ArrowLeft size={24} />
+            </button>
+            <h1 className="text-xl font-semibold text-gray-900">Account Detail</h1>
+          </div>
+          <UserIcon />
+        </div>
+
+        <div className="p-4">
+          <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
+            <div className="text-sm text-gray-700">
+              Select an account or person from Accounts to view details.
+            </div>
+            <button
+              onClick={() => navigate('/accounts')}
+              className="w-full bg-white border border-gray-300 text-gray-900 py-3 rounded-lg font-semibold active:bg-gray-50"
+            >
+              Back to Accounts
+            </button>
+          </div>
+        </div>
+
+        <BottomNav />
+      </div>
+    );
+  }
+
+  const records = getRelatedRecords(account, allRecords);
+  const recentActivity = getRelatedActivity(account, allActivity, records);
+  const totalValue = getTotalRecordValue(records);
+  const balance = records.reduce((total, record) => total + record.balanceDue, 0);
+  const lastActivity = isLoading ? 'Loading...' : getLastActivity(recentActivity);
 
   const renderAccountInfo = () => (
     <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
@@ -130,8 +183,8 @@ export default function AccountDetail() {
 
       <InfoRow label="Phone" value={account.phone ?? '—'} />
       <InfoRow label="Email" value={account.email ?? '—'} />
-      <InfoRow label="Notes" value={'notes' in account.source ? account.source.notes ?? '—' : '—'} />
-      <InfoRow label="Last activity" value={account.lastActivity} />
+      <InfoRow label="Notes" value={getNotes(account)} />
+      <InfoRow label="Last activity" value={lastActivity} />
     </div>
   );
 
@@ -139,9 +192,9 @@ export default function AccountDetail() {
     if (account.type === 'customer') {
       return (
         <div className="grid grid-cols-3 gap-3">
-          <SummaryCard label="Total purchased" value={formatCurrency(totalValue)} />
-          <SummaryCard label="Unpaid balance" value={formatCurrency(balance)} />
-          <SummaryCard label="Last invoice" value={getLastRecordDate(account)} />
+          <SummaryCard label="Total purchased" value={isLoading ? '...' : formatCurrency(totalValue)} />
+          <SummaryCard label="Unpaid balance" value={isLoading ? '...' : formatCurrency(balance)} />
+          <SummaryCard label="Last invoice" value={isLoading ? '...' : getLastRecordDate(records)} />
         </div>
       );
     }
@@ -149,18 +202,18 @@ export default function AccountDetail() {
     if (account.type === 'k2') {
       return (
         <div className="grid grid-cols-3 gap-3">
-          <SummaryCard label="Total value used" value={formatCurrency(totalValue)} />
-          <SummaryCard label="Current balance" value={balance > 0 ? formatCurrency(balance) : 'Internal'} />
-          <SummaryCard label="Last statement" value={getLastRecordDate(account)} />
+          <SummaryCard label="Total value used" value={isLoading ? '...' : formatCurrency(totalValue)} />
+          <SummaryCard label="Current balance" value={isLoading ? '...' : balance > 0 ? formatCurrency(balance) : 'Internal'} />
+          <SummaryCard label="Last statement" value={isLoading ? '...' : getLastRecordDate(records)} />
         </div>
       );
     }
 
     return (
       <div className="grid grid-cols-3 gap-3">
-        <SummaryCard label="Total value taken" value={formatCurrency(totalValue)} />
-        <SummaryCard label="Open amount" value={formatCurrency(balance)} />
-        <SummaryCard label="Last recorded use" value={getLastRecordDate(account)} />
+        <SummaryCard label="Total value taken" value={isLoading ? '...' : formatCurrency(totalValue)} />
+        <SummaryCard label="Open amount" value={isLoading ? '...' : formatCurrency(balance)} />
+        <SummaryCard label="Last recorded use" value={isLoading ? '...' : getLastRecordDate(records)} />
       </div>
     );
   };
@@ -202,20 +255,24 @@ export default function AccountDetail() {
         <h2 className="font-semibold text-gray-900">Recent Activity</h2>
       </div>
       <div className="p-4 space-y-3">
-        {records.slice(0, 3).map((record) => (
+        {isLoading && (
+          <div className="text-sm text-gray-600">Loading account activity...</div>
+        )}
+
+        {!isLoading && records.slice(0, 3).map((record) => (
           <ActivityItem
             key={record.id}
             label={record.displayNumber}
-            description={getRecordDescription(record.id)}
+            description={record.productsSummary}
             status={getStatusLabel(record.status)}
           />
         ))}
 
-        {records.length === 0 && recentActivity.length === 0 && (
+        {!isLoading && records.length === 0 && recentActivity.length === 0 && (
           <div className="text-sm text-gray-600">No recent activity yet.</div>
         )}
 
-        {recentActivity.map((activity) => (
+        {!isLoading && recentActivity.map((activity) => (
           <div key={activity.id} className="text-sm text-gray-600 border-t border-gray-200 pt-3">
             {activity.summary}
           </div>
@@ -240,6 +297,12 @@ export default function AccountDetail() {
       </div>
 
       <div className="p-4 space-y-4">
+        {errorMessage && (
+          <div className="bg-white border border-gray-300 rounded-lg p-4 text-sm text-gray-900">
+            {errorMessage}
+          </div>
+        )}
+
         {renderAccountInfo()}
         {renderSummaryCards()}
         {renderActions()}
