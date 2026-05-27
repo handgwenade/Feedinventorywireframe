@@ -19,10 +19,13 @@ function getActivityTypeLabel(activityType: string): string {
     payment_recorded: 'Payment Recorded',
     account_created: 'Account Created',
     account_updated: 'Account Updated',
+    account_archived: 'Account Archived',
     person_created: 'Person Created',
     person_updated: 'Person Updated',
+    person_archived: 'Person Archived',
     product_created: 'Product Created',
     product_updated: 'Product Updated',
+    product_archived: 'Product Archived',
     status_changed: 'Status Changed',
   };
 
