@@ -3,13 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { ShoppingCart, Package, FileText, Users, BarChart3, PlusCircle, Clock, DollarSign, AlertTriangle, TrendingUp } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
 import UserIcon from './shared/UserIcon';
-import { currentUser } from '../data/mockData';
 import { activityService } from '../services/activityService';
 import { invoicesService } from '../services/invoicesService';
 import { productsService } from '../services/productsService';
+import { userProfileService } from '../services/userProfileService';
 import { calculateInventoryValue, formatCurrency, isLowStock } from '../utils/calculations';
 import type { ActivityItem as ActivityItemRecord } from '../services/activityService';
 import type { InvoiceListItem } from '../services/invoicesService';
+import type { CurrentUserProfile } from '../services/userProfileService';
 import type { Product } from '../types';
 
 export default function Dashboard() {
@@ -17,6 +18,7 @@ export default function Dashboard() {
   const [products, setProducts] = useState<Product[]>([]);
   const [invoices, setInvoices] = useState<InvoiceListItem[]>([]);
   const [activities, setActivities] = useState<ActivityItemRecord[]>([]);
+  const [profile, setProfile] = useState<CurrentUserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -28,10 +30,11 @@ export default function Dashboard() {
       setErrorMessage(null);
 
       try {
-        const [liveProducts, liveInvoices, liveActivities] = await Promise.all([
+        const [liveProducts, liveInvoices, liveActivities, liveProfile] = await Promise.all([
           productsService.list(),
           invoicesService.list(),
           activityService.list(),
+          userProfileService.getCurrentProfile(),
         ]);
 
         if (!isMounted) return;
@@ -39,6 +42,7 @@ export default function Dashboard() {
         setProducts(liveProducts);
         setInvoices(liveInvoices);
         setActivities(liveActivities);
+        setProfile(liveProfile);
       } catch (error) {
         if (!isMounted) return;
 
@@ -62,6 +66,7 @@ export default function Dashboard() {
   const unpaidInvoices = invoices.filter((invoice) => invoice.balanceDue > 0);
   const unpaidTotal = unpaidInvoices.reduce((total, invoice) => total + invoice.balanceDue, 0);
   const recentActivities = activities.slice(0, 3);
+  const greetingName = profile?.displayName ?? profile?.email ?? 'there';
 
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
@@ -69,7 +74,7 @@ export default function Dashboard() {
       <div className="p-4 mb-2 flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 mb-1">C&C Feed Inventory</h1>
-<p className="text-gray-600">Welcome back, {currentUser.name}</p>
+          <p className="text-gray-600">Welcome back, {isLoading ? '...' : greetingName}</p>
         </div>
         <UserIcon />
       </div>

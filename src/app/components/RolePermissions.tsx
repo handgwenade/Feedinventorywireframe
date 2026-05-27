@@ -1,29 +1,137 @@
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Check, X } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
 import UserIcon from './shared/UserIcon';
+import { userProfileService } from '../services/userProfileService';
+import type { CurrentUserProfile, UserProfileRole } from '../services/userProfileService';
+
+const roleDescriptions: Record<UserProfileRole, string> = {
+  admin: 'Full access to all features, user management, and business settings.',
+  manager: 'Full operational access with limited user/account management if allowed.',
+  operator: 'Can record inventory movement, create invoices/records. Cannot see cost per unit.',
+  viewer: 'Can view allowed screens but cannot create, edit, or record changes.',
+};
+
+function getPermissions(role: UserProfileRole | undefined) {
+  if (role === 'admin') {
+    return {
+      canDo: [
+        'Take Feed',
+        'Add Stock',
+        'Create invoices/records',
+        'Record payments',
+        'View inventory, invoices, accounts, reports, and activity history',
+        'Manage users',
+        'Change permissions',
+        'See cost per unit',
+      ],
+      cannotDo: [
+        'Edit historical activity directly',
+        'Delete records casually',
+      ],
+    };
+  }
+
+  if (role === 'manager') {
+    return {
+      canDo: [
+        'Take Feed',
+        'Add Stock',
+        'Create invoices/records',
+        'Record payments',
+        'View inventory, invoices, accounts, reports, and activity history',
+        'See cost per unit if allowed',
+      ],
+      cannotDo: [
+        'Change admin permissions',
+        'Edit historical activity directly',
+        'Delete records casually',
+      ],
+    };
+  }
+
+  if (role === 'viewer') {
+    return {
+      canDo: [
+        'View allowed screens',
+        'View inventory',
+        'View invoices',
+        'View accounts',
+        'View activity history',
+      ],
+      cannotDo: [
+        'Take Feed',
+        'Add Stock',
+        'Create invoices/records',
+        'Record payments',
+        'Manage users',
+        'Change permissions',
+      ],
+    };
+  }
+
+  return {
+    canDo: [
+      'Take Feed',
+      'Add Stock, if allowed',
+      'Create invoices/records',
+      'Record payments, if allowed',
+      'View inventory',
+      'View invoices',
+      'View accounts',
+      'View activity history',
+    ],
+    cannotDo: [
+      'See cost per unit',
+      'Manage users',
+      'Change permissions',
+      'Delete records',
+      'Edit historical activity',
+    ],
+  };
+}
 
 export default function RolePermissions() {
   const navigate = useNavigate();
+  const [profile, setProfile] = useState<CurrentUserProfile | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const canDo = [
-    'Take Feed',
-    'Add Stock, if allowed',
-    'Create invoices/records',
-    'Record payments, if allowed',
-    'View inventory',
-    'View invoices',
-    'View accounts',
-    'View activity history'
-  ];
+  useEffect(() => {
+    let isMounted = true;
 
-  const cannotDo = [
-    'See cost per unit',
-    'Manage users',
-    'Change permissions',
-    'Delete records',
-    'Edit historical activity'
-  ];
+    async function loadProfile() {
+      setIsLoading(true);
+      setErrorMessage(null);
+
+      try {
+        const liveProfile = await userProfileService.getCurrentProfile();
+
+        if (isMounted) {
+          setProfile(liveProfile);
+        }
+      } catch (error) {
+        if (isMounted) {
+          setErrorMessage(error instanceof Error ? error.message : 'Unable to load role.');
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    loadProfile();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const role = profile?.role;
+  const roleLabel = role ? userProfileService.formatRole(role) : '—';
+  const { canDo, cannotDo } = getPermissions(role);
 
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
@@ -42,16 +150,22 @@ export default function RolePermissions() {
       </div>
 
       <div className="p-4 space-y-4">
+        {errorMessage && (
+          <div className="bg-white border border-gray-300 rounded-lg p-4 text-sm text-gray-900">
+            {errorMessage}
+          </div>
+        )}
+
         {/* Current Role */}
         <div className="bg-white border border-gray-200 rounded-lg p-4">
           <div className="text-sm text-gray-600 mb-1">Current role</div>
-          <div className="text-2xl font-bold text-gray-900">Operator</div>
+          <div className="text-2xl font-bold text-gray-900">{isLoading ? 'Loading...' : roleLabel}</div>
         </div>
 
         {/* Operator Can */}
         <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
           <div className="p-4 border-b border-gray-200 bg-gray-50">
-            <h2 className="font-semibold text-gray-900">Operator can:</h2>
+            <h2 className="font-semibold text-gray-900">{isLoading ? 'Role' : roleLabel} can:</h2>
           </div>
           <div className="p-4 space-y-2">
             {canDo.map((permission, index) => (
@@ -63,7 +177,7 @@ export default function RolePermissions() {
         {/* Operator Cannot */}
         <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
           <div className="p-4 border-b border-gray-200 bg-gray-50">
-            <h2 className="font-semibold text-gray-900">Operator cannot:</h2>
+            <h2 className="font-semibold text-gray-900">{isLoading ? 'Role' : roleLabel} cannot:</h2>
           </div>
           <div className="p-4 space-y-2">
             {cannotDo.map((permission, index) => (
@@ -80,20 +194,23 @@ export default function RolePermissions() {
           <div className="p-4 space-y-3">
             <RoleCard
               role="Admin"
-              description="Full access to all features, user management, and business settings."
+              description={roleDescriptions.admin}
+              current={role === 'admin'}
             />
             <RoleCard
               role="Manager"
-              description="Full operational access with limited user/account management if allowed."
+              description={roleDescriptions.manager}
+              current={role === 'manager'}
             />
             <RoleCard
               role="Operator"
-              description="Can record inventory movement, create invoices/records. Cannot see cost per unit."
-              current
+              description={roleDescriptions.operator}
+              current={role === 'operator'}
             />
             <RoleCard
               role="View Only"
-              description="Can view allowed screens but cannot create, edit, or record changes."
+              description={roleDescriptions.viewer}
+              current={role === 'viewer'}
             />
           </div>
         </div>

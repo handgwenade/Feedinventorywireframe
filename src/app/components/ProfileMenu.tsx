@@ -1,26 +1,58 @@
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, User, Settings, Shield, HelpCircle, LogOut, Users, Lock, Building } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
 import UserIcon from './shared/UserIcon';
 import { supabase } from '../services/supabaseClient';
-
-// In a real app, this would come from auth context
-const currentUser = {
-  name: 'Operator User',
-  role: 'Operator',
-  business: 'C&C Feed Inventory'
-};
-
-// Set to 'admin' to see admin-only options
-const userRole: 'admin' | 'manager' | 'operator' | 'view-only' = 'operator';
+import { userProfileService } from '../services/userProfileService';
+import type { CurrentUserProfile } from '../services/userProfileService';
 
 export default function ProfileMenu() {
   const navigate = useNavigate();
+  const [profile, setProfile] = useState<CurrentUserProfile | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadProfile() {
+      setIsLoading(true);
+      setErrorMessage(null);
+
+      try {
+        const liveProfile = await userProfileService.getCurrentProfile();
+
+        if (isMounted) {
+          setProfile(liveProfile);
+        }
+      } catch (error) {
+        if (isMounted) {
+          setErrorMessage(error instanceof Error ? error.message : 'Unable to load profile.');
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    loadProfile();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     navigate('/login');
   };
+
+  const displayName = profile?.displayName ?? profile?.email ?? 'Current User';
+  const roleLabel = profile ? userProfileService.formatRole(profile.role) : '—';
+  const businessName = profile?.organizationName ?? 'C&C Feed Inventory';
+  const userRole = profile?.role;
 
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
@@ -39,6 +71,12 @@ export default function ProfileMenu() {
       </div>
 
       <div className="p-4 space-y-4">
+        {errorMessage && (
+          <div className="bg-white border border-gray-300 rounded-lg p-4 text-sm text-gray-900">
+            {errorMessage}
+          </div>
+        )}
+
         {/* Current User Info */}
         <div className="bg-white border border-gray-200 rounded-lg p-4">
           <div className="flex items-center gap-3 mb-3">
@@ -46,13 +84,16 @@ export default function ProfileMenu() {
               <User size={32} className="text-gray-600" />
             </div>
             <div>
-              <div className="font-bold text-gray-900 text-lg">{currentUser.name}</div>
-              <div className="text-sm text-gray-600">{currentUser.role}</div>
+              <div className="font-bold text-gray-900 text-lg">{isLoading ? 'Loading...' : displayName}</div>
+              <div className="text-sm text-gray-600">{isLoading ? '—' : roleLabel}</div>
+              {!isLoading && profile?.email && (
+                <div className="text-sm text-gray-600">{profile.email}</div>
+              )}
             </div>
           </div>
           <div className="border-t border-gray-200 pt-3">
             <div className="text-sm text-gray-600 mb-1">Business</div>
-            <div className="font-medium text-gray-900">{currentUser.business}</div>
+            <div className="font-medium text-gray-900">{isLoading ? 'Loading...' : businessName}</div>
           </div>
         </div>
 
