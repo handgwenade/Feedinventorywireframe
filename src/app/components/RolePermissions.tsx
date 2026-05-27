@@ -156,6 +156,10 @@ export default function RolePermissions() {
           </div>
         )}
 
+        <div className="p-3 bg-gray-50 border border-gray-300 rounded text-xs text-gray-600 leading-relaxed">
+          <strong>Read-only:</strong> This page displays the live profile role with static permission descriptions. Role changes are not implemented here.
+        </div>
+
         {/* Current Role */}
         <div className="bg-white border border-gray-200 rounded-lg p-4">
           <div className="text-sm text-gray-600 mb-1">Current role</div>

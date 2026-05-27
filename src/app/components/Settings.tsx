@@ -27,6 +27,10 @@ export default function Settings() {
 
       <div className="p-4 space-y-4">
         {/* App Preferences */}
+        <div className="p-3 bg-gray-50 border border-gray-300 rounded text-xs text-gray-600 leading-relaxed">
+          <strong>Wireframe settings:</strong> These controls are local placeholders and do not save to Supabase yet.
+        </div>
+
         <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
           <div className="p-4 border-b border-gray-200 bg-gray-50">
             <h2 className="font-semibold text-gray-900">App Preferences</h2>

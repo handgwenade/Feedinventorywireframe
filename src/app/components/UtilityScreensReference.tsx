@@ -24,7 +24,7 @@ export default function UtilityScreensReference() {
 
       <div className="p-4 space-y-4">
         <p className="text-sm text-gray-600">
-          Reference for login, empty states, warnings, and errors.
+          Wireframe/reference only. These utility examples are not part of normal production navigation.
         </p>
 
         {/* Login & Session */}

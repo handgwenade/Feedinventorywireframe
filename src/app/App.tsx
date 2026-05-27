@@ -59,7 +59,6 @@ import MissingPriceWarning from './components/MissingPriceWarning';
 import PermissionNeeded from './components/PermissionNeeded';
 import CannotEditActivityWarning from './components/CannotEditActivityWarning';
 import UtilityScreensReference from './components/UtilityScreensReference';
-import SupabaseProductsTest from './components/SupabaseProductsTest';
 
 import { supabase } from './services/supabaseClient';
 
@@ -169,8 +168,8 @@ function AppRoutes() {
           <Route path="/missing-price-warning" element={<MissingPriceWarning />} />
           <Route path="/permission-needed" element={<PermissionNeeded />} />
           <Route path="/cannot-edit-activity-warning" element={<CannotEditActivityWarning />} />
+          {/* Reference-only route; intentionally not linked from normal app navigation. */}
           <Route path="/utility-screens" element={<UtilityScreensReference />} />
-          <Route path="/supabase-test" element={<SupabaseProductsTest />} />
         </Routes>
     );
 }

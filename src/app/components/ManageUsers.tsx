@@ -68,6 +68,10 @@ export default function ManageUsers() {
       </div>
 
       <div className="p-4 space-y-4">
+        <div className="p-3 bg-gray-50 border border-gray-300 rounded text-xs text-gray-600 leading-relaxed">
+          <strong>Static wireframe:</strong> User invites, edits, and role changes are not connected to Supabase yet.
+        </div>
+
         {/* Search */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
@@ -86,7 +90,7 @@ export default function ManageUsers() {
           className="w-full bg-gray-900 text-white py-3 rounded-lg font-semibold flex items-center justify-center gap-2 active:bg-gray-800"
         >
           <Plus size={20} />
-          Add User
+          Add User (placeholder)
         </button>
 
         {/* User List */}
@@ -136,7 +140,7 @@ function UserCard({ user, navigate }: { user: User; navigate: any }) {
         className="w-full bg-white border border-gray-300 text-gray-900 py-2 rounded-lg font-medium text-sm flex items-center justify-center gap-2 active:bg-gray-50"
       >
         <Edit size={16} />
-        Edit
+        Edit (placeholder)
       </button>
     </div>
   );

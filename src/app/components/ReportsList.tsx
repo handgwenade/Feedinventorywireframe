@@ -196,9 +196,9 @@ export default function ReportsList() {
             </div>
           )}
 
-          {!isLoadingReports && !reportErrorMessage && products.length === 0 && (
+          {!isLoadingReports && !reportErrorMessage && products.length === 0 && invoices.length === 0 && payments.length === 0 && (
             <div className="bg-white border border-gray-200 rounded-lg p-4 text-sm text-gray-700">
-              No products found.
+              No report data found yet.
             </div>
           )}
 

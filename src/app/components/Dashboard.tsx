@@ -181,13 +181,6 @@ export default function Dashboard() {
         Bottom navigation provides persistent access to Home, Inventory, Take Feed, Invoices, and Accounts. Reports remain accessible from Home or role-based menus.
       </div>
 
-      {/* Utility Screens Link (for wireframe reference) */}
-      <button
-        onClick={() => navigate('/utility-screens')}
-        className="w-full mt-4 p-3 bg-white border border-gray-300 text-gray-700 rounded-lg text-sm active:bg-gray-50"
-      >
-        View Utility Screens Reference →
-      </button>
       </div>
 
       <BottomNav />
