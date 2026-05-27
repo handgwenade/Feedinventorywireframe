@@ -52,6 +52,8 @@ export type ActivityType =
   | 'account_updated'
   | 'person_created'
   | 'person_updated'
+  | 'product_created'
+  | 'product_updated'
   | 'status_changed';
 
 export interface User {

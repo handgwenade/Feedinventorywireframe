@@ -183,6 +183,11 @@ export default function ProductDetail() {
           />
           <ActionButton
             icon={<Edit3 size={20} />}
+            label="Edit Product"
+            onClick={() => navigate('/product-form', { state: { product } })}
+          />
+          <ActionButton
+            icon={<Edit3 size={20} />}
             label="Adjust Count"
             onClick={() => navigate('/adjust-count', { state: { product } })}
           />

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, AlertCircle, ChevronDown, Package } from 'lucide-react';
+import { Search, AlertCircle, ChevronDown, Package, Plus } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
 import UserIcon from './shared/UserIcon';
 
@@ -152,7 +152,8 @@ export default function InventoryList() {
 
       {/* Sort Option */}
       <div className="p-4 bg-white border-b border-gray-200">
-        <div className="relative">
+        <div className="flex items-center justify-between gap-3">
+          <div className="relative">
           <button
             onClick={() => setShowSortMenu(!showSortMenu)}
             className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 active:bg-gray-50"
@@ -185,6 +186,15 @@ export default function InventoryList() {
               </button>
             </div>
           )}
+          </div>
+
+          <button
+            onClick={() => navigate('/product-form')}
+            className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium active:bg-gray-800"
+          >
+            <Plus size={16} />
+            <span>Add Product</span>
+          </button>
         </div>
       </div>
 

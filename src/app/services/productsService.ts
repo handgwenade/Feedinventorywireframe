@@ -1,4 +1,3 @@
-import { products as mockProducts } from '../data/mockData';
 import type { Product } from '../types';
 import { supabase } from './supabaseClient';
 
@@ -8,15 +7,37 @@ interface ProductRow {
   name: string;
   sku: string | null;
   unit_label: string;
-  current_quantity: number;
-  minimum_quantity: number;
-  sale_price: number;
-  cost_per_unit: number | null;
+  current_quantity: number | string;
+  minimum_quantity: number | string;
+  sale_price: number | string;
+  cost_per_unit: number | string | null;
   vendor: string | null;
   source_notes: string | null;
   is_active: boolean;
   created_at: string;
   updated_at: string;
+}
+
+export interface CreateProductInput {
+  name: string;
+  categoryId?: string;
+  unitLabel: string;
+  currentQuantity: number;
+  minimumQuantity: number;
+  salePrice: number;
+  vendor: string;
+  sourceNotes: string;
+}
+
+export interface UpdateProductInput {
+  productId: string;
+  name: string;
+  categoryId?: string;
+  unitLabel: string;
+  minimumQuantity: number;
+  salePrice: number;
+  vendor: string;
+  sourceNotes: string;
 }
 
 function mapProductRow(row: ProductRow): Product {
@@ -52,12 +73,84 @@ async function listFromSupabase(): Promise<Product[]> {
   return (data ?? []).map((row) => mapProductRow(row as ProductRow));
 }
 
+async function createProductInSupabase({
+  name,
+  categoryId,
+  unitLabel,
+  currentQuantity,
+  minimumQuantity,
+  salePrice,
+  vendor,
+  sourceNotes,
+}: CreateProductInput): Promise<Product> {
+  const { data, error } = await supabase.rpc('create_product', {
+    p_name: name,
+    p_category_id: categoryId ?? null,
+    p_unit_label: unitLabel,
+    p_current_quantity: currentQuantity,
+    p_minimum_quantity: minimumQuantity,
+    p_sale_price: salePrice,
+    p_vendor: vendor,
+    p_source_notes: sourceNotes,
+  });
+
+  if (error) {
+    throw new Error(`${error.message}${error.details ? ` — ${error.details}` : ''}`);
+  }
+
+  const row = Array.isArray(data) ? data[0] : data;
+
+  if (!row) {
+    throw new Error('Product was not created.');
+  }
+
+  return mapProductRow(row as ProductRow);
+}
+
+async function updateProductInSupabase({
+  productId,
+  name,
+  categoryId,
+  unitLabel,
+  minimumQuantity,
+  salePrice,
+  vendor,
+  sourceNotes,
+}: UpdateProductInput): Promise<Product> {
+  const { data, error } = await supabase.rpc('update_product', {
+    p_product_id: productId,
+    p_name: name,
+    p_category_id: categoryId ?? null,
+    p_unit_label: unitLabel,
+    p_minimum_quantity: minimumQuantity,
+    p_sale_price: salePrice,
+    p_vendor: vendor,
+    p_source_notes: sourceNotes,
+  });
+
+  if (error) {
+    throw new Error(`${error.message}${error.details ? ` — ${error.details}` : ''}`);
+  }
+
+  const row = Array.isArray(data) ? data[0] : data;
+
+  if (!row) {
+    throw new Error('Product was not updated.');
+  }
+
+  return mapProductRow(row as ProductRow);
+}
+
 export const productsService = {
-  listMock(): Product[] {
-    return mockProducts;
+  async createProduct(input: CreateProductInput): Promise<Product> {
+    return createProductInSupabase(input);
   },
 
   async list(): Promise<Product[]> {
     return listFromSupabase();
+  },
+
+  async updateProduct(input: UpdateProductInput): Promise<Product> {
+    return updateProductInSupabase(input);
   },
 };

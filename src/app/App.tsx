@@ -20,6 +20,7 @@ import AddStockReview from './components/AddStockReview';
 import AddStockSuccess from './components/AddStockSuccess';
 import InventoryList from './components/InventoryList';
 import ProductDetail from './components/ProductDetail';
+import ProductForm from './components/ProductForm';
 import AdjustCount from './components/AdjustCount';
 import InvoicesList from './components/InvoicesList';
 import InvoiceDetail from './components/InvoiceDetail';
@@ -129,6 +130,7 @@ function AppRoutes() {
           <Route path="/add-stock-success" element={<AddStockSuccess />} />
           <Route path="/inventory" element={<InventoryList />} />
           <Route path="/product-detail" element={<ProductDetail />} />
+          <Route path="/product-form" element={<ProductForm />} />
           <Route path="/adjust-count" element={<AdjustCount />} />
           <Route path="/invoices" element={<InvoicesList />} />
           <Route path="/invoice-detail" element={<InvoiceDetail />} />
