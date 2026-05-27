@@ -2,67 +2,107 @@ import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
-import { accounts, invoiceRecords, people } from '../data/mockData';
+import { paymentsService } from '../services/paymentsService';
 import { formatCurrency } from '../utils/calculations';
-import type { InvoiceRecord, PaymentMethod } from '../types';
+import type { InvoicePaymentMethod } from '../services/paymentsService';
+import type { InvoiceDetailRecord, InvoiceListItem } from '../services/invoicesService';
 
-type RoutedInvoice = Partial<InvoiceRecord> & {
+type RoutedInvoice = Partial<InvoiceDetailRecord | InvoiceListItem> & {
   number?: string;
   account?: string;
-  type?: 'customer' | 'k2' | 'family';
   balance?: number;
 };
 
-function getAccountName(invoice: InvoiceRecord): string {
-  if (invoice.accountId) {
-    return accounts.find((account) => account.id === invoice.accountId)?.name ?? 'Unknown Account';
-  }
-
-  if (invoice.personId) {
-    return people.find((person) => person.id === invoice.personId)?.officialDisplayName ?? 'Unknown Person';
-  }
-
-  return 'Unknown';
-}
-
-function getInvoiceType(invoice: InvoiceRecord): 'customer' | 'k2' | 'family' {
-  if (invoice.recordType === 'k2_statement') return 'k2';
-  if (invoice.recordType === 'family_use') return 'family';
-  return 'customer';
+function getRoutedInvoice(locationState: unknown): RoutedInvoice | null {
+  return ((locationState as { invoice?: RoutedInvoice } | null)?.invoice ?? null);
 }
 
 export default function RecordPayment() {
   const navigate = useNavigate();
   const location = useLocation();
-  const fallbackInvoice = invoiceRecords.find((record) => record.balanceDue > 0) ?? invoiceRecords[0];
-  const routedInvoice = ((location.state as { invoice?: RoutedInvoice } | null)?.invoice ?? fallbackInvoice);
-  const invoiceRecord = routedInvoice.id
-    ? invoiceRecords.find((record) => record.id === routedInvoice.id) ?? fallbackInvoice
-    : fallbackInvoice;
-  const invoice = {
-    ...invoiceRecord,
-    number: routedInvoice.number ?? routedInvoice.displayNumber ?? invoiceRecord.displayNumber,
-    account: routedInvoice.account ?? getAccountName(invoiceRecord),
-    type: routedInvoice.type ?? getInvoiceType(invoiceRecord),
-    balance: routedInvoice.balance ?? routedInvoice.balanceDue ?? invoiceRecord.balanceDue,
-    total: routedInvoice.total ?? invoiceRecord.total,
-  };
-
-  const [amountPaid, setAmountPaid] = useState(invoice.balance.toString());
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cash');
-  const [checkNumber, setCheckNumber] = useState('');
+  const invoice = getRoutedInvoice(location.state);
+  const displayNumber = invoice?.displayNumber ?? invoice?.number ?? 'Invoice';
+  const accountName = invoice?.accountName ?? invoice?.account ?? 'Unknown Account';
+  const balanceDue = Number(invoice?.balanceDue ?? invoice?.balance ?? 0);
+  const [amountPaid, setAmountPaid] = useState(balanceDue > 0 ? balanceDue.toString() : '');
+  const [paymentMethod, setPaymentMethod] = useState<InvoicePaymentMethod>('cash');
+  const [referenceNumber, setReferenceNumber] = useState('');
   const [paymentNote, setPaymentNote] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const handleSavePayment = () => {
-    navigate('/payment-recorded', {
-      state: {
-        invoice,
-        amountPaid: parseFloat(amountPaid),
-        paymentMethod,
-        checkNumber,
-      }
-    });
-  };
+  async function handleSavePayment() {
+    if (!invoice?.id || isSaving) return;
+
+    setIsSaving(true);
+    setErrorMessage(null);
+
+    try {
+      const result = await paymentsService.recordInvoicePayment({
+        invoiceRecordId: invoice.id,
+        amount: Number(amountPaid),
+        method: paymentMethod,
+        referenceNumber,
+        notes: paymentNote,
+      });
+
+      const updatedInvoice = {
+        ...invoice,
+        displayNumber: result.displayNumber,
+        number: result.displayNumber,
+        account: accountName,
+        accountName,
+        balance: result.newBalanceDue,
+        balanceDue: result.newBalanceDue,
+        amountPaid: Math.max(Number(invoice.total ?? 0) - result.newBalanceDue, 0),
+        status: result.status,
+      };
+
+      navigate('/payment-recorded', {
+        state: {
+          payment: result,
+          invoice: updatedInvoice,
+          amountPaid: result.amount,
+          paymentMethod: result.method,
+          checkNumber: paymentMethod === 'check' ? referenceNumber : '',
+        },
+      });
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : 'Unable to record payment.');
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  if (!invoice?.id) {
+    return (
+      <div className="min-h-screen bg-gray-50 pb-24">
+        <div className="bg-white border-b border-gray-200 p-4 flex items-center gap-3">
+          <button
+            onClick={() => navigate('/invoices')}
+            className="text-gray-600 active:text-gray-900"
+          >
+            <ArrowLeft size={24} />
+          </button>
+          <h1 className="text-xl font-semibold text-gray-900">Record Payment</h1>
+        </div>
+
+        <div className="p-4">
+          <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
+            <div className="text-sm text-gray-700">Select an invoice before recording a payment.</div>
+            <button
+              onClick={() => navigate('/invoices')}
+              className="w-full bg-white border border-gray-300 text-gray-900 py-3 rounded-lg font-semibold active:bg-gray-50"
+            >
+              Back to Invoices
+            </button>
+          </div>
+        </div>
+
+        <BottomNav />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 pb-32">
@@ -78,19 +118,25 @@ export default function RecordPayment() {
       </div>
 
       <div className="p-4 space-y-4">
+        {errorMessage && (
+          <div className="bg-white border border-gray-300 rounded-lg p-4 text-sm text-gray-900">
+            {errorMessage}
+          </div>
+        )}
+
         {/* Invoice Info */}
         <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-2">
           <div>
             <div className="text-sm text-gray-600 mb-1">Invoice</div>
-            <div className="font-semibold text-gray-900">{invoice.number}</div>
+            <div className="font-semibold text-gray-900">{displayNumber}</div>
           </div>
           <div>
             <div className="text-sm text-gray-600 mb-1">Customer</div>
-            <div className="font-semibold text-gray-900">{invoice.account}</div>
+            <div className="font-semibold text-gray-900">{accountName}</div>
           </div>
           <div className="pt-2 border-t border-gray-200">
             <div className="text-sm text-gray-600 mb-1">Balance due</div>
-            <div className="text-2xl font-bold text-gray-900">{formatCurrency(invoice.balance)}</div>
+            <div className="text-2xl font-bold text-gray-900">{formatCurrency(balanceDue)}</div>
           </div>
         </div>
 
@@ -119,19 +165,16 @@ export default function RecordPayment() {
           </label>
           <div className="space-y-2">
             <PaymentMethodOption
-              value="cash"
               label="Cash"
               selected={paymentMethod === 'cash'}
               onSelect={() => setPaymentMethod('cash')}
             />
             <PaymentMethodOption
-              value="check"
               label="Check"
               selected={paymentMethod === 'check'}
               onSelect={() => setPaymentMethod('check')}
             />
             <PaymentMethodOption
-              value="other"
               label="Other"
               selected={paymentMethod === 'other'}
               onSelect={() => setPaymentMethod('other')}
@@ -147,8 +190,8 @@ export default function RecordPayment() {
             </label>
             <input
               type="text"
-              value={checkNumber}
-              onChange={(e) => setCheckNumber(e.target.value)}
+              value={referenceNumber}
+              onChange={(e) => setReferenceNumber(e.target.value)}
               placeholder="Enter check number..."
               className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900"
             />
@@ -172,7 +215,7 @@ export default function RecordPayment() {
         {/* Received By */}
         <div className="bg-white border border-gray-200 rounded-lg p-4">
           <div className="text-sm text-gray-600 mb-1">Received by</div>
-          <div className="font-medium text-gray-900">Operator</div>
+          <div className="font-medium text-gray-900">Current user</div>
         </div>
       </div>
 
@@ -180,13 +223,15 @@ export default function RecordPayment() {
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 max-w-md mx-auto space-y-2">
         <button
           onClick={handleSavePayment}
-          className="w-full bg-gray-900 text-white py-4 rounded-lg font-semibold active:bg-gray-800"
+          disabled={isSaving}
+          className="w-full bg-gray-900 text-white py-4 rounded-lg font-semibold active:bg-gray-800 disabled:bg-gray-500"
         >
-          Save Payment
+          {isSaving ? 'Saving Payment...' : 'Save Payment'}
         </button>
         <button
           onClick={() => navigate('/invoice-detail', { state: { invoice } })}
-          className="w-full bg-white border border-gray-300 text-gray-900 py-3 rounded-lg font-semibold active:bg-gray-50"
+          disabled={isSaving}
+          className="w-full bg-white border border-gray-300 text-gray-900 py-3 rounded-lg font-semibold active:bg-gray-50 disabled:text-gray-400"
         >
           Cancel
         </button>
@@ -206,12 +251,10 @@ export default function RecordPayment() {
 }
 
 function PaymentMethodOption({
-  value,
   label,
   selected,
   onSelect
 }: {
-  value: string;
   label: string;
   selected: boolean;
   onSelect: () => void;
