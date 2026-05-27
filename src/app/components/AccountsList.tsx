@@ -3,10 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { Search, Plus } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
 import UserIcon from './shared/UserIcon';
-import { activityLogs, invoiceRecords } from '../data/mockData';
 import { accountsService } from '../services/accountsService';
+import { activityService } from '../services/activityService';
+import { invoicesService } from '../services/invoicesService';
 import { peopleService } from '../services/peopleService';
 import { formatCurrency } from '../utils/calculations';
+import type { ActivityItem } from '../services/activityService';
+import type { InvoiceListItem } from '../services/invoicesService';
 import type { Account, Person } from '../types';
 
 type AccountFilter = 'all' | 'customers' | 'k2' | 'family' | 'unpaid';
@@ -23,35 +26,49 @@ interface AccountListItem {
   source: Account | Person;
 }
 
-function getAccountBalance(accountId: string): number {
-  return invoiceRecords
-    .filter((record) => record.accountId === accountId)
+function getRelatedInvoices(entityId: string, type: AccountListType, invoices: InvoiceListItem[]): InvoiceListItem[] {
+  if (type === 'family') {
+    return invoices.filter((record) => record.personId === entityId);
+  }
+
+  return invoices.filter((record) => record.accountId === entityId);
+}
+
+function getBalance(entityId: string, type: AccountListType, invoices: InvoiceListItem[]): number {
+  return getRelatedInvoices(entityId, type, invoices)
     .reduce((total, record) => total + record.balanceDue, 0);
 }
 
-function getPersonBalance(personId: string): number {
-  return invoiceRecords
-    .filter((record) => record.personId === personId)
-    .reduce((total, record) => total + record.balanceDue, 0);
+function getLastActivity(entityId: string, type: AccountListType, invoices: InvoiceListItem[], activities: ActivityItem[]): string {
+  const relatedInvoices = getRelatedInvoices(entityId, type, invoices);
+  const relatedInvoiceIds = new Set(relatedInvoices.map((record) => record.id));
+  const activity = activities.find((item) => (
+    item.accountId === entityId ||
+    item.personId === entityId ||
+    Boolean(item.invoiceRecordId && relatedInvoiceIds.has(item.invoiceRecordId))
+  ));
+
+  if (activity) return new Date(activity.createdAt).toLocaleDateString();
+
+  const latestInvoice = relatedInvoices[0];
+
+  if (latestInvoice) return new Date(latestInvoice.createdAt).toLocaleDateString();
+
+  return 'No activity yet';
 }
 
-function getLastActivity(entityId: string): string {
-  const activity = activityLogs.find(
-    (item) => item.accountId === entityId || item.personId === entityId,
-  );
-
-  if (!activity) return 'No activity yet';
-
-  return new Date(activity.createdAt).toLocaleDateString();
-}
-
-function buildAccountListItems(accounts: Account[], people: Person[]): AccountListItem[] {
+function buildAccountListItems(
+  accounts: Account[],
+  people: Person[],
+  invoices: InvoiceListItem[],
+  activities: ActivityItem[],
+): AccountListItem[] {
   const accountItems: AccountListItem[] = accounts.map((account) => ({
     id: account.id,
     name: account.name,
     type: account.accountType === 'k2' ? 'k2' : 'customer',
-    balance: getAccountBalance(account.id),
-    lastActivity: getLastActivity(account.id),
+    balance: getBalance(account.id, account.accountType === 'k2' ? 'k2' : 'customer', invoices),
+    lastActivity: getLastActivity(account.id, account.accountType === 'k2' ? 'k2' : 'customer', invoices, activities),
     phone: account.phone,
     email: account.email,
     source: account,
@@ -61,8 +78,8 @@ function buildAccountListItems(accounts: Account[], people: Person[]): AccountLi
     id: person.id,
     name: person.officialDisplayName,
     type: 'family',
-    balance: getPersonBalance(person.id),
-    lastActivity: getLastActivity(person.id),
+    balance: getBalance(person.id, 'family', invoices),
+    lastActivity: getLastActivity(person.id, 'family', invoices, activities),
     phone: person.phone,
     source: person,
   }));
@@ -76,6 +93,8 @@ export default function AccountsList() {
   const [activeFilter, setActiveFilter] = useState<AccountFilter>('all');
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [people, setPeople] = useState<Person[]>([]);
+  const [invoices, setInvoices] = useState<InvoiceListItem[]>([]);
+  const [activities, setActivities] = useState<ActivityItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -87,20 +106,26 @@ export default function AccountsList() {
       setErrorMessage(null);
 
       try {
-        const [liveAccounts, livePeople] = await Promise.all([
+        const [liveAccounts, livePeople, liveInvoices, liveActivities] = await Promise.all([
           accountsService.listActive(),
           peopleService.list(),
+          invoicesService.list(),
+          activityService.list(),
         ]);
 
         if (!isMounted) return;
 
         setAccounts(liveAccounts);
         setPeople(livePeople);
+        setInvoices(liveInvoices);
+        setActivities(liveActivities);
       } catch (error) {
         if (!isMounted) return;
 
         setAccounts([]);
         setPeople([]);
+        setInvoices([]);
+        setActivities([]);
         setErrorMessage(error instanceof Error ? error.message : 'Unable to load accounts.');
       } finally {
         if (isMounted) {
@@ -116,7 +141,7 @@ export default function AccountsList() {
     };
   }, []);
 
-  const listItems = buildAccountListItems(accounts, people);
+  const listItems = buildAccountListItems(accounts, people, invoices, activities);
 
   const filteredAccounts = listItems.filter((account) => {
     const matchesSearch = account.name.toLowerCase().includes(searchQuery.toLowerCase());
