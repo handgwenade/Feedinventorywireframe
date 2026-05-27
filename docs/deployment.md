@@ -59,18 +59,11 @@ Database migrations are not automatically rolled back when a Vercel deployment i
 
 ## Post-Deploy Smoke Test
 
-After deploying, test with a real authenticated user:
+After deploying, test with a real authenticated user and production-safe test records.
 
-- Log in.
-- Confirm Inventory loads.
-- Create a test customer invoice.
-- Record a payment on that invoice.
-- Add stock to a product.
-- Adjust count on a product.
-- Create and edit a product.
-- Create, edit, and archive a test customer account.
-- Create, edit, and archive a test family/person record.
-- Confirm Activity History shows the audit records.
+Use [production-smoke-test.md](production-smoke-test.md) for the full production checklist, including read tests, write tests, Supabase verification queries, and manual findings notes.
+
+Review [known-limitations.md](known-limitations.md) before calling a release fully complete so expected gaps are not confused with new regressions.
 
 ## Rollback Notes
 

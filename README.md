@@ -70,6 +70,8 @@ Key docs:
 - docs/project-context.md
 - docs/workflow-map.md
 - docs/user-testing-checklist.md
+- docs/production-smoke-test.md
+- docs/known-limitations.md
 
 Planned future docs:
 
@@ -112,6 +114,8 @@ Vercel is the recommended deployment target for the current Vite app.
   - `VITE_SUPABASE_ANON_KEY`
 
 See [docs/deployment.md](docs/deployment.md) for Vercel setup, Supabase Auth redirect URLs, smoke tests, rollback notes, and security guidance.
+
+For production release checks, use [docs/production-smoke-test.md](docs/production-smoke-test.md). For expected gaps, see [docs/known-limitations.md](docs/known-limitations.md).
 
 Important Note
 
