@@ -3,8 +3,23 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import UserIcon from './shared/UserIcon';
 import BottomNav from './shared/BottomNav';
+import { accountsService } from '../services/accountsService';
+import { peopleService } from '../services/peopleService';
+import type { Account, Person } from '../types';
 
 type AccountType = 'customer' | 'family';
+type AccountListType = 'customer' | 'k2' | 'family';
+
+interface AccountDetailRouteItem {
+  id: string;
+  name: string;
+  type: AccountListType;
+  balance: number;
+  lastActivity: string;
+  phone?: string;
+  email?: string;
+  source: Account | Person;
+}
 
 export default function AddAccountPerson() {
   const navigate = useNavigate();
@@ -12,7 +27,6 @@ export default function AddAccountPerson() {
 
   // Customer fields
   const [businessName, setBusinessName] = useState('');
-  const [contactName, setContactName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [address, setAddress] = useState('');
@@ -20,18 +34,80 @@ export default function AddAccountPerson() {
 
   // Family person fields
   const [displayName, setDisplayName] = useState('');
-  const [alias, setAlias] = useState('');
   const [familyPhone, setFamilyPhone] = useState('');
   const [familyNotes, setFamilyNotes] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const handleSaveCustomer = () => {
-    // In a real app, this would save to database
-    navigate('/accounts');
+  const navigateToAccountDetail = (account: AccountDetailRouteItem) => {
+    navigate('/account-detail', { state: { account } });
   };
 
-  const handleSavePerson = () => {
-    // In a real app, this would save to database
-    navigate('/accounts');
+  const handleSaveCustomer = async () => {
+    setErrorMessage(null);
+
+    if (!businessName.trim()) {
+      setErrorMessage('Customer account name is required.');
+      return;
+    }
+
+    try {
+      setIsSaving(true);
+      const account = await accountsService.createCustomerAccount({
+        name: businessName,
+        phone,
+        email,
+        billingAddress: address,
+        notes,
+      });
+
+      navigateToAccountDetail({
+        id: account.id,
+        name: account.name,
+        type: 'customer',
+        balance: 0,
+        lastActivity: new Date().toLocaleDateString(),
+        phone: account.phone,
+        email: account.email,
+        source: account,
+      });
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : 'Unable to create customer account.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleSavePerson = async () => {
+    setErrorMessage(null);
+
+    if (!displayName.trim()) {
+      setErrorMessage('Official display name is required.');
+      return;
+    }
+
+    try {
+      setIsSaving(true);
+      const person = await peopleService.createFamilyPerson({
+        officialDisplayName: displayName,
+        phone: familyPhone,
+        notes: familyNotes,
+      });
+
+      navigateToAccountDetail({
+        id: person.id,
+        name: person.officialDisplayName,
+        type: 'family',
+        balance: 0,
+        lastActivity: new Date().toLocaleDateString(),
+        phone: person.phone,
+        source: person,
+      });
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : 'Unable to create family/person record.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -51,6 +127,12 @@ export default function AddAccountPerson() {
       </div>
 
       <div className="p-4 space-y-4">
+        {errorMessage && (
+          <div className="bg-white border border-gray-300 rounded-lg p-4 text-sm text-gray-900">
+            {errorMessage}
+          </div>
+        )}
+
         {/* Account Type Selector */}
         <div className="bg-white border border-gray-200 rounded-lg p-4">
           <label className="block text-sm font-medium text-gray-700 mb-3">
@@ -76,16 +158,10 @@ export default function AddAccountPerson() {
         {accountType === 'customer' && (
           <>
             <FormField
-              label="Customer / business name"
+              label="Name"
               value={businessName}
               onChange={setBusinessName}
-              placeholder="Enter business name..."
-            />
-            <FormField
-              label="Contact name"
-              value={contactName}
-              onChange={setContactName}
-              placeholder="Enter contact name..."
+              placeholder="Enter customer or business name..."
             />
             <FormField
               label="Phone"
@@ -102,10 +178,10 @@ export default function AddAccountPerson() {
               type="email"
             />
             <FormField
-              label="Address"
+              label="Billing address"
               value={address}
               onChange={setAddress}
-              placeholder="Enter address..."
+              placeholder="Enter billing address..."
               multiline
             />
             <FormField
@@ -126,12 +202,6 @@ export default function AddAccountPerson() {
               value={displayName}
               onChange={setDisplayName}
               placeholder="Enter full name..."
-            />
-            <FormField
-              label="Alias / nickname"
-              value={alias}
-              onChange={setAlias}
-              placeholder="Enter nickname (optional)..."
             />
             <FormField
               label="Phone (optional)"
@@ -159,20 +229,23 @@ export default function AddAccountPerson() {
         {accountType === 'customer' ? (
           <button
             onClick={handleSaveCustomer}
-            className="w-full bg-gray-900 text-white py-4 rounded-lg font-semibold active:bg-gray-800"
+            disabled={isSaving}
+            className="w-full bg-gray-900 text-white py-4 rounded-lg font-semibold active:bg-gray-800 disabled:bg-gray-400"
           >
-            Save Customer
+            {isSaving ? 'Saving Customer...' : 'Save Customer'}
           </button>
         ) : (
           <button
             onClick={handleSavePerson}
-            className="w-full bg-gray-900 text-white py-4 rounded-lg font-semibold active:bg-gray-800"
+            disabled={isSaving}
+            className="w-full bg-gray-900 text-white py-4 rounded-lg font-semibold active:bg-gray-800 disabled:bg-gray-400"
           >
-            Save Person
+            {isSaving ? 'Saving Person...' : 'Save Person'}
           </button>
         )}
         <button
           onClick={() => navigate('/accounts')}
+          disabled={isSaving}
           className="w-full bg-white border border-gray-300 text-gray-900 py-3 rounded-lg font-semibold active:bg-gray-50"
         >
           Cancel

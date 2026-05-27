@@ -9,6 +9,12 @@ interface PersonRow {
   is_active: boolean;
 }
 
+export interface CreateFamilyPersonInput {
+  officialDisplayName: string;
+  phone: string;
+  notes: string;
+}
+
 function mapPersonRow(row: PersonRow): Person {
   return {
     id: row.id,
@@ -33,7 +39,35 @@ async function listFromSupabase(): Promise<Person[]> {
   return (data ?? []).map((row) => mapPersonRow(row as PersonRow));
 }
 
+async function createFamilyPersonInSupabase({
+  officialDisplayName,
+  phone,
+  notes,
+}: CreateFamilyPersonInput): Promise<Person> {
+  const { data, error } = await supabase.rpc('create_family_person', {
+    p_official_display_name: officialDisplayName,
+    p_phone: phone,
+    p_notes: notes,
+  });
+
+  if (error) {
+    throw new Error(`${error.message}${error.details ? ` — ${error.details}` : ''}`);
+  }
+
+  const row = Array.isArray(data) ? data[0] : data;
+
+  if (!row) {
+    throw new Error('Family/person record was not created.');
+  }
+
+  return mapPersonRow(row as PersonRow);
+}
+
 export const peopleService = {
+  async createFamilyPerson(input: CreateFamilyPersonInput): Promise<Person> {
+    return createFamilyPersonInSupabase(input);
+  },
+
   async list(): Promise<Person[]> {
     return listFromSupabase();
   },

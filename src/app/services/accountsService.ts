@@ -12,6 +12,14 @@ interface AccountRow {
   is_active: boolean;
 }
 
+export interface CreateCustomerAccountInput {
+  name: string;
+  phone: string;
+  email: string;
+  billingAddress: string;
+  notes: string;
+}
+
 function mapAccountRow(row: AccountRow): Account {
   return {
     id: row.id,
@@ -56,7 +64,39 @@ async function listActiveFromSupabase(): Promise<Account[]> {
   return (data ?? []).map((row) => mapAccountRow(row as AccountRow));
 }
 
+async function createCustomerAccountInSupabase({
+  name,
+  phone,
+  email,
+  billingAddress,
+  notes,
+}: CreateCustomerAccountInput): Promise<Account> {
+  const { data, error } = await supabase.rpc('create_customer_account', {
+    p_name: name,
+    p_phone: phone,
+    p_email: email,
+    p_billing_address: billingAddress,
+    p_notes: notes,
+  });
+
+  if (error) {
+    throw new Error(`${error.message}${error.details ? ` — ${error.details}` : ''}`);
+  }
+
+  const row = Array.isArray(data) ? data[0] : data;
+
+  if (!row) {
+    throw new Error('Customer account was not created.');
+  }
+
+  return mapAccountRow(row as AccountRow);
+}
+
 export const accountsService = {
+  async createCustomerAccount(input: CreateCustomerAccountInput): Promise<Account> {
+    return createCustomerAccountInSupabase(input);
+  },
+
   async listActive(): Promise<Account[]> {
     return listActiveFromSupabase();
   },
