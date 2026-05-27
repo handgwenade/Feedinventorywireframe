@@ -12,9 +12,13 @@ interface CartItem {
 }
 
 interface K2StatementCreatedState {
+  statementId?: string;
   displayNumber?: string;
   cart?: CartItem[];
+  subtotal?: number;
   total?: number;
+  accountId?: string;
+  accountName?: string;
   status?: string;
 }
 
@@ -53,8 +57,10 @@ export default function K2StatementCreated() {
   }
 
   const total = Number(state.total ?? 0);
+  const subtotal = Number(state.subtotal ?? total);
   const status = state.status ?? 'internal';
   const statementNumber = state.displayNumber ?? 'Not assigned';
+  const accountName = state.accountName ?? 'K2';
   const cart = state.cart ?? [];
 
   return (
@@ -66,7 +72,7 @@ export default function K2StatementCreated() {
             <CheckCircle2 size={32} className="text-gray-900" />
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">K2 Statement Created!</h1>
-          <p className="text-gray-600">K2 use confirmation is route-state only</p>
+          <p className="text-gray-600">K2 use recorded and inventory adjusted</p>
         </div>
       </div>
 
@@ -80,7 +86,7 @@ export default function K2StatementCreated() {
 
           <div className="border-t border-gray-200 pt-3">
             <div className="text-sm text-gray-600 mb-1">Account</div>
-            <div className="font-semibold text-gray-900">K2</div>
+            <div className="font-semibold text-gray-900">{accountName}</div>
           </div>
 
           <div className="border-t border-gray-200 pt-3">
@@ -88,6 +94,13 @@ export default function K2StatementCreated() {
             <span className="inline-block px-2 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded border border-gray-300">
               K2 Account
             </span>
+          </div>
+
+          <div className="border-t border-gray-200 pt-3">
+            <div className="text-sm text-gray-600 mb-1">Subtotal</div>
+            <div className="font-semibold text-gray-900">
+              {formatCurrency(subtotal)}
+            </div>
           </div>
 
           <div className="border-t border-gray-200 pt-3">

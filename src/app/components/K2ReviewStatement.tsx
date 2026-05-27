@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Edit2, Trash2, Plus } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
+import { takeFeedService } from '../services/takeFeedService';
 import { calculateLineTotal, formatCurrency } from '../utils/calculations';
 
 interface CartItem {
@@ -12,24 +13,20 @@ interface CartItem {
   unitLabel?: string;
 }
 
-type K2Status = 'unpaid' | 'paid' | 'internal';
-
 export default function K2ReviewStatement() {
   const navigate = useNavigate();
   const location = useLocation();
   const { cart: initialCart = [] } = location.state || {};
 
   const [cart, setCart] = useState<CartItem[]>(initialCart);
-  const [taxEnabled, setTaxEnabled] = useState(false);
   const [notes, setNotes] = useState('');
-  const [status, setStatus] = useState<K2Status>('unpaid');
+  const [isCreating, setIsCreating] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const statementNumber = 'INV-1002';
+  const statementNumber = 'Assigned on create';
 
   const subtotal = cart.reduce((sum: number, item: CartItem) => sum + calculateLineTotal(item.quantity, item.price), 0);
-  const taxRate = 0.08;
-  const tax = taxEnabled ? subtotal * taxRate : 0;
-  const total = subtotal + tax;
+  const total = subtotal;
 
   const handleRemoveItem = (index: number) => {
     setCart(cart.filter((_, i) => i !== index));
@@ -47,10 +44,39 @@ export default function K2ReviewStatement() {
     });
   };
 
-  const handleCreateStatement = () => {
-    navigate('/k2-statement-created', {
-      state: { cart, subtotal, tax, total, status, notes }
-    });
+  const handleCreateStatement = async () => {
+    setErrorMessage(null);
+
+    if (cart.length === 0) {
+      setErrorMessage('Add at least one product before creating a K2 statement.');
+      return;
+    }
+
+    try {
+      setIsCreating(true);
+      const createdStatement = await takeFeedService.createK2Statement({
+        cart,
+        notes,
+      });
+
+      navigate('/k2-statement-created', {
+        state: {
+          cart,
+          statementId: createdStatement.statementId,
+          displayNumber: createdStatement.displayNumber,
+          subtotal: createdStatement.subtotal,
+          total: createdStatement.total,
+          accountId: createdStatement.accountId,
+          accountName: createdStatement.accountName,
+          status: 'internal',
+          notes,
+        }
+      });
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : 'Unable to create K2 statement.');
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   return (
@@ -67,6 +93,12 @@ export default function K2ReviewStatement() {
       </div>
 
       <div className="p-4 space-y-4">
+        {errorMessage && (
+          <div className="bg-white border border-gray-300 rounded-lg p-4 text-sm text-gray-900">
+            {errorMessage}
+          </div>
+        )}
+
         {/* Account Info & Statement Number */}
         <div className="bg-white border border-gray-200 rounded-lg p-4">
           <div className="flex items-start justify-between mb-3">
@@ -154,30 +186,12 @@ export default function K2ReviewStatement() {
           />
         </div>
 
-        {/* Status Options */}
+        {/* Status */}
         <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <label className="block text-sm font-medium text-gray-700 mb-3">
-            Status
-          </label>
-          <div className="space-y-2">
-            <StatusOption
-              value="unpaid"
-              label="Unpaid"
-              selected={status === 'unpaid'}
-              onSelect={() => setStatus('unpaid')}
-            />
-            <StatusOption
-              value="paid"
-              label="Paid"
-              selected={status === 'paid'}
-              onSelect={() => setStatus('paid')}
-            />
-            <StatusOption
-              value="internal"
-              label="Internal Transfer"
-              selected={status === 'internal'}
-              onSelect={() => setStatus('internal')}
-            />
+          <div className="text-sm text-gray-600 mb-1">Status</div>
+          <div className="font-semibold text-gray-900">Internal Transfer</div>
+          <div className="text-sm text-gray-600 mt-2">
+            K2 statements reduce inventory and are recorded with no balance due.
           </div>
         </div>
 
@@ -186,30 +200,6 @@ export default function K2ReviewStatement() {
           <div className="flex justify-between text-gray-700">
             <span>Subtotal</span>
             <span className="font-medium">{formatCurrency(subtotal)}</span>
-          </div>
-
-          {/* Tax Toggle */}
-          <div className="flex justify-between items-center">
-            <span className="text-gray-700">Tax (8%)</span>
-            <div className="flex items-center gap-3">
-              {taxEnabled && (
-                <span className="font-medium text-gray-900">
-                  {formatCurrency(tax)}
-                </span>
-              )}
-              <button
-                onClick={() => setTaxEnabled(!taxEnabled)}
-                className={`w-12 h-6 rounded-full transition-colors relative ${
-                  taxEnabled ? 'bg-gray-900' : 'bg-gray-300'
-                }`}
-              >
-                <div
-                  className={`absolute top-0.5 w-5 h-5 bg-white rounded-full transition-transform ${
-                    taxEnabled ? 'translate-x-6' : 'translate-x-0.5'
-                  }`}
-                />
-              </button>
-            </div>
           </div>
 
           <div className="pt-3 border-t border-gray-200 flex justify-between items-center">
@@ -225,9 +215,10 @@ export default function K2ReviewStatement() {
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-gray-900 p-4 max-w-md mx-auto">
         <button
           onClick={handleCreateStatement}
-          className="w-full bg-gray-900 text-white py-4 rounded-lg font-semibold active:bg-gray-800"
+          disabled={isCreating}
+          className="w-full bg-gray-900 text-white py-4 rounded-lg font-semibold active:bg-gray-800 disabled:bg-gray-400"
         >
-          Create K2 Statement
+          {isCreating ? 'Creating K2 Statement...' : 'Create K2 Statement'}
         </button>
         {/* Workflow Annotations */}
         <div className="mt-3 p-3 bg-gray-50 border border-gray-300 rounded text-xs text-gray-600 leading-relaxed">
@@ -242,39 +233,5 @@ export default function K2ReviewStatement() {
 
       <BottomNav />
     </div>
-  );
-}
-
-function StatusOption({
-  value,
-  label,
-  selected,
-  onSelect
-}: {
-  value: string;
-  label: string;
-  selected: boolean;
-  onSelect: () => void;
-}) {
-  return (
-    <button
-      onClick={onSelect}
-      className={`w-full p-3 border rounded-lg flex items-center gap-3 active:bg-gray-50 ${
-        selected
-          ? 'border-gray-900 bg-gray-50'
-          : 'border-gray-300 bg-white'
-      }`}
-    >
-      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-        selected ? 'border-gray-900' : 'border-gray-300'
-      }`}>
-        {selected && (
-          <div className="w-3 h-3 rounded-full bg-gray-900" />
-        )}
-      </div>
-      <span className="font-medium text-gray-900">
-        {label}
-      </span>
-    </button>
   );
 }
