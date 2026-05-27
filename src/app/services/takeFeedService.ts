@@ -38,6 +38,21 @@ export interface CreateK2StatementResult {
   accountName: string;
 }
 
+export interface CreateFamilyUseInput {
+  personId: string;
+  cart: TakeFeedCartItem[];
+  notes: string;
+}
+
+export interface CreateFamilyUseResult {
+  familyUseId: string;
+  displayNumber: string;
+  subtotal: number;
+  total: number;
+  personId: string;
+  personName: string;
+}
+
 interface CreateCustomerUnpaidInvoiceRow {
   invoice_id: string;
   display_number: string;
@@ -54,6 +69,15 @@ interface CreateK2StatementRow {
   total: number | string;
   account_id: string;
   account_name: string;
+}
+
+interface CreateFamilyUseRow {
+  family_use_id: string;
+  display_number: string;
+  subtotal: number | string;
+  total: number | string;
+  person_id: string;
+  person_name: string;
 }
 
 function mapInvoiceResult(row: CreateCustomerUnpaidInvoiceRow): CreateCustomerUnpaidInvoiceResult {
@@ -75,6 +99,17 @@ function mapK2StatementResult(row: CreateK2StatementRow): CreateK2StatementResul
     total: Number(row.total),
     accountId: row.account_id,
     accountName: row.account_name,
+  };
+}
+
+function mapFamilyUseResult(row: CreateFamilyUseRow): CreateFamilyUseResult {
+  return {
+    familyUseId: row.family_use_id,
+    displayNumber: row.display_number,
+    subtotal: Number(row.subtotal),
+    total: Number(row.total),
+    personId: row.person_id,
+    personName: row.person_name,
   };
 }
 
@@ -137,5 +172,35 @@ export const takeFeedService = {
     }
 
     return mapK2StatementResult(row as CreateK2StatementRow);
+  },
+
+  async createFamilyUse({
+    personId,
+    cart,
+    notes,
+  }: CreateFamilyUseInput): Promise<CreateFamilyUseResult> {
+    const { data, error } = await supabase.rpc('create_family_take_feed_use', {
+      p_person_id: personId,
+      p_notes: notes,
+      p_items: cart.map((item) => ({
+        productId: item.productId,
+        name: item.name,
+        quantity: item.quantity,
+        price: item.price,
+        unitLabel: item.unitLabel ?? 'units',
+      })),
+    });
+
+    if (error) {
+      throw new Error(`${error.message}${error.details ? ` — ${error.details}` : ''}`);
+    }
+
+    const row = Array.isArray(data) ? data[0] : data;
+
+    if (!row) {
+      throw new Error('Family use was not recorded.');
+    }
+
+    return mapFamilyUseResult(row as CreateFamilyUseRow);
   },
 };

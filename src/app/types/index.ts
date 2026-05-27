@@ -46,6 +46,7 @@ export type ActivityType =
   | 'correction'
   | 'invoice_created'
   | 'k2_statement_created'
+  | 'family_use_recorded'
   | 'payment_recorded'
   | 'account_created'
   | 'account_updated'

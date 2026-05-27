@@ -8,13 +8,22 @@ export default function AddStockSuccess() {
   const location = useLocation();
   const state = (location.state ?? {}) as {
     product?: Product;
+    productId?: string;
+    productName?: string;
     quantityAdded?: number;
-    newQuantity?: number;
+    quantityBefore?: number;
+    quantityAfter?: number;
+    unitLabel?: string;
+    inventoryTransactionId?: string;
   };
   const product = state.product;
-  const quantityAdded = state.quantityAdded ?? 40;
+  const productName = state.productName ?? product?.name;
+  const quantityAdded = state.quantityAdded;
+  const quantityBefore = state.quantityBefore;
+  const quantityAfter = state.quantityAfter;
+  const unitLabel = state.unitLabel ?? product?.unitLabel;
 
-  if (!product) {
+  if (!productName || quantityAdded === undefined || quantityBefore === undefined || quantityAfter === undefined || !unitLabel) {
     return (
       <div className="min-h-screen bg-gray-50 pb-24">
         <div className="bg-white border-b border-gray-200 p-4 flex items-center gap-3">
@@ -44,7 +53,9 @@ export default function AddStockSuccess() {
     );
   }
 
-  const newQuantity = state.newQuantity ?? product.currentQuantity + quantityAdded;
+  const productForDetail = product
+    ? { ...product, currentQuantity: quantityAfter }
+    : undefined;
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -64,20 +75,27 @@ export default function AddStockSuccess() {
         <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
           <div>
             <div className="text-sm text-gray-600 mb-1">Product</div>
-            <div className="font-semibold text-gray-900 text-lg">{product.name}</div>
+            <div className="font-semibold text-gray-900 text-lg">{productName}</div>
           </div>
 
           <div className="border-t border-gray-200 pt-3">
             <div className="text-sm text-gray-600 mb-1">Quantity added</div>
             <div className="text-xl font-bold text-gray-900">
-              +{quantityAdded} {product.unitLabel}
+              +{quantityAdded} {unitLabel}
+            </div>
+          </div>
+
+          <div className="border-t border-gray-200 pt-3">
+            <div className="text-sm text-gray-600 mb-1">Previous quantity</div>
+            <div className="font-semibold text-gray-900">
+              {quantityBefore} {unitLabel}
             </div>
           </div>
 
           <div className="border-t border-gray-200 pt-3">
             <div className="text-sm text-gray-600 mb-1">New quantity</div>
             <div className="text-2xl font-bold text-gray-900">
-              {newQuantity} {product.unitLabel}
+              {quantityAfter} {unitLabel}
             </div>
           </div>
 
@@ -97,13 +115,15 @@ export default function AddStockSuccess() {
           <PlusCircle size={20} />
           Add More Stock
         </button>
-        <button
-          onClick={() => navigate('/product-detail', { state: { product: { ...product, currentQuantity: newQuantity } } })}
-          className="w-full bg-white border border-gray-300 text-gray-900 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 active:bg-gray-50"
-        >
-          <Package size={20} />
-          View Product
-        </button>
+        {productForDetail && (
+          <button
+            onClick={() => navigate('/product-detail', { state: { product: productForDetail } })}
+            className="w-full bg-white border border-gray-300 text-gray-900 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 active:bg-gray-50"
+          >
+            <Package size={20} />
+            View Product
+          </button>
+        )}
         <button
           onClick={() => navigate('/')}
           className="w-full bg-white border border-gray-300 text-gray-900 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 active:bg-gray-50"

@@ -12,17 +12,19 @@ interface CartItem {
 }
 
 interface FamilyInvoiceCreatedState {
+  familyUseId?: string;
   displayNumber?: string;
   personId?: string;
   personName?: string;
   cart?: CartItem[];
+  subtotal?: number;
   total?: number;
   status?: string;
 }
 
 function getStatusLabel(status?: string): string {
   if (!status) return '—';
-  return status.replaceAll('-', ' ');
+  return status.replaceAll('_', ' ').replaceAll('-', ' ');
 }
 
 export default function FamilyInvoiceCreated() {
@@ -56,7 +58,8 @@ export default function FamilyInvoiceCreated() {
 
   const personName = state.personName ?? 'Unknown Person';
   const total = Number(state.total ?? 0);
-  const status = state.status ?? 'unpaid';
+  const subtotal = Number(state.subtotal ?? total);
+  const status = state.status ?? 'track_only';
   const invoiceNumber = state.displayNumber ?? 'Not assigned';
   const cart = state.cart ?? [];
 
@@ -69,7 +72,7 @@ export default function FamilyInvoiceCreated() {
             <CheckCircle2 size={32} className="text-gray-900" />
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Family Use Recorded!</h1>
-          <p className="text-gray-600">Family use confirmation is route-state only</p>
+          <p className="text-gray-600">Family use recorded and inventory adjusted</p>
         </div>
       </div>
 
@@ -91,6 +94,13 @@ export default function FamilyInvoiceCreated() {
             <span className="inline-block px-2 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded border border-gray-300">
               Family
             </span>
+          </div>
+
+          <div className="border-t border-gray-200 pt-3">
+            <div className="text-sm text-gray-600 mb-1">Subtotal</div>
+            <div className="font-semibold text-gray-900">
+              {formatCurrency(subtotal)}
+            </div>
           </div>
 
           <div className="border-t border-gray-200 pt-3">

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Edit2, Trash2, Plus } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
+import { takeFeedService } from '../services/takeFeedService';
 import { calculateLineTotal, formatCurrency } from '../utils/calculations';
 
 interface CartItem {
@@ -12,24 +13,21 @@ interface CartItem {
   unitLabel?: string;
 }
 
-type FamilyStatus = 'unpaid' | 'paid' | 'written-off';
-
 export default function FamilyReviewInvoice() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { personId, personName = 'Bill Johnson', cart: initialCart = [] } = location.state || {};
+  const { personId, personName, cart: initialCart = [] } = location.state || {};
 
   const [cart, setCart] = useState<CartItem[]>(initialCart);
-  const [taxEnabled, setTaxEnabled] = useState(false);
   const [notes, setNotes] = useState('');
-  const [status, setStatus] = useState<FamilyStatus>('unpaid');
+  const [isCreating, setIsCreating] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const invoiceNumber = 'FAM-1003';
+  const invoiceNumber = 'Assigned on create';
 
   const subtotal = cart.reduce((sum: number, item: CartItem) => sum + calculateLineTotal(item.quantity, item.price), 0);
-  const taxRate = 0.08;
-  const tax = taxEnabled ? subtotal * taxRate : 0;
-  const total = subtotal + tax;
+  const total = subtotal;
+  const selectedPersonName = personName ?? 'Unknown Person';
 
   const handleRemoveItem = (index: number) => {
     setCart(cart.filter((_, i) => i !== index));
@@ -37,28 +35,93 @@ export default function FamilyReviewInvoice() {
 
   const handleEditItem = (index: number) => {
     navigate('/family-add-products', {
-      state: { personId, personName, cart, editingIndex: index }
+      state: { personId, personName: selectedPersonName, cart, editingIndex: index }
     });
   };
 
   const handleAddProduct = () => {
     navigate('/family-add-products', {
-      state: { personId, personName, cart }
+      state: { personId, personName: selectedPersonName, cart }
     });
   };
 
-  const handleCreateInvoice = () => {
-    navigate('/family-invoice-created', {
-      state: { personId, personName, cart, subtotal, tax, total, status, notes }
-    });
+  const handleCreateInvoice = async () => {
+    setErrorMessage(null);
+
+    if (!personId) {
+      setErrorMessage('Select a person before recording family use.');
+      return;
+    }
+
+    if (cart.length === 0) {
+      setErrorMessage('Add at least one product before recording family use.');
+      return;
+    }
+
+    try {
+      setIsCreating(true);
+      const familyUse = await takeFeedService.createFamilyUse({
+        personId,
+        cart,
+        notes,
+      });
+
+      navigate('/family-invoice-created', {
+        state: {
+          personId: familyUse.personId,
+          personName: familyUse.personName,
+          cart,
+          familyUseId: familyUse.familyUseId,
+          displayNumber: familyUse.displayNumber,
+          subtotal: familyUse.subtotal,
+          total: familyUse.total,
+          status: 'track_only',
+          notes,
+        }
+      });
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : 'Unable to record family use.');
+    } finally {
+      setIsCreating(false);
+    }
   };
+
+  if (!personId) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col">
+        <div className="bg-white border-b border-gray-200 p-4 flex items-center gap-3">
+          <button
+            onClick={() => navigate('/choose-family-account')}
+            className="text-gray-600 active:text-gray-900"
+          >
+            <ArrowLeft size={24} />
+          </button>
+          <h1 className="text-xl font-semibold text-gray-900">Review Family Use</h1>
+        </div>
+
+        <div className="flex-1 p-4">
+          <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
+            <div className="text-sm text-gray-700">Select a person before recording family use.</div>
+            <button
+              onClick={() => navigate('/choose-family-account')}
+              className="w-full bg-gray-900 text-white py-3 rounded-lg font-semibold active:bg-gray-800"
+            >
+              Back to Family Use
+            </button>
+          </div>
+        </div>
+
+        <BottomNav />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 pb-64">
       {/* Header */}
       <div className="bg-white border-b border-gray-200 p-4 flex items-center gap-3">
         <button
-          onClick={() => navigate('/family-add-products', { state: { personId, personName, cart } })}
+          onClick={() => navigate('/family-add-products', { state: { personId, personName: selectedPersonName, cart } })}
           className="text-gray-600 active:text-gray-900"
         >
           <ArrowLeft size={24} />
@@ -67,12 +130,18 @@ export default function FamilyReviewInvoice() {
       </div>
 
       <div className="p-4 space-y-4">
+        {errorMessage && (
+          <div className="bg-white border border-gray-300 rounded-lg p-4 text-sm text-gray-900">
+            {errorMessage}
+          </div>
+        )}
+
         {/* Account Info & Invoice Number */}
         <div className="bg-white border border-gray-200 rounded-lg p-4">
           <div className="flex items-start justify-between mb-3">
             <div>
               <div className="text-sm text-gray-600 mb-1">Taken by</div>
-              <div className="font-semibold text-gray-900">{personName}</div>
+              <div className="font-semibold text-gray-900">{selectedPersonName}</div>
             </div>
             <div className="text-right">
               <div className="text-sm text-gray-600 mb-1">Invoice #</div>
@@ -154,30 +223,12 @@ export default function FamilyReviewInvoice() {
           />
         </div>
 
-        {/* Status Options */}
+        {/* Status */}
         <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <label className="block text-sm font-medium text-gray-700 mb-3">
-            Status
-          </label>
-          <div className="space-y-2">
-            <StatusOption
-              value="unpaid"
-              label="Unpaid"
-              selected={status === 'unpaid'}
-              onSelect={() => setStatus('unpaid')}
-            />
-            <StatusOption
-              value="paid"
-              label="Paid"
-              selected={status === 'paid'}
-              onSelect={() => setStatus('paid')}
-            />
-            <StatusOption
-              value="written-off"
-              label="Written Off"
-              selected={status === 'written-off'}
-              onSelect={() => setStatus('written-off')}
-            />
+          <div className="text-sm text-gray-600 mb-1">Status</div>
+          <div className="font-semibold text-gray-900">Track Only</div>
+          <div className="text-sm text-gray-600 mt-2">
+            Family use reduces inventory and is recorded with no balance due.
           </div>
         </div>
 
@@ -186,30 +237,6 @@ export default function FamilyReviewInvoice() {
           <div className="flex justify-between text-gray-700">
             <span>Subtotal</span>
             <span className="font-medium">{formatCurrency(subtotal)}</span>
-          </div>
-
-          {/* Tax Toggle */}
-          <div className="flex justify-between items-center">
-            <span className="text-gray-700">Tax (8%)</span>
-            <div className="flex items-center gap-3">
-              {taxEnabled && (
-                <span className="font-medium text-gray-900">
-                  {formatCurrency(tax)}
-                </span>
-              )}
-              <button
-                onClick={() => setTaxEnabled(!taxEnabled)}
-                className={`w-12 h-6 rounded-full transition-colors relative ${
-                  taxEnabled ? 'bg-gray-900' : 'bg-gray-300'
-                }`}
-              >
-                <div
-                  className={`absolute top-0.5 w-5 h-5 bg-white rounded-full transition-transform ${
-                    taxEnabled ? 'translate-x-6' : 'translate-x-0.5'
-                  }`}
-                />
-              </button>
-            </div>
           </div>
 
           <div className="pt-3 border-t border-gray-200 flex justify-between items-center">
@@ -225,52 +252,19 @@ export default function FamilyReviewInvoice() {
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-gray-900 p-4 max-w-md mx-auto">
         <button
           onClick={handleCreateInvoice}
-          className="w-full bg-gray-900 text-white py-4 rounded-lg font-semibold active:bg-gray-800"
+          disabled={isCreating}
+          className="w-full bg-gray-900 text-white py-4 rounded-lg font-semibold active:bg-gray-800 disabled:bg-gray-400"
         >
-          Create Family Use Record
+          {isCreating ? 'Recording Family Use...' : 'Record Family Use'}
         </button>
         {/* Workflow Annotation */}
         <div className="mt-3 p-3 bg-gray-50 border border-gray-300 rounded text-xs text-gray-600 leading-relaxed">
           <strong>Family Use Workflow:</strong><br />
-          Family use is not a formal customer account, but each record must link to one controlled person record so reporting stays clean. It can remain unpaid, be paid, or be written off.
+          Family use is not a formal customer account, but each record must link to one controlled person record so reporting stays clean.
         </div>
       </div>
 
       <BottomNav />
     </div>
-  );
-}
-
-function StatusOption({
-  value,
-  label,
-  selected,
-  onSelect
-}: {
-  value: string;
-  label: string;
-  selected: boolean;
-  onSelect: () => void;
-}) {
-  return (
-    <button
-      onClick={onSelect}
-      className={`w-full p-3 border rounded-lg flex items-center gap-3 active:bg-gray-50 ${
-        selected
-          ? 'border-gray-900 bg-gray-50'
-          : 'border-gray-300 bg-white'
-      }`}
-    >
-      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-        selected ? 'border-gray-900' : 'border-gray-300'
-      }`}>
-        {selected && (
-          <div className="w-3 h-3 rounded-full bg-gray-900" />
-        )}
-      </div>
-      <span className="font-medium text-gray-900">
-        {label}
-      </span>
-    </button>
   );
 }
