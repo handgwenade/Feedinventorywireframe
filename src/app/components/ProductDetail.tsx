@@ -1,8 +1,9 @@
+import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ShoppingCart, PlusCircle, Edit3, Clock, Package } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
 import UserIcon from './shared/UserIcon';
-import { activityLogs } from '../data/mockData';
+import { inventoryTransactionsService, type InventoryTransactionItem } from '../services/inventoryTransactionsService';
 import { calculateInventoryValue, formatCurrency, isLowStock } from '../utils/calculations';
 import type { Product } from '../types';
 
@@ -11,10 +12,64 @@ function getSelectedProduct(locationState: unknown): Product | null {
   return state?.product ?? null;
 }
 
+function getTransactionTypeLabel(transactionType: string): string {
+  const labels: Record<string, string> = {
+    take_feed: 'Take Feed',
+    add_stock: 'Add Stock',
+    adjust_count: 'Adjust Count',
+    correction: 'Correction',
+  };
+
+  return labels[transactionType] ?? transactionType.replaceAll('_', ' ');
+}
+
+function formatMovementDate(value: string): string {
+  const date = new Date(value);
+  return `${date.toLocaleDateString()} ${date.toLocaleTimeString([], {
+    hour: 'numeric',
+    minute: '2-digit',
+  })}`;
+}
+
 export default function ProductDetail() {
   const navigate = useNavigate();
   const location = useLocation();
   const product = getSelectedProduct(location.state);
+  const [transactions, setTransactions] = useState<InventoryTransactionItem[]>([]);
+  const [isLoadingTransactions, setIsLoadingTransactions] = useState(false);
+  const [transactionError, setTransactionError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!product?.id) return;
+
+    let isMounted = true;
+
+    async function loadTransactions() {
+      try {
+        setIsLoadingTransactions(true);
+        setTransactionError(null);
+        const productTransactions = await inventoryTransactionsService.listForProduct(product.id);
+
+        if (isMounted) {
+          setTransactions(productTransactions.slice(0, 5));
+        }
+      } catch (error) {
+        if (isMounted) {
+          setTransactionError(error instanceof Error ? error.message : 'Unable to load product movements.');
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoadingTransactions(false);
+        }
+      }
+    }
+
+    loadTransactions();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [product?.id]);
 
   if (!product) {
     return (
@@ -52,9 +107,6 @@ export default function ProductDetail() {
   const inventoryValue = calculateInventoryValue(product);
   const lowStock = isLowStock(product);
   const status = lowStock ? 'Low Stock' : 'In Stock';
-  const productActivity = activityLogs
-    .filter((activity) => activity.productId === product.id)
-    .slice(0, 3);
 
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
@@ -144,12 +196,18 @@ export default function ProductDetail() {
         <div className="bg-white border border-gray-200 rounded-lg p-4">
           <h3 className="font-semibold text-gray-900 mb-3">Recent Activity</h3>
           <div className="space-y-3">
-            {productActivity.length > 0 ? (
-              productActivity.map((activity) => (
-                <ActivityItem key={activity.id} text={activity.summary} />
+            {isLoadingTransactions ? (
+              <p className="text-sm text-gray-600">Loading recent movements...</p>
+            ) : transactionError ? (
+              <div className="bg-white border border-gray-300 rounded-lg p-3 text-sm text-gray-900">
+                {transactionError}
+              </div>
+            ) : transactions.length > 0 ? (
+              transactions.map((transaction) => (
+                <ActivityItem key={transaction.id} transaction={transaction} unitLabel={product.unitLabel} />
               ))
             ) : (
-              <p className="text-sm text-gray-600">No recent activity for this product.</p>
+              <p className="text-sm text-gray-600">No recent inventory movements for this product.</p>
             )}
           </div>
         </div>
@@ -180,11 +238,33 @@ function ActionButton({
   );
 }
 
-function ActivityItem({ text }: { text: string }) {
+function ActivityItem({
+  transaction,
+  unitLabel,
+}: {
+  transaction: InventoryTransactionItem;
+  unitLabel: string;
+}) {
+  const quantityChange = transaction.quantityChange > 0
+    ? `+${transaction.quantityChange}`
+    : transaction.quantityChange.toString();
+
   return (
     <div className="flex items-start gap-2">
       <div className="w-1.5 h-1.5 rounded-full bg-gray-400 mt-2 flex-shrink-0" />
-      <p className="text-sm text-gray-700">{text}</p>
+      <div className="text-sm text-gray-700 flex-1">
+        <div className="flex justify-between gap-3">
+          <span className="font-medium text-gray-900">{getTransactionTypeLabel(transaction.transactionType)}</span>
+          <span className="font-semibold text-gray-900">{quantityChange} {unitLabel}</span>
+        </div>
+        <div className="text-gray-600">
+          {transaction.quantityBefore} to {transaction.quantityAfter} {unitLabel}
+        </div>
+        <div className="text-gray-600">{formatMovementDate(transaction.createdAt)}</div>
+        {transaction.notes && (
+          <div className="text-gray-700 mt-1">{transaction.notes}</div>
+        )}
+      </div>
     </div>
   );
 }
