@@ -1,25 +1,13 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Download, Printer, FileText } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
 import UserIcon from './shared/UserIcon';
-import { accounts, invoiceRecords, payments, users } from '../data/mockData';
+import { paymentsService } from '../services/paymentsService';
 import { formatCurrency } from '../utils/calculations';
-import type { Payment } from '../types';
+import type { PaymentReceivedItem } from '../services/paymentsService';
 
 type DateFilter = 'this-month' | 'last-month' | 'custom';
-
-function getAccountName(payment: Payment): string {
-  const invoice = invoiceRecords.find((record) => record.id === payment.invoiceRecordId);
-
-  if (!invoice?.accountId) return 'Unknown Account';
-
-  return accounts.find((account) => account.id === invoice.accountId)?.name ?? 'Unknown Account';
-}
-
-function getReceivedByName(userId: string): string {
-  return users.find((user) => user.id === userId)?.name ?? 'Unknown User';
-}
 
 function getPaymentMethodLabel(method: string): string {
   return method
@@ -28,13 +16,43 @@ function getPaymentMethodLabel(method: string): string {
     .join(' ');
 }
 
-function getInvoiceForPayment(payment: Payment) {
-  return invoiceRecords.find((record) => record.id === payment.invoiceRecordId);
-}
-
 export default function ReportPaymentsReceived() {
   const navigate = useNavigate();
   const [dateFilter, setDateFilter] = useState<DateFilter>('this-month');
+  const [payments, setPayments] = useState<PaymentReceivedItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadPayments() {
+      setIsLoading(true);
+      setErrorMessage(null);
+
+      try {
+        const livePayments = await paymentsService.listReceived();
+
+        if (isMounted) {
+          setPayments(livePayments);
+        }
+      } catch (error) {
+        if (isMounted) {
+          setErrorMessage(error instanceof Error ? error.message : 'Unable to load payments.');
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    loadPayments();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const totalReceived = payments.reduce((sum, payment) => sum + payment.amount, 0);
   const cashTotal = payments
@@ -85,6 +103,24 @@ export default function ReportPaymentsReceived() {
         </div>
 
         <div className="space-y-3">
+          {isLoading && (
+            <div className="bg-white border border-gray-200 rounded-lg p-4 text-sm text-gray-700">
+              Loading payments...
+            </div>
+          )}
+
+          {errorMessage && (
+            <div className="bg-white border border-gray-300 rounded-lg p-4 text-sm text-gray-900">
+              {errorMessage}
+            </div>
+          )}
+
+          {!isLoading && !errorMessage && payments.length === 0 && (
+            <div className="bg-white border border-gray-200 rounded-lg p-4 text-sm text-gray-700">
+              No payments received.
+            </div>
+          )}
+
           {payments.map((payment) => (
             <PaymentRecordRow key={payment.id} payment={payment} navigate={navigate} />
           ))}
@@ -127,16 +163,14 @@ function PaymentRecordRow({
   payment,
   navigate,
 }: {
-  payment: Payment;
+  payment: PaymentReceivedItem;
   navigate: (route: string, options?: { state?: unknown }) => void;
 }) {
-  const invoice = getInvoiceForPayment(payment);
-
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-4">
       <div className="flex justify-between items-start mb-2 gap-3">
         <div>
-          <div className="font-semibold text-gray-900 mb-1">{getAccountName(payment)}</div>
+          <div className="font-semibold text-gray-900 mb-1">{payment.accountName}</div>
           <div className="text-sm text-gray-600">{new Date(payment.receivedAt).toLocaleDateString()}</div>
         </div>
         <div className="text-xl font-bold text-gray-900">{formatCurrency(payment.amount)}</div>
@@ -151,12 +185,14 @@ function PaymentRecordRow({
         </div>
         <div>
           <div className="text-gray-600 text-xs">Received By</div>
-          <div className="font-medium text-gray-900">{getReceivedByName(payment.receivedByUserId)}</div>
+          <div className="font-medium text-gray-900">{payment.receivedByName}</div>
         </div>
       </div>
+      <div className="text-xs text-gray-600 mb-3">Invoice: {payment.invoiceDisplayNumber}</div>
       <button
-        onClick={() => navigate('/invoice-detail', { state: { invoice } })}
-        className="w-full bg-white border border-gray-300 text-gray-900 py-2 rounded-lg font-medium text-sm flex items-center justify-center gap-2 active:bg-gray-50"
+        onClick={() => navigate('/invoice-detail', { state: { invoice: payment.invoice } })}
+        disabled={!payment.invoice}
+        className="w-full bg-white border border-gray-300 text-gray-900 py-2 rounded-lg font-medium text-sm flex items-center justify-center gap-2 active:bg-gray-50 disabled:text-gray-400 disabled:bg-gray-100"
       >
         <FileText size={16} />
         View Invoice
