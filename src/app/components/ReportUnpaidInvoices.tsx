@@ -1,37 +1,19 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Download, Printer, FileText, DollarSign } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
 import UserIcon from './shared/UserIcon';
-import { accounts, invoiceRecords, payments, people } from '../data/mockData';
+import { invoicesService } from '../services/invoicesService';
 import { formatCurrency } from '../utils/calculations';
-import type { InvoiceRecord } from '../types';
+import type { InvoiceListItem } from '../services/invoicesService';
 
 type FilterType = 'customers' | 'k2' | 'family' | 'all';
 type UnpaidType = 'customer' | 'k2' | 'family';
 
-function getRecordType(record: InvoiceRecord): UnpaidType {
+function getRecordType(record: InvoiceListItem): UnpaidType {
   if (record.recordType === 'customer_invoice') return 'customer';
   if (record.recordType === 'k2_statement') return 'k2';
   return 'family';
-}
-
-function getRecordName(record: InvoiceRecord): string {
-  if (record.accountId) {
-    return accounts.find((account) => account.id === record.accountId)?.name ?? 'Unknown Account';
-  }
-
-  if (record.personId) {
-    return people.find((person) => person.id === record.personId)?.officialDisplayName ?? 'Unknown Person';
-  }
-
-  return 'Unknown';
-}
-
-function getAmountPaid(record: InvoiceRecord): number {
-  return payments
-    .filter((payment) => payment.invoiceRecordId === record.id)
-    .reduce((total, payment) => total + payment.amount, 0);
 }
 
 function getStatusLabel(status: string): string {
@@ -44,8 +26,42 @@ function getStatusLabel(status: string): string {
 export default function ReportUnpaidInvoices() {
   const navigate = useNavigate();
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
+  const [invoices, setInvoices] = useState<InvoiceListItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const unpaidData = invoiceRecords.filter((record) => record.balanceDue > 0);
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadInvoices() {
+      setIsLoading(true);
+      setErrorMessage(null);
+
+      try {
+        const liveInvoices = await invoicesService.list();
+
+        if (isMounted) {
+          setInvoices(liveInvoices);
+        }
+      } catch (error) {
+        if (isMounted) {
+          setErrorMessage(error instanceof Error ? error.message : 'Unable to load unpaid invoices.');
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    loadInvoices();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const unpaidData = invoices.filter((record) => record.balanceDue > 0);
   const totalUnpaid = unpaidData.reduce((sum, record) => sum + record.balanceDue, 0);
   const overdue = unpaidData.filter((record) => record.status === 'overdue').length;
   const openRecords = unpaidData.length;
@@ -90,6 +106,24 @@ export default function ReportUnpaidInvoices() {
         </div>
 
         <div className="space-y-3">
+          {isLoading && (
+            <div className="bg-white border border-gray-200 rounded-lg p-4 text-sm text-gray-700">
+              Loading unpaid invoices...
+            </div>
+          )}
+
+          {errorMessage && (
+            <div className="bg-white border border-gray-300 rounded-lg p-4 text-sm text-gray-900">
+              {errorMessage}
+            </div>
+          )}
+
+          {!isLoading && !errorMessage && filteredData.length === 0 && (
+            <div className="bg-white border border-gray-200 rounded-lg p-4 text-sm text-gray-700">
+              No unpaid invoices found.
+            </div>
+          )}
+
           {filteredData.map((record) => (
             <UnpaidRecordRow key={record.id} record={record} navigate={navigate} />
           ))}
@@ -132,11 +166,11 @@ function UnpaidRecordRow({
   record,
   navigate,
 }: {
-  record: InvoiceRecord;
+  record: InvoiceListItem;
   navigate: (route: string, options?: { state?: unknown }) => void;
 }) {
   const recordType = getRecordType(record);
-  const amountPaid = getAmountPaid(record);
+  const amountPaid = record.amountPaid;
 
   const getTypeLabel = () => {
     if (recordType === 'customer') return 'Customer';
@@ -149,7 +183,7 @@ function UnpaidRecordRow({
     <div className="bg-white border border-gray-200 rounded-lg p-4">
       <div className="flex justify-between items-start mb-2 gap-3">
         <div>
-          <div className="font-semibold text-gray-900 mb-1">{getRecordName(record)}</div>
+          <div className="font-semibold text-gray-900 mb-1">{record.accountName}</div>
           <div className="text-sm text-gray-600">{new Date(record.issueDate).toLocaleDateString()}</div>
         </div>
         <span className="text-xs px-2 py-1 rounded border bg-gray-100 border-gray-300 text-gray-700">
@@ -179,13 +213,23 @@ function UnpaidRecordRow({
           <FileText size={16} />
           View
         </button>
-        <button
-          onClick={() => navigate('/record-payment', { state: { invoice: record } })}
-          className="bg-gray-900 text-white py-2 rounded-lg font-medium text-sm flex items-center justify-center gap-1 active:bg-gray-800"
-        >
-          <DollarSign size={16} />
-          Record Payment
-        </button>
+        {record.recordType === 'customer_invoice' ? (
+          <button
+            onClick={() => navigate('/record-payment', { state: { invoice: record } })}
+            className="bg-gray-900 text-white py-2 rounded-lg font-medium text-sm flex items-center justify-center gap-1 active:bg-gray-800"
+          >
+            <DollarSign size={16} />
+            Record Payment
+          </button>
+        ) : (
+          <button
+            disabled
+            className="bg-gray-100 border border-gray-300 text-gray-500 py-2 rounded-lg font-medium text-sm flex items-center justify-center gap-1"
+          >
+            <DollarSign size={16} />
+            Not Ready
+          </button>
+        )}
       </div>
     </div>
   );
