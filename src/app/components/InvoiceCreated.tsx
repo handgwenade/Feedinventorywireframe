@@ -1,25 +1,86 @@
 import { useNavigate, useLocation } from 'react-router-dom';
-import { CheckCircle2, Download, Printer, Send, DollarSign, Home, ShoppingCart } from 'lucide-react';
+import { CheckCircle2, Download, Printer, Send, DollarSign, Home, ShoppingCart, FileText } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
-import { accounts, invoiceRecords } from '../data/mockData';
-import { formatCurrency } from '../utils/calculations';
+import { calculateLineTotal, formatCurrency } from '../utils/calculations';
+
+interface CartItem {
+  productId: string;
+  name: string;
+  quantity: number;
+  price: number;
+  unitLabel?: string;
+}
+
+interface InvoiceCreatedState {
+  invoiceId?: string;
+  displayNumber?: string;
+  customerName?: string;
+  customerId?: string;
+  accountId?: string;
+  cart?: CartItem[];
+  subtotal?: number;
+  tax?: number;
+  total?: number;
+  balanceDue?: number;
+}
 
 export default function InvoiceCreated() {
   const navigate = useNavigate();
   const location = useLocation();
-  const state = (location.state ?? {}) as {
-    customerName?: string;
-    accountId?: string;
-    displayNumber?: string;
-    total?: number;
-    balanceDue?: number;
+  const state = (location.state ?? null) as InvoiceCreatedState | null;
+  const hasCreatedInvoice = Boolean(state?.invoiceId && state?.displayNumber);
+
+  if (!hasCreatedInvoice) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col">
+        <div className="bg-white border-b border-gray-200 p-6">
+          <h1 className="text-2xl font-bold text-gray-900">Invoice Confirmation</h1>
+        </div>
+
+        <div className="flex-1 p-4">
+          <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
+            <div className="text-sm text-gray-700">Create an invoice before viewing this confirmation.</div>
+            <button
+              onClick={() => navigate('/choose-customer')}
+              className="w-full bg-gray-900 text-white py-3 rounded-lg font-semibold active:bg-gray-800"
+            >
+              Back to Take Feed
+            </button>
+            <button
+              onClick={() => navigate('/invoices')}
+              className="w-full bg-white border border-gray-300 text-gray-900 py-3 rounded-lg font-semibold active:bg-gray-50"
+            >
+              Back to Invoices
+            </button>
+          </div>
+        </div>
+
+        <BottomNav />
+      </div>
+    );
+  }
+
+  const invoiceId = state?.invoiceId ?? '';
+  const invoiceNumber = state?.displayNumber ?? '—';
+  const customerName = state?.customerName ?? 'Unknown Customer';
+  const total = Number(state?.total ?? 0);
+  const balanceDue = Number(state?.balanceDue ?? total);
+  const cart = state?.cart ?? [];
+  const paymentInvoice = {
+    id: invoiceId,
+    displayNumber: invoiceNumber,
+    number: invoiceNumber,
+    recordType: 'customer_invoice',
+    type: 'customer',
+    accountId: state?.accountId ?? state?.customerId,
+    accountName: customerName,
+    account: customerName,
+    total,
+    balanceDue,
+    balance: balanceDue,
+    amountPaid: Math.max(total - balanceDue, 0),
+    status: balanceDue > 0 ? 'unpaid' : 'paid',
   };
-  const fallbackInvoice = invoiceRecords.find((invoice) => invoice.recordType === 'customer_invoice') ?? invoiceRecords[0];
-  const fallbackAccount = accounts.find((account) => account.id === (state.accountId ?? fallbackInvoice.accountId));
-  const customerName = state.customerName ?? fallbackAccount?.name ?? 'Anderson Cattle Co.';
-  const total = state.total ?? fallbackInvoice.total;
-  const balanceDue = state.balanceDue ?? fallbackInvoice.balanceDue;
-  const invoiceNumber = state.displayNumber ?? fallbackInvoice.displayNumber;
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -62,28 +123,42 @@ export default function InvoiceCreated() {
           </div>
         </div>
 
+        {cart.length > 0 && (
+          <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+            <div className="p-4 border-b border-gray-200 bg-gray-50">
+              <h2 className="font-semibold text-gray-900">Line Items</h2>
+            </div>
+            <div className="divide-y divide-gray-200">
+              {cart.map((item) => (
+                <div key={item.productId} className="p-4 flex justify-between gap-3 text-sm">
+                  <div>
+                    <div className="font-medium text-gray-900">{item.name}</div>
+                    <div className="text-gray-600">{item.quantity} {item.unitLabel ?? 'units'} @ {formatCurrency(item.price)}</div>
+                  </div>
+                  <div className="font-semibold text-gray-900">{formatCurrency(calculateLineTotal(item.quantity, item.price))}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Action Buttons */}
         <div className="space-y-2">
+          <ActionButton icon={<Download size={20} />} label="Download PDF" onClick={() => {}} />
+          <ActionButton icon={<Printer size={20} />} label="Print" onClick={() => {}} />
+          <ActionButton icon={<Send size={20} />} label="Send" onClick={() => {}} />
           <ActionButton
-            icon={<Download size={20} />}
-            label="Download PDF"
-            onClick={() => {}}
+            icon={<FileText size={20} />}
+            label="View Invoice"
+            onClick={() => navigate('/invoice-detail', { state: { invoice: paymentInvoice } })}
           />
-          <ActionButton
-            icon={<Printer size={20} />}
-            label="Print"
-            onClick={() => {}}
-          />
-          <ActionButton
-            icon={<Send size={20} />}
-            label="Send"
-            onClick={() => {}}
-          />
-          <ActionButton
-            icon={<DollarSign size={20} />}
-            label="Record Payment"
-            onClick={() => navigate('/record-payment')}
-          />
+          {balanceDue > 0 && (
+            <ActionButton
+              icon={<DollarSign size={20} />}
+              label="Record Payment"
+              onClick={() => navigate('/record-payment', { state: { invoice: paymentInvoice } })}
+            />
+          )}
         </div>
       </div>
 

@@ -1,24 +1,64 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { CheckCircle2, Download, Printer, Send, DollarSign, Home, Users } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
-import { invoiceRecords, people } from '../data/mockData';
-import { formatCurrency } from '../utils/calculations';
+import { calculateLineTotal, formatCurrency } from '../utils/calculations';
+
+interface CartItem {
+  productId: string;
+  name: string;
+  quantity: number;
+  price: number;
+  unitLabel?: string;
+}
+
+interface FamilyInvoiceCreatedState {
+  displayNumber?: string;
+  personId?: string;
+  personName?: string;
+  cart?: CartItem[];
+  total?: number;
+  status?: string;
+}
+
+function getStatusLabel(status?: string): string {
+  if (!status) return '—';
+  return status.replaceAll('-', ' ');
+}
 
 export default function FamilyInvoiceCreated() {
   const navigate = useNavigate();
   const location = useLocation();
-  const state = (location.state ?? {}) as {
-    personId?: string;
-    personName?: string;
-    total?: number;
-    status?: string;
-  };
-  const fallbackInvoice = invoiceRecords.find((invoice) => invoice.recordType === 'family_use') ?? invoiceRecords[0];
-  const fallbackPerson = people.find((person) => person.id === (state.personId ?? fallbackInvoice.personId));
-  const personName = state.personName ?? fallbackPerson?.officialDisplayName ?? 'Bill Johnson';
-  const total = state.total ?? fallbackInvoice.total;
-  const status = state.status ?? fallbackInvoice.status;
-  const invoiceNumber = fallbackInvoice.displayNumber;
+  const state = (location.state ?? null) as FamilyInvoiceCreatedState | null;
+
+  if (!state) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col">
+        <div className="bg-white border-b border-gray-200 p-6">
+          <h1 className="text-2xl font-bold text-gray-900">Family Use Confirmation</h1>
+        </div>
+
+        <div className="flex-1 p-4">
+          <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
+            <div className="text-sm text-gray-700">Record family use before viewing this confirmation.</div>
+            <button
+              onClick={() => navigate('/choose-family-account')}
+              className="w-full bg-gray-900 text-white py-3 rounded-lg font-semibold active:bg-gray-800"
+            >
+              Back to Family Use
+            </button>
+          </div>
+        </div>
+
+        <BottomNav />
+      </div>
+    );
+  }
+
+  const personName = state.personName ?? 'Unknown Person';
+  const total = Number(state.total ?? 0);
+  const status = state.status ?? 'unpaid';
+  const invoiceNumber = state.displayNumber ?? 'Not assigned';
+  const cart = state.cart ?? [];
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -29,7 +69,7 @@ export default function FamilyInvoiceCreated() {
             <CheckCircle2 size={32} className="text-gray-900" />
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Family Use Recorded!</h1>
-          <p className="text-gray-600">Family use successfully recorded</p>
+          <p className="text-gray-600">Family use confirmation is route-state only</p>
         </div>
       </div>
 
@@ -62,34 +102,35 @@ export default function FamilyInvoiceCreated() {
 
           <div className="border-t border-gray-200 pt-3">
             <div className="text-sm text-gray-600 mb-1">Status</div>
-            <div className="font-semibold text-gray-900 capitalize">
-              {status === 'written-off' ? 'Written Off' : status}
-            </div>
+            <div className="font-semibold text-gray-900 capitalize">{getStatusLabel(status)}</div>
           </div>
         </div>
 
+        {cart.length > 0 && (
+          <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+            <div className="p-4 border-b border-gray-200 bg-gray-50">
+              <h2 className="font-semibold text-gray-900">Line Items</h2>
+            </div>
+            <div className="divide-y divide-gray-200">
+              {cart.map((item) => (
+                <div key={item.productId} className="p-4 flex justify-between gap-3 text-sm">
+                  <div>
+                    <div className="font-medium text-gray-900">{item.name}</div>
+                    <div className="text-gray-600">{item.quantity} {item.unitLabel ?? 'units'} @ {formatCurrency(item.price)}</div>
+                  </div>
+                  <div className="font-semibold text-gray-900">{formatCurrency(calculateLineTotal(item.quantity, item.price))}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Action Buttons */}
         <div className="space-y-2">
-          <ActionButton
-            icon={<Download size={20} />}
-            label="Download PDF"
-            onClick={() => {}}
-          />
-          <ActionButton
-            icon={<Printer size={20} />}
-            label="Print"
-            onClick={() => {}}
-          />
-          <ActionButton
-            icon={<Send size={20} />}
-            label="Send"
-            onClick={() => {}}
-          />
-          <ActionButton
-            icon={<DollarSign size={20} />}
-            label="Record Payment"
-            onClick={() => navigate('/record-payment')}
-          />
+          <ActionButton icon={<Download size={20} />} label="Download PDF" onClick={() => {}} />
+          <ActionButton icon={<Printer size={20} />} label="Print" onClick={() => {}} />
+          <ActionButton icon={<Send size={20} />} label="Send" onClick={() => {}} />
+          <DisabledActionButton icon={<DollarSign size={20} />} label="Record Payment" />
         </div>
       </div>
 
@@ -129,6 +170,18 @@ function ActionButton({
     <button
       onClick={onClick}
       className="w-full p-3 rounded-lg flex items-center gap-3 font-medium bg-white border border-gray-300 text-gray-900 active:bg-gray-50"
+    >
+      {icon}
+      <span>{label}</span>
+    </button>
+  );
+}
+
+function DisabledActionButton({ icon, label }: { icon: React.ReactNode; label: string }) {
+  return (
+    <button
+      disabled
+      className="w-full p-3 rounded-lg flex items-center gap-3 font-medium bg-gray-100 border border-gray-300 text-gray-500"
     >
       {icon}
       <span>{label}</span>
