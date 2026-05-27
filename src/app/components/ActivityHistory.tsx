@@ -1,47 +1,18 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, ArrowLeft, ChevronDown } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
 import UserIcon from './shared/UserIcon';
-import {
-  accounts,
-  activityLogs,
-  inventoryTransactions,
-  invoiceRecords,
-  payments,
-  people,
-  products,
-  users,
-} from '../data/mockData';
+import { activityService } from '../services/activityService';
 import { formatCurrency } from '../utils/calculations';
-import type { ActivityLog, ActivityType } from '../types';
+import type { ActivityItem, ActivityRecordBadge } from '../services/activityService';
 
 type FilterType = 'all' | 'taken' | 'added' | 'adjusted' | 'payments' | 'customer' | 'k2' | 'family';
 type DateFilter = 'today' | 'this-week' | 'this-month' | 'custom';
 type SortOption = 'newest' | 'oldest';
-type RecordBadge = 'customer' | 'k2' | 'family';
 
-function getUserName(userId: string): string {
-  return users.find((user) => user.id === userId)?.name ?? 'Unknown User';
-}
-
-function getProductName(productId?: string): string | undefined {
-  if (!productId) return undefined;
-  return products.find((product) => product.id === productId)?.name;
-}
-
-function getAccountName(accountId?: string): string | undefined {
-  if (!accountId) return undefined;
-  return accounts.find((account) => account.id === accountId)?.name;
-}
-
-function getPersonName(personId?: string): string | undefined {
-  if (!personId) return undefined;
-  return people.find((person) => person.id === personId)?.officialDisplayName;
-}
-
-function getActivityTypeLabel(activityType: ActivityType): string {
-  const labels: Record<ActivityType, string> = {
+function getActivityTypeLabel(activityType: string): string {
+  const labels: Record<string, string> = {
     take_feed: 'Take Feed',
     add_stock: 'Add Stock',
     adjust_count: 'Count Adjustment',
@@ -52,36 +23,12 @@ function getActivityTypeLabel(activityType: ActivityType): string {
     account_updated: 'Account Updated',
     person_created: 'Person Created',
     person_updated: 'Person Updated',
+    product_created: 'Product Created',
+    product_updated: 'Product Updated',
     status_changed: 'Status Changed',
   };
 
-  return labels[activityType];
-}
-
-function getRecordBadge(activity: ActivityLog): RecordBadge | undefined {
-  const invoice = invoiceRecords.find((record) => record.id === activity.invoiceRecordId);
-
-  if (invoice?.recordType === 'customer_invoice') return 'customer';
-  if (invoice?.recordType === 'k2_statement') return 'k2';
-  if (invoice?.recordType === 'family_use') return 'family';
-
-  const account = accounts.find((item) => item.id === activity.accountId);
-  if (account?.accountType === 'customer') return 'customer';
-  if (account?.accountType === 'k2') return 'k2';
-
-  if (activity.personId) return 'family';
-
-  return undefined;
-}
-
-function getPaymentAmount(paymentId?: string): number | undefined {
-  if (!paymentId) return undefined;
-  return payments.find((payment) => payment.id === paymentId)?.amount;
-}
-
-function getInventoryTransaction(activity: ActivityLog) {
-  if (!activity.inventoryTransactionId) return undefined;
-  return inventoryTransactions.find((transaction) => transaction.id === activity.inventoryTransactionId);
+  return labels[activityType] ?? activityType.replaceAll('_', ' ');
 }
 
 function formatActivityDate(value: string): string {
@@ -98,22 +45,56 @@ export default function ActivityHistory() {
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
   const [dateFilter, setDateFilter] = useState<DateFilter>('this-week');
   const [sortOption, setSortOption] = useState<SortOption>('newest');
+  const [activities, setActivities] = useState<ActivityItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const filteredActivities = activityLogs
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadActivities() {
+      setIsLoading(true);
+      setErrorMessage(null);
+
+      try {
+        const liveActivities = await activityService.list();
+
+        if (isMounted) {
+          setActivities(liveActivities);
+        }
+      } catch (error) {
+        if (isMounted) {
+          setErrorMessage(error instanceof Error ? error.message : 'Unable to load activity history.');
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    loadActivities();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const filteredActivities = activities
     .filter((activity) => {
       const searchTarget = [
         activity.summary,
-        getUserName(activity.actorUserId),
-        getProductName(activity.productId),
-        getAccountName(activity.accountId),
-        getPersonName(activity.personId),
+        activity.actorUserName,
+        activity.productName,
+        activity.accountName,
+        activity.personName,
+        activity.invoiceDisplayNumber,
       ]
         .filter(Boolean)
         .join(' ')
         .toLowerCase();
 
       const matchesSearch = searchTarget.includes(searchQuery.toLowerCase());
-      const recordBadge = getRecordBadge(activity);
 
       if (activeFilter === 'all') return matchesSearch;
       if (activeFilter === 'taken') return matchesSearch && activity.activityType === 'take_feed';
@@ -122,9 +103,9 @@ export default function ActivityHistory() {
         return matchesSearch && ['adjust_count', 'correction'].includes(activity.activityType);
       }
       if (activeFilter === 'payments') return matchesSearch && activity.activityType === 'payment_recorded';
-      if (activeFilter === 'customer') return matchesSearch && recordBadge === 'customer';
-      if (activeFilter === 'k2') return matchesSearch && recordBadge === 'k2';
-      if (activeFilter === 'family') return matchesSearch && recordBadge === 'family';
+      if (activeFilter === 'customer') return matchesSearch && activity.recordBadge === 'customer';
+      if (activeFilter === 'k2') return matchesSearch && activity.recordBadge === 'k2';
+      if (activeFilter === 'family') return matchesSearch && activity.recordBadge === 'family';
 
       return matchesSearch;
     })
@@ -198,6 +179,24 @@ export default function ActivityHistory() {
         </button>
 
         <div className="space-y-3">
+          {isLoading && (
+            <div className="bg-white border border-gray-200 rounded-lg p-4 text-sm text-gray-700">
+              Loading activity history...
+            </div>
+          )}
+
+          {errorMessage && (
+            <div className="bg-white border border-gray-300 rounded-lg p-4 text-sm text-gray-900">
+              {errorMessage}
+            </div>
+          )}
+
+          {!isLoading && !errorMessage && filteredActivities.length === 0 && (
+            <div className="bg-white border border-gray-200 rounded-lg p-4 text-sm text-gray-700">
+              No activity found.
+            </div>
+          )}
+
           {filteredActivities.map((activity) => (
             <ActivityCard
               key={activity.id}
@@ -251,10 +250,8 @@ function DateFilterChip({ label, active, onClick }: { label: string; active: boo
   );
 }
 
-function ActivityCard({ activity, onClick }: { activity: ActivityLog; onClick: () => void }) {
-  const transaction = getInventoryTransaction(activity);
-  const paymentAmount = getPaymentAmount(activity.paymentId);
-  const recordBadge = getRecordBadge(activity);
+function ActivityCard({ activity, onClick }: { activity: ActivityItem; onClick: () => void }) {
+  const transaction = activity.inventoryTransaction;
 
   return (
     <div
@@ -265,7 +262,7 @@ function ActivityCard({ activity, onClick }: { activity: ActivityLog; onClick: (
         <div>
           <div className="font-semibold text-gray-900 mb-1">
             {getActivityTypeLabel(activity.activityType)}
-            {recordBadge && <RecordTypeBadge recordBadge={recordBadge} />}
+            {activity.recordBadge && <RecordTypeBadge recordBadge={activity.recordBadge} />}
           </div>
           <div className="text-sm text-gray-600">
             {formatActivityDate(activity.createdAt)} {formatActivityTime(activity.createdAt)}
@@ -275,24 +272,24 @@ function ActivityCard({ activity, onClick }: { activity: ActivityLog; onClick: (
 
       <div className="space-y-1 text-sm">
         <div className="text-gray-700">
-          <span className="text-gray-600">Recorded by:</span> {getUserName(activity.actorUserId)}
+          <span className="text-gray-600">Recorded by:</span> {activity.actorUserName}
         </div>
 
-        {getPersonName(activity.personId) && (
+        {activity.personName && (
           <div className="text-gray-700">
-            <span className="text-gray-600">Taken by:</span> {getPersonName(activity.personId)}
+            <span className="text-gray-600">Taken by:</span> {activity.personName}
           </div>
         )}
 
-        {getAccountName(activity.accountId) && (
+        {activity.accountName && (
           <div className="text-gray-700">
-            <span className="text-gray-600">Account:</span> {getAccountName(activity.accountId)}
+            <span className="text-gray-600">Account:</span> {activity.accountName}
           </div>
         )}
 
-        {getProductName(activity.productId) && (
+        {activity.productName && (
           <div className="text-gray-700">
-            <span className="text-gray-600">Product:</span> {getProductName(activity.productId)}
+            <span className="text-gray-600">Product:</span> {activity.productName}
           </div>
         )}
 
@@ -307,17 +304,21 @@ function ActivityCard({ activity, onClick }: { activity: ActivityLog; onClick: (
           </>
         )}
 
-        {paymentAmount !== undefined && (
+        {activity.paymentAmount !== undefined && (
           <div className="text-gray-700">
-            <span className="text-gray-600">Payment amount:</span> {formatCurrency(paymentAmount)}
+            <span className="text-gray-600">Payment amount:</span> {formatCurrency(activity.paymentAmount)}
           </div>
         )}
 
         {activity.invoiceRecordId && (
           <div className="text-gray-700">
-            <span className="text-gray-600">Related record:</span> {activity.invoiceRecordId}
+            <span className="text-gray-600">Related record:</span> {activity.invoiceDisplayNumber ?? activity.invoiceRecordId}
           </div>
         )}
+
+        <div className="text-gray-700">
+          <span className="text-gray-600">Summary:</span> {activity.summary}
+        </div>
       </div>
 
       <button className="mt-3 w-full bg-white border border-gray-300 text-gray-900 py-2 rounded-lg font-medium text-sm active:bg-gray-50">
@@ -327,8 +328,8 @@ function ActivityCard({ activity, onClick }: { activity: ActivityLog; onClick: (
   );
 }
 
-function RecordTypeBadge({ recordBadge }: { recordBadge: RecordBadge }) {
-  const labels: Record<RecordBadge, string> = {
+function RecordTypeBadge({ recordBadge }: { recordBadge: ActivityRecordBadge }) {
+  const labels: Record<ActivityRecordBadge, string> = {
     customer: 'Customer',
     k2: 'K2',
     family: 'Family',

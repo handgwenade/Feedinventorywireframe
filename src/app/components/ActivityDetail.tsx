@@ -2,80 +2,15 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Package, Users, FileText, Plus, Edit } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
 import UserIcon from './shared/UserIcon';
-import {
-  accounts,
-  activityLogs,
-  inventoryTransactions,
-  invoiceRecords,
-  invoiceLineItems,
-  people,
-  products,
-  users,
-} from '../data/mockData';
-import { calculateLineTotal, formatCurrency } from '../utils/calculations';
-import type { ActivityLog, ActivityType } from '../types';
+import { formatCurrency } from '../utils/calculations';
+import type { ActivityItem, ActivityRecordBadge } from '../services/activityService';
 
-type RecordBadge = 'customer' | 'k2' | 'family';
-
-function getSelectedActivity(locationState: unknown): ActivityLog {
-  const state = locationState as { activity?: ActivityLog } | null;
-  return state?.activity ?? activityLogs[0];
+function getSelectedActivity(locationState: unknown): ActivityItem | null {
+  return ((locationState as { activity?: ActivityItem } | null)?.activity ?? null);
 }
 
-function getUserName(userId: string): string {
-  return users.find((user) => user.id === userId)?.name ?? 'Unknown User';
-}
-
-function getProductName(productId?: string): string | undefined {
-  if (!productId) return undefined;
-  return products.find((product) => product.id === productId)?.name;
-}
-
-function getProductPrice(productId?: string): number | undefined {
-  if (!productId) return undefined;
-  return products.find((product) => product.id === productId)?.salePrice;
-}
-
-function getAccountName(accountId?: string): string | undefined {
-  if (!accountId) return undefined;
-  return accounts.find((account) => account.id === accountId)?.name;
-}
-
-function getPersonName(personId?: string): string | undefined {
-  if (!personId) return undefined;
-  return people.find((person) => person.id === personId)?.officialDisplayName;
-}
-
-function getInventoryTransaction(activity: ActivityLog) {
-  if (!activity.inventoryTransactionId) return undefined;
-  return inventoryTransactions.find((transaction) => transaction.id === activity.inventoryTransactionId);
-}
-
-function getRelatedRecordLabel(activity: ActivityLog): string {
-  if (!activity.invoiceRecordId) return '—';
-
-  const invoice = invoiceRecords.find((record) => record.id === activity.invoiceRecordId);
-  return invoice?.displayNumber ?? activity.invoiceRecordId;
-}
-
-function getRecordBadge(activity: ActivityLog): RecordBadge | undefined {
-  const invoice = invoiceRecords.find((record) => record.id === activity.invoiceRecordId);
-
-  if (invoice?.recordType === 'customer_invoice') return 'customer';
-  if (invoice?.recordType === 'k2_statement') return 'k2';
-  if (invoice?.recordType === 'family_use') return 'family';
-
-  const account = accounts.find((item) => item.id === activity.accountId);
-  if (account?.accountType === 'customer') return 'customer';
-  if (account?.accountType === 'k2') return 'k2';
-
-  if (activity.personId) return 'family';
-
-  return undefined;
-}
-
-function getActivityTypeLabel(activityType: ActivityType): string {
-  const labels: Record<ActivityType, string> = {
+function getActivityTypeLabel(activityType: string): string {
+  const labels: Record<string, string> = {
     take_feed: 'Take Feed',
     add_stock: 'Add Stock',
     adjust_count: 'Count Adjustment',
@@ -86,10 +21,12 @@ function getActivityTypeLabel(activityType: ActivityType): string {
     account_updated: 'Account Updated',
     person_created: 'Person Created',
     person_updated: 'Person Updated',
+    product_created: 'Product Created',
+    product_updated: 'Product Updated',
     status_changed: 'Status Changed',
   };
 
-  return labels[activityType];
+  return labels[activityType] ?? activityType.replaceAll('_', ' ');
 }
 
 function formatActivityDateTime(value: string): string {
@@ -99,17 +36,58 @@ function formatActivityDateTime(value: string): string {
   })}`;
 }
 
+function formatMetadataValue(value: unknown): string {
+  if (typeof value === 'number') return value.toString();
+  if (typeof value === 'string') return value;
+  if (typeof value === 'boolean') return value ? 'Yes' : 'No';
+  if (value === null || value === undefined) return '—';
+  return JSON.stringify(value);
+}
+
 export default function ActivityDetail() {
   const navigate = useNavigate();
   const location = useLocation();
   const activity = getSelectedActivity(location.state);
-  const transaction = getInventoryTransaction(activity);
-  const recordBadge = getRecordBadge(activity);
-  const productPrice = getProductPrice(activity.productId);
-  const lineItem = invoiceLineItems.find((item) => item.invoiceRecordId === activity.invoiceRecordId);
-  const quantityForValue = Math.abs(transaction?.quantityChange ?? lineItem?.quantity ?? 0);
-  const unitPrice = lineItem?.unitPrice ?? productPrice ?? 0;
-  const totalValue = calculateLineTotal(quantityForValue, unitPrice);
+
+  if (!activity) {
+    return (
+      <div className="min-h-screen bg-gray-50 pb-24">
+        <div className="bg-white border-b border-gray-200 p-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate('/activity-history')}
+              className="text-gray-600 active:text-gray-900"
+            >
+              <ArrowLeft size={24} />
+            </button>
+            <h1 className="text-xl font-semibold text-gray-900">Activity Detail</h1>
+          </div>
+          <UserIcon />
+        </div>
+
+        <div className="p-4">
+          <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
+            <div className="text-sm text-gray-700">
+              Select an activity from Activity History to view details.
+            </div>
+            <button
+              onClick={() => navigate('/activity-history')}
+              className="w-full bg-white border border-gray-300 text-gray-900 py-3 rounded-lg font-semibold active:bg-gray-50"
+            >
+              Back to Activity History
+            </button>
+          </div>
+        </div>
+
+        <BottomNav />
+      </div>
+    );
+  }
+
+  const transaction = activity.inventoryTransaction;
+  const quantityForValue = Math.abs(transaction?.quantityChange ?? 0);
+  const unitPrice = transaction?.unitPrice ?? 0;
+  const totalValue = quantityForValue * unitPrice;
 
   const renderActivityInfo = () => (
     <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
@@ -118,25 +96,25 @@ export default function ActivityDetail() {
           <div className="text-sm text-gray-600 mb-1">Activity type</div>
           <div className="text-xl font-bold text-gray-900">{getActivityTypeLabel(activity.activityType)}</div>
         </div>
-        {recordBadge && <RecordTypeBadge recordBadge={recordBadge} />}
+        {activity.recordBadge && <RecordTypeBadge recordBadge={activity.recordBadge} />}
       </div>
 
       <InfoRow label="Date/time" value={formatActivityDateTime(activity.createdAt)} />
-      <InfoRow label="Recorded by" value={getUserName(activity.actorUserId)} />
+      <InfoRow label="Recorded by" value={activity.actorUserName} />
 
-      {getPersonName(activity.personId) && (
-        <InfoRow label="Taken by" value={getPersonName(activity.personId)} />
+      {activity.personName && (
+        <InfoRow label="Taken by" value={activity.personName} />
       )}
 
-      {(getAccountName(activity.accountId) || getPersonName(activity.personId)) && (
+      {(activity.accountName || activity.personName) && (
         <InfoRow
           label="Customer/account/person"
-          value={getAccountName(activity.accountId) ?? getPersonName(activity.personId)}
+          value={activity.accountName ?? activity.personName}
         />
       )}
 
-      {getProductName(activity.productId) && (
-        <InfoRow label="Product" value={getProductName(activity.productId)} />
+      {activity.productName && (
+        <InfoRow label="Product" value={activity.productName} />
       )}
     </div>
   );
@@ -188,6 +166,21 @@ export default function ActivityDetail() {
     );
   };
 
+  const renderMetadata = () => {
+    const entries = Object.entries(activity.metadata ?? {});
+
+    if (entries.length === 0) return null;
+
+    return (
+      <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
+        <h2 className="font-semibold text-gray-900">Metadata</h2>
+        {entries.map(([key, value]) => (
+          <InfoRow key={key} label={key} value={formatMetadataValue(value)} />
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
       <div className="bg-white border-b border-gray-200 p-4 flex items-center justify-between">
@@ -208,15 +201,26 @@ export default function ActivityDetail() {
         {renderQuantityChanges()}
         {renderValue()}
 
+        {activity.paymentAmount !== undefined && (
+          <div className="bg-white border border-gray-200 rounded-lg p-4">
+            <div className="text-sm text-gray-600 mb-1">Payment amount</div>
+            <div className="font-medium text-gray-900">{formatCurrency(activity.paymentAmount)}</div>
+          </div>
+        )}
+
         <div className="bg-white border border-gray-200 rounded-lg p-4">
           <div className="text-sm text-gray-600 mb-1">Related invoice/record</div>
-          <div className="font-medium text-gray-900">{getRelatedRecordLabel(activity)}</div>
+          <div className="font-medium text-gray-900">
+            {activity.invoiceDisplayNumber ?? activity.invoiceRecordId ?? '—'}
+          </div>
         </div>
 
         <div className="bg-white border border-gray-200 rounded-lg p-4">
           <div className="text-sm text-gray-600 mb-1">Notes</div>
           <div className="text-gray-900">{transaction?.notes ?? activity.summary ?? '—'}</div>
         </div>
+
+        {renderMetadata()}
 
         <div className="space-y-2">
           {activity.productId && (
@@ -251,8 +255,8 @@ function InfoRow({ label, value }: { label: string; value?: string }) {
   );
 }
 
-function RecordTypeBadge({ recordBadge }: { recordBadge: RecordBadge }) {
-  const labels: Record<RecordBadge, string> = {
+function RecordTypeBadge({ recordBadge }: { recordBadge: ActivityRecordBadge }) {
+  const labels: Record<ActivityRecordBadge, string> = {
     customer: 'Customer',
     k2: 'K2',
     family: 'Family',
