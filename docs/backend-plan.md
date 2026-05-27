@@ -60,7 +60,7 @@ Local Vite environment file:
 Required variables:
 
 ```bash
-VITE_SUPABASE_URL=https://hmrismmzuljbzhckhhwr.supabase.co
+VITE_SUPABASE_URL=https://YOUR-PROJECT.supabase.co
 VITE_SUPABASE_ANON_KEY=use_the_sb_publishable_key_here
 ```
 
@@ -69,6 +69,8 @@ Rules:
 - Use the `sb_publishable...` key in the frontend.
 - Never use the `sb_secret...` key in the frontend.
 - Never commit `.env`, `.env.local`, or `.env.*.local`.
+
+See `docs/deployment.md` for production environment variables and Supabase Auth redirect URL configuration.
 
 ## Core domain model
 

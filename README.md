@@ -100,6 +100,19 @@ npm i
 Start the development server:
 
 npm run dev
+
+## Deployment
+
+Vercel is the recommended deployment target for the current Vite app.
+
+- Build command: `npm run build`
+- Output directory: `dist`
+- Required environment variables:
+  - `VITE_SUPABASE_URL`
+  - `VITE_SUPABASE_ANON_KEY`
+
+See [docs/deployment.md](docs/deployment.md) for Vercel setup, Supabase Auth redirect URLs, smoke tests, rollback notes, and security guidance.
+
 Important Note
 
 The current code is a prototype foundation, not final production app logic.
