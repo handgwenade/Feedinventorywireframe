@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { ArrowLeft, ShoppingCart, PlusCircle, Edit3, Clock, Package } from 'lucide-react';
+import { Archive, ArrowLeft, ShoppingCart, PlusCircle, Edit3, Clock, Package } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
 import UserIcon from './shared/UserIcon';
 import { inventoryTransactionsService, type InventoryTransactionItem } from '../services/inventoryTransactionsService';
+import { productsService } from '../services/productsService';
 import { calculateInventoryValue, formatCurrency, isLowStock } from '../utils/calculations';
 import type { Product } from '../types';
 
@@ -38,6 +39,10 @@ export default function ProductDetail() {
   const [transactions, setTransactions] = useState<InventoryTransactionItem[]>([]);
   const [isLoadingTransactions, setIsLoadingTransactions] = useState(false);
   const [transactionError, setTransactionError] = useState<string | null>(null);
+  const [showArchivePanel, setShowArchivePanel] = useState(false);
+  const [archiveReason, setArchiveReason] = useState('');
+  const [isArchiving, setIsArchiving] = useState(false);
+  const [archiveError, setArchiveError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!product?.id) return;
@@ -107,6 +112,28 @@ export default function ProductDetail() {
   const inventoryValue = calculateInventoryValue(product);
   const lowStock = isLowStock(product);
   const status = lowStock ? 'Low Stock' : 'In Stock';
+
+  const handleArchiveProduct = async () => {
+    setArchiveError(null);
+
+    if (!archiveReason.trim()) {
+      setArchiveError('Archive reason is required.');
+      return;
+    }
+
+    try {
+      setIsArchiving(true);
+      await productsService.archiveProduct({
+        productId: product.id,
+        reason: archiveReason,
+      });
+      navigate('/inventory');
+    } catch (error) {
+      setArchiveError(error instanceof Error ? error.message : 'Unable to archive product.');
+    } finally {
+      setIsArchiving(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
@@ -196,7 +223,61 @@ export default function ProductDetail() {
             label="View History"
             onClick={() => navigate('/activity-history')}
           />
+          <ActionButton
+            icon={<Archive size={20} />}
+            label="Archive Product"
+            onClick={() => {
+              setShowArchivePanel(true);
+              setArchiveError(null);
+            }}
+          />
         </div>
+
+        {showArchivePanel && (
+          <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
+            <div>
+              <div className="font-semibold text-gray-900">Archive Product</div>
+              <div className="text-sm text-gray-600 mt-1">
+                This hides the product from normal inventory and picker screens. Historical records stay intact.
+              </div>
+            </div>
+
+            {archiveError && (
+              <div className="bg-white border border-gray-300 rounded-lg p-3 text-sm text-gray-900">
+                {archiveError}
+              </div>
+            )}
+
+            <textarea
+              value={archiveReason}
+              onChange={(event) => setArchiveReason(event.target.value)}
+              placeholder="Reason for archive..."
+              rows={3}
+              className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-gray-900 text-gray-900"
+            />
+
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  setShowArchivePanel(false);
+                  setArchiveError(null);
+                  setArchiveReason('');
+                }}
+                disabled={isArchiving}
+                className="flex-1 bg-white border border-gray-300 text-gray-900 py-3 rounded-lg font-semibold active:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleArchiveProduct}
+                disabled={isArchiving}
+                className="flex-1 bg-gray-900 text-white py-3 rounded-lg font-semibold active:bg-gray-800 disabled:bg-gray-400"
+              >
+                {isArchiving ? 'Archiving...' : 'Archive'}
+              </button>
+            </div>
+          </div>
+        )}
 
         <div className="bg-white border border-gray-200 rounded-lg p-4">
           <h3 className="font-semibold text-gray-900 mb-3">Recent Activity</h3>

@@ -50,10 +50,13 @@ export type ActivityType =
   | 'payment_recorded'
   | 'account_created'
   | 'account_updated'
+  | 'account_archived'
   | 'person_created'
   | 'person_updated'
+  | 'person_archived'
   | 'product_created'
   | 'product_updated'
+  | 'product_archived'
   | 'status_changed';
 
 export interface User {

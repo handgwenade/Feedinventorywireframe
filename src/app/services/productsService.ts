@@ -40,6 +40,23 @@ export interface UpdateProductInput {
   sourceNotes: string;
 }
 
+export interface ArchiveProductInput {
+  productId: string;
+  reason: string;
+}
+
+export interface ArchiveProductResult {
+  id: string;
+  name: string;
+  isActive: boolean;
+}
+
+interface ArchiveProductRow {
+  id: string;
+  name: string;
+  is_active: boolean;
+}
+
 function mapProductRow(row: ProductRow): Product {
   return {
     id: row.id,
@@ -141,7 +158,39 @@ async function updateProductInSupabase({
   return mapProductRow(row as ProductRow);
 }
 
+async function archiveProductInSupabase({
+  productId,
+  reason,
+}: ArchiveProductInput): Promise<ArchiveProductResult> {
+  const { data, error } = await supabase.rpc('archive_product', {
+    p_product_id: productId,
+    p_reason: reason,
+  });
+
+  if (error) {
+    throw new Error(`${error.message}${error.details ? ` — ${error.details}` : ''}`);
+  }
+
+  const row = Array.isArray(data) ? data[0] : data;
+
+  if (!row) {
+    throw new Error('Product was not archived.');
+  }
+
+  const archivedProduct = row as ArchiveProductRow;
+
+  return {
+    id: archivedProduct.id,
+    name: archivedProduct.name,
+    isActive: archivedProduct.is_active,
+  };
+}
+
 export const productsService = {
+  async archiveProduct(input: ArchiveProductInput): Promise<ArchiveProductResult> {
+    return archiveProductInSupabase(input);
+  },
+
   async createProduct(input: CreateProductInput): Promise<Product> {
     return createProductInSupabase(input);
   },

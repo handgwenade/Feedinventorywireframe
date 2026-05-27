@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { ArrowLeft, ShoppingCart, FileText, DollarSign, Activity, Edit, List } from 'lucide-react';
+import { Archive, ArrowLeft, ShoppingCart, FileText, DollarSign, Activity, Edit, List } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
 import UserIcon from './shared/UserIcon';
+import { accountsService } from '../services/accountsService';
 import { activityService } from '../services/activityService';
 import { invoicesService } from '../services/invoicesService';
+import { peopleService } from '../services/peopleService';
 import { formatCurrency } from '../utils/calculations';
 import type { ActivityItem as LiveActivityItem } from '../services/activityService';
 import type { InvoiceListItem } from '../services/invoicesService';
@@ -86,6 +88,10 @@ export default function AccountDetail() {
   const [allActivity, setAllActivity] = useState<LiveActivityItem[]>([]);
   const [isLoading, setIsLoading] = useState(Boolean(account));
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [showArchivePanel, setShowArchivePanel] = useState(false);
+  const [archiveReason, setArchiveReason] = useState('');
+  const [isArchiving, setIsArchiving] = useState(false);
+  const [archiveError, setArchiveError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!account) return;
@@ -165,6 +171,39 @@ export default function AccountDetail() {
   const balance = records.reduce((total, record) => total + record.balanceDue, 0);
   const lastActivity = isLoading ? 'Loading...' : getLastActivity(recentActivity);
 
+  const handleArchive = async () => {
+    if (!account || account.type === 'k2') return;
+
+    setArchiveError(null);
+
+    if (!archiveReason.trim()) {
+      setArchiveError('Archive reason is required.');
+      return;
+    }
+
+    try {
+      setIsArchiving(true);
+
+      if (account.type === 'customer') {
+        await accountsService.archiveCustomerAccount({
+          accountId: account.id,
+          reason: archiveReason,
+        });
+      } else {
+        await peopleService.archiveFamilyPerson({
+          personId: account.id,
+          reason: archiveReason,
+        });
+      }
+
+      navigate('/accounts');
+    } catch (error) {
+      setArchiveError(error instanceof Error ? error.message : 'Unable to archive record.');
+    } finally {
+      setIsArchiving(false);
+    }
+  };
+
   const renderAccountInfo = () => (
     <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
       <div className="flex justify-between items-start gap-3">
@@ -228,6 +267,14 @@ export default function AccountDetail() {
           <ActionButton icon={<DollarSign size={20} />} label="Record Payment" onClick={() => navigate('/invoices')} />
           <ActionButton icon={<List size={20} />} label="View Invoices" onClick={() => navigate('/invoices')} />
           <ActionButton icon={<Edit size={20} />} label="Edit Account" onClick={() => navigate('/edit-account-person', { state: { account } })} />
+          <ActionButton
+            icon={<Archive size={20} />}
+            label="Archive Account"
+            onClick={() => {
+              setShowArchivePanel(true);
+              setArchiveError(null);
+            }}
+          />
         </>
       )}
 
@@ -242,6 +289,14 @@ export default function AccountDetail() {
         <>
           <ActionButton icon={<List size={20} />} label="View Family Use" onClick={() => navigate('/invoices')} />
           <ActionButton icon={<Edit size={20} />} label="Edit Person" onClick={() => navigate('/edit-account-person', { state: { account } })} />
+          <ActionButton
+            icon={<Archive size={20} />}
+            label="Archive Person"
+            onClick={() => {
+              setShowArchivePanel(true);
+              setArchiveError(null);
+            }}
+          />
         </>
       )}
 
@@ -306,6 +361,53 @@ export default function AccountDetail() {
         {renderAccountInfo()}
         {renderSummaryCards()}
         {renderActions()}
+        {showArchivePanel && account.type !== 'k2' && (
+          <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
+            <div>
+              <div className="font-semibold text-gray-900">
+                {account.type === 'customer' ? 'Archive Account' : 'Archive Person'}
+              </div>
+              <div className="text-sm text-gray-600 mt-1">
+                This hides the record from normal account and picker screens. Historical invoices, payments, and activity stay intact.
+              </div>
+            </div>
+
+            {archiveError && (
+              <div className="bg-white border border-gray-300 rounded-lg p-3 text-sm text-gray-900">
+                {archiveError}
+              </div>
+            )}
+
+            <textarea
+              value={archiveReason}
+              onChange={(event) => setArchiveReason(event.target.value)}
+              placeholder="Reason for archive..."
+              rows={3}
+              className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-gray-900 text-gray-900"
+            />
+
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  setShowArchivePanel(false);
+                  setArchiveError(null);
+                  setArchiveReason('');
+                }}
+                disabled={isArchiving}
+                className="flex-1 bg-white border border-gray-300 text-gray-900 py-3 rounded-lg font-semibold active:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleArchive}
+                disabled={isArchiving}
+                className="flex-1 bg-gray-900 text-white py-3 rounded-lg font-semibold active:bg-gray-800 disabled:bg-gray-400"
+              >
+                {isArchiving ? 'Archiving...' : 'Archive'}
+              </button>
+            </div>
+          </div>
+        )}
         {renderRecentActivity()}
 
         {account.type === 'k2' && (

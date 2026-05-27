@@ -19,6 +19,23 @@ export interface UpdateFamilyPersonInput extends CreateFamilyPersonInput {
   personId: string;
 }
 
+export interface ArchiveFamilyPersonInput {
+  personId: string;
+  reason: string;
+}
+
+export interface ArchiveFamilyPersonResult {
+  id: string;
+  officialDisplayName: string;
+  isActive: boolean;
+}
+
+interface ArchiveFamilyPersonRow {
+  id: string;
+  official_display_name: string;
+  is_active: boolean;
+}
+
 function mapPersonRow(row: PersonRow): Person {
   return {
     id: row.id,
@@ -93,7 +110,39 @@ async function updateFamilyPersonInSupabase({
   return mapPersonRow(row as PersonRow);
 }
 
+async function archiveFamilyPersonInSupabase({
+  personId,
+  reason,
+}: ArchiveFamilyPersonInput): Promise<ArchiveFamilyPersonResult> {
+  const { data, error } = await supabase.rpc('archive_family_person', {
+    p_person_id: personId,
+    p_reason: reason,
+  });
+
+  if (error) {
+    throw new Error(`${error.message}${error.details ? ` — ${error.details}` : ''}`);
+  }
+
+  const row = Array.isArray(data) ? data[0] : data;
+
+  if (!row) {
+    throw new Error('Family/person record was not archived.');
+  }
+
+  const archivedPerson = row as ArchiveFamilyPersonRow;
+
+  return {
+    id: archivedPerson.id,
+    officialDisplayName: archivedPerson.official_display_name,
+    isActive: archivedPerson.is_active,
+  };
+}
+
 export const peopleService = {
+  async archiveFamilyPerson(input: ArchiveFamilyPersonInput): Promise<ArchiveFamilyPersonResult> {
+    return archiveFamilyPersonInSupabase(input);
+  },
+
   async createFamilyPerson(input: CreateFamilyPersonInput): Promise<Person> {
     return createFamilyPersonInSupabase(input);
   },

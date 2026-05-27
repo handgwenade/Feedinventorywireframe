@@ -24,6 +24,25 @@ export interface UpdateCustomerAccountInput extends CreateCustomerAccountInput {
   accountId: string;
 }
 
+export interface ArchiveCustomerAccountInput {
+  accountId: string;
+  reason: string;
+}
+
+export interface ArchiveCustomerAccountResult {
+  id: string;
+  accountType: AccountType;
+  name: string;
+  isActive: boolean;
+}
+
+interface ArchiveCustomerAccountRow {
+  id: string;
+  account_type: string;
+  name: string;
+  is_active: boolean;
+}
+
 function mapAccountRow(row: AccountRow): Account {
   return {
     id: row.id,
@@ -126,7 +145,40 @@ async function updateCustomerAccountInSupabase({
   return mapAccountRow(row as AccountRow);
 }
 
+async function archiveCustomerAccountInSupabase({
+  accountId,
+  reason,
+}: ArchiveCustomerAccountInput): Promise<ArchiveCustomerAccountResult> {
+  const { data, error } = await supabase.rpc('archive_customer_account', {
+    p_account_id: accountId,
+    p_reason: reason,
+  });
+
+  if (error) {
+    throw new Error(`${error.message}${error.details ? ` — ${error.details}` : ''}`);
+  }
+
+  const row = Array.isArray(data) ? data[0] : data;
+
+  if (!row) {
+    throw new Error('Customer account was not archived.');
+  }
+
+  const archivedAccount = row as ArchiveCustomerAccountRow;
+
+  return {
+    id: archivedAccount.id,
+    accountType: archivedAccount.account_type as AccountType,
+    name: archivedAccount.name,
+    isActive: archivedAccount.is_active,
+  };
+}
+
 export const accountsService = {
+  async archiveCustomerAccount(input: ArchiveCustomerAccountInput): Promise<ArchiveCustomerAccountResult> {
+    return archiveCustomerAccountInSupabase(input);
+  },
+
   async createCustomerAccount(input: CreateCustomerAccountInput): Promise<Account> {
     return createCustomerAccountInSupabase(input);
   },
