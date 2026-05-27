@@ -227,7 +227,7 @@ export default function AccountDetail() {
           <ActionButton icon={<FileText size={20} />} label="Create Invoice" onClick={() => {}} />
           <ActionButton icon={<DollarSign size={20} />} label="Record Payment" onClick={() => navigate('/invoices')} />
           <ActionButton icon={<List size={20} />} label="View Invoices" onClick={() => navigate('/invoices')} />
-          <ActionButton icon={<Edit size={20} />} label="Edit Account" onClick={() => {}} />
+          <ActionButton icon={<Edit size={20} />} label="Edit Account" onClick={() => navigate('/edit-account-person', { state: { account } })} />
         </>
       )}
 
@@ -241,7 +241,7 @@ export default function AccountDetail() {
       {account.type === 'family' && (
         <>
           <ActionButton icon={<List size={20} />} label="View Family Use" onClick={() => navigate('/invoices')} />
-          <ActionButton icon={<Edit size={20} />} label="Edit Person" onClick={() => {}} />
+          <ActionButton icon={<Edit size={20} />} label="Edit Person" onClick={() => navigate('/edit-account-person', { state: { account } })} />
         </>
       )}
 

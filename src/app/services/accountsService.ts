@@ -20,6 +20,10 @@ export interface CreateCustomerAccountInput {
   notes: string;
 }
 
+export interface UpdateCustomerAccountInput extends CreateCustomerAccountInput {
+  accountId: string;
+}
+
 function mapAccountRow(row: AccountRow): Account {
   return {
     id: row.id,
@@ -92,6 +96,36 @@ async function createCustomerAccountInSupabase({
   return mapAccountRow(row as AccountRow);
 }
 
+async function updateCustomerAccountInSupabase({
+  accountId,
+  name,
+  phone,
+  email,
+  billingAddress,
+  notes,
+}: UpdateCustomerAccountInput): Promise<Account> {
+  const { data, error } = await supabase.rpc('update_customer_account', {
+    p_account_id: accountId,
+    p_name: name,
+    p_phone: phone,
+    p_email: email,
+    p_billing_address: billingAddress,
+    p_notes: notes,
+  });
+
+  if (error) {
+    throw new Error(`${error.message}${error.details ? ` — ${error.details}` : ''}`);
+  }
+
+  const row = Array.isArray(data) ? data[0] : data;
+
+  if (!row) {
+    throw new Error('Customer account was not updated.');
+  }
+
+  return mapAccountRow(row as AccountRow);
+}
+
 export const accountsService = {
   async createCustomerAccount(input: CreateCustomerAccountInput): Promise<Account> {
     return createCustomerAccountInSupabase(input);
@@ -103,5 +137,9 @@ export const accountsService = {
 
   async listCustomers(): Promise<Account[]> {
     return listCustomersFromSupabase();
+  },
+
+  async updateCustomerAccount(input: UpdateCustomerAccountInput): Promise<Account> {
+    return updateCustomerAccountInSupabase(input);
   },
 };

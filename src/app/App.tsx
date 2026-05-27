@@ -29,6 +29,7 @@ import PaymentRecorded from './components/PaymentRecorded';
 import AccountsList from './components/AccountsList';
 import AccountDetail from './components/AccountDetail';
 import AddAccountPerson from './components/AddAccountPerson';
+import EditAccountPerson from './components/EditAccountPerson';
 import ActivityHistory from './components/ActivityHistory';
 import ActivityDetail from './components/ActivityDetail';
 import ReportsList from './components/ReportsList';
@@ -139,6 +140,7 @@ function AppRoutes() {
           <Route path="/accounts" element={<AccountsList />} />
           <Route path="/account-detail" element={<AccountDetail />} />
           <Route path="/add-account-person" element={<AddAccountPerson />} />
+          <Route path="/edit-account-person" element={<EditAccountPerson />} />
           <Route path="/activity-history" element={<ActivityHistory />} />
           <Route path="/activity-detail" element={<ActivityDetail />} />
           <Route path="/reports" element={<ReportsList />} />

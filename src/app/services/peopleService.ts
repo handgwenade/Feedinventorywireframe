@@ -15,6 +15,10 @@ export interface CreateFamilyPersonInput {
   notes: string;
 }
 
+export interface UpdateFamilyPersonInput extends CreateFamilyPersonInput {
+  personId: string;
+}
+
 function mapPersonRow(row: PersonRow): Person {
   return {
     id: row.id,
@@ -63,6 +67,32 @@ async function createFamilyPersonInSupabase({
   return mapPersonRow(row as PersonRow);
 }
 
+async function updateFamilyPersonInSupabase({
+  personId,
+  officialDisplayName,
+  phone,
+  notes,
+}: UpdateFamilyPersonInput): Promise<Person> {
+  const { data, error } = await supabase.rpc('update_family_person', {
+    p_person_id: personId,
+    p_official_display_name: officialDisplayName,
+    p_phone: phone,
+    p_notes: notes,
+  });
+
+  if (error) {
+    throw new Error(`${error.message}${error.details ? ` — ${error.details}` : ''}`);
+  }
+
+  const row = Array.isArray(data) ? data[0] : data;
+
+  if (!row) {
+    throw new Error('Family/person record was not updated.');
+  }
+
+  return mapPersonRow(row as PersonRow);
+}
+
 export const peopleService = {
   async createFamilyPerson(input: CreateFamilyPersonInput): Promise<Person> {
     return createFamilyPersonInSupabase(input);
@@ -70,5 +100,9 @@ export const peopleService = {
 
   async list(): Promise<Person[]> {
     return listFromSupabase();
+  },
+
+  async updateFamilyPerson(input: UpdateFamilyPersonInput): Promise<Person> {
+    return updateFamilyPersonInSupabase(input);
   },
 };
