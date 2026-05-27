@@ -1,12 +1,67 @@
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ShoppingCart, Package, FileText, Users, BarChart3, PlusCircle, Clock, DollarSign, AlertTriangle, TrendingUp } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
 import UserIcon from './shared/UserIcon';
-import { activityLogs, currentUser, inventorySummary } from '../data/mockData';
-import { formatCurrency } from '../utils/calculations';
+import { currentUser } from '../data/mockData';
+import { activityService } from '../services/activityService';
+import { invoicesService } from '../services/invoicesService';
+import { productsService } from '../services/productsService';
+import { calculateInventoryValue, formatCurrency, isLowStock } from '../utils/calculations';
+import type { ActivityItem as ActivityItemRecord } from '../services/activityService';
+import type { InvoiceListItem } from '../services/invoicesService';
+import type { Product } from '../types';
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const [products, setProducts] = useState<Product[]>([]);
+  const [invoices, setInvoices] = useState<InvoiceListItem[]>([]);
+  const [activities, setActivities] = useState<ActivityItemRecord[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadDashboardData() {
+      setIsLoading(true);
+      setErrorMessage(null);
+
+      try {
+        const [liveProducts, liveInvoices, liveActivities] = await Promise.all([
+          productsService.list(),
+          invoicesService.list(),
+          activityService.list(),
+        ]);
+
+        if (!isMounted) return;
+
+        setProducts(liveProducts);
+        setInvoices(liveInvoices);
+        setActivities(liveActivities);
+      } catch (error) {
+        if (!isMounted) return;
+
+        setErrorMessage(error instanceof Error ? error.message : 'Unable to load dashboard data.');
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    loadDashboardData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const inventoryValue = products.reduce((total, product) => total + calculateInventoryValue(product), 0);
+  const lowStockCount = products.filter((product) => isLowStock(product)).length;
+  const unpaidInvoices = invoices.filter((invoice) => invoice.balanceDue > 0);
+  const unpaidTotal = unpaidInvoices.reduce((total, invoice) => total + invoice.balanceDue, 0);
+  const recentActivities = activities.slice(0, 3);
 
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
@@ -21,22 +76,29 @@ export default function Dashboard() {
 
       <div className="px-4">{/* Rest of content */}
 
+      {errorMessage && (
+        <div className="bg-white border border-gray-300 rounded-lg p-4 text-sm text-gray-900 mb-4">
+          {errorMessage}
+        </div>
+      )}
+
       {/* Summary Cards */}
       <div className="grid grid-cols-3 gap-3 mb-6">
         <SummaryCard
           icon={<DollarSign size={20} />}
           label="Inventory Value"
-          value={formatCurrency(inventorySummary.totalInventoryValue)}
+          value={isLoading ? '...' : formatCurrency(inventoryValue)}
         />
         <SummaryCard
           icon={<AlertTriangle size={20} />}
           label="Low Stock"
-          value={String(inventorySummary.lowStockCount)}
+          value={isLoading ? '...' : String(lowStockCount)}
         />
         <SummaryCard
           icon={<TrendingUp size={20} />}
           label="Unpaid Invoices"
-          value={formatCurrency(inventorySummary.unpaidTotal)}
+          value={isLoading ? '...' : formatCurrency(unpaidTotal)}
+          detail={isLoading ? undefined : `${unpaidInvoices.length} open`}
         />
       </div>
 
@@ -89,14 +151,23 @@ export default function Dashboard() {
       {/* Recent Activity */}
       <div className="bg-white border border-gray-200 rounded-lg p-4">
         <h3 className="font-semibold text-gray-900 mb-3">Recent Activity</h3>
-<div className="space-y-3">
-  {activityLogs.slice(0, 3).map((activity) => (
-    <ActivityItem
-      key={activity.id}
-      text={activity.summary}
-    />
-  ))}
-</div>      </div>
+        <div className="space-y-3">
+          {isLoading && (
+            <div className="text-sm text-gray-700">Loading recent activity...</div>
+          )}
+
+          {!isLoading && !errorMessage && recentActivities.length === 0 && (
+            <div className="text-sm text-gray-700">No recent activity.</div>
+          )}
+
+          {!isLoading && recentActivities.map((activity) => (
+            <ActivityItem
+              key={activity.id}
+              text={activity.summary}
+            />
+          ))}
+        </div>
+      </div>
 
       {/* Workflow Annotation */}
       <div className="mt-6 p-3 bg-gray-50 border border-gray-300 rounded text-xs text-gray-600 leading-relaxed">
@@ -122,11 +193,13 @@ export default function Dashboard() {
 function SummaryCard({
   icon,
   label,
-  value
+  value,
+  detail,
 }: {
   icon: React.ReactNode;
   label: string;
   value: string;
+  detail?: string;
 }) {
   return (
     <div className="bg-white border border-gray-200 p-3 rounded-lg">
@@ -135,6 +208,7 @@ function SummaryCard({
       </div>
       <div className="text-xs text-gray-600 mb-1">{label}</div>
       <div className="text-lg font-bold text-gray-900">{value}</div>
+      {detail && <div className="text-xs text-gray-600 mt-1">{detail}</div>}
     </div>
   );
 }
