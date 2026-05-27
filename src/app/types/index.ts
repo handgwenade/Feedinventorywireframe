@@ -45,6 +45,7 @@ export type ActivityType =
   | 'adjust_count'
   | 'correction'
   | 'invoice_created'
+  | 'k2_statement_created'
   | 'payment_recorded'
   | 'account_created'
   | 'account_updated'
