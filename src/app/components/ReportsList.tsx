@@ -3,9 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Package, AlertTriangle, Clock, Users, Truck, HomeIcon, FileText, DollarSign } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
 import UserIcon from './shared/UserIcon';
-import { invoiceRecords, payments } from '../data/mockData';
+import { invoicesService } from '../services/invoicesService';
+import { paymentsService } from '../services/paymentsService';
 import { productsService } from '../services/productsService';
 import { calculateInventoryValue, formatCurrency, isLowStock } from '../utils/calculations';
+import type { InvoiceListItem } from '../services/invoicesService';
+import type { PaymentReceivedItem } from '../services/paymentsService';
 import type { Product } from '../types';
 
 interface ReportCard {
@@ -17,12 +20,27 @@ interface ReportCard {
   route: string;
 }
 
-function buildReports(products: Product[]): ReportCard[] {
+function buildReports(
+  products: Product[],
+  invoices: InvoiceListItem[],
+  payments: PaymentReceivedItem[],
+): ReportCard[] {
   const totalInventoryValue = products.reduce(
     (total, product) => total + calculateInventoryValue(product),
     0,
   );
   const lowStockCount = products.filter((product) => isLowStock(product)).length;
+  const customerSalesTotal = invoices
+    .filter((record) => record.recordType === 'customer_invoice')
+    .reduce((total, record) => total + record.total, 0);
+  const k2Total = invoices
+    .filter((record) => record.recordType === 'k2_statement')
+    .reduce((total, record) => total + record.total, 0);
+  const familyTotal = invoices
+    .filter((record) => record.recordType === 'family_use')
+    .reduce((total, record) => total + record.total, 0);
+  const unpaidTotal = invoices.reduce((total, record) => total + record.balanceDue, 0);
+  const paymentsTotal = payments.reduce((total, payment) => total + payment.amount, 0);
 
   return [
     {
@@ -53,11 +71,7 @@ function buildReports(products: Product[]): ReportCard[] {
       id: '4',
       name: 'Customer Sales',
       helperText: 'Sales to outside customers only.',
-      metric: formatCurrency(
-        invoiceRecords
-          .filter((record) => record.recordType === 'customer_invoice')
-          .reduce((total, record) => total + record.total, 0),
-      ),
+      metric: formatCurrency(customerSalesTotal),
       icon: <Users size={24} />,
       route: '/report-customer-sales',
     },
@@ -65,11 +79,7 @@ function buildReports(products: Product[]): ReportCard[] {
       id: '5',
       name: 'K2 Account Use',
       helperText: 'Feed/products recorded to K2.',
-      metric: formatCurrency(
-        invoiceRecords
-          .filter((record) => record.recordType === 'k2_statement')
-          .reduce((total, record) => total + record.total, 0),
-      ),
+      metric: formatCurrency(k2Total),
       icon: <Truck size={24} />,
       route: '/report-k2-use',
     },
@@ -77,11 +87,7 @@ function buildReports(products: Product[]): ReportCard[] {
       id: '6',
       name: 'Family Use',
       helperText: 'Feed/products recorded to family/person records.',
-      metric: formatCurrency(
-        invoiceRecords
-          .filter((record) => record.recordType === 'family_use')
-          .reduce((total, record) => total + record.total, 0),
-      ),
+      metric: formatCurrency(familyTotal),
       icon: <HomeIcon size={24} />,
       route: '/report-family-use',
     },
@@ -89,7 +95,7 @@ function buildReports(products: Product[]): ReportCard[] {
       id: '7',
       name: 'Unpaid Invoices',
       helperText: 'Open balances by customer/account.',
-      metric: formatCurrency(invoiceRecords.reduce((total, record) => total + record.balanceDue, 0)),
+      metric: formatCurrency(unpaidTotal),
       icon: <FileText size={24} />,
       route: '/report-unpaid-invoices',
     },
@@ -97,7 +103,7 @@ function buildReports(products: Product[]): ReportCard[] {
       id: '8',
       name: 'Payments Received',
       helperText: 'Cash, check, and other payments recorded.',
-      metric: formatCurrency(payments.reduce((total, payment) => total + payment.amount, 0)),
+      metric: formatCurrency(paymentsTotal),
       icon: <DollarSign size={24} />,
       route: '/report-payments-received',
     },
@@ -107,42 +113,52 @@ function buildReports(products: Product[]): ReportCard[] {
 export default function ReportsList() {
   const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
-  const [isLoadingProducts, setIsLoadingProducts] = useState(true);
-  const [productErrorMessage, setProductErrorMessage] = useState<string | null>(null);
+  const [invoices, setInvoices] = useState<InvoiceListItem[]>([]);
+  const [payments, setPayments] = useState<PaymentReceivedItem[]>([]);
+  const [isLoadingReports, setIsLoadingReports] = useState(true);
+  const [reportErrorMessage, setReportErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
 
-    async function loadProducts() {
-      setIsLoadingProducts(true);
-      setProductErrorMessage(null);
+    async function loadReports() {
+      setIsLoadingReports(true);
+      setReportErrorMessage(null);
 
       try {
-        const liveProducts = await productsService.list();
+        const [liveProducts, liveInvoices, livePayments] = await Promise.all([
+          productsService.list(),
+          invoicesService.list(),
+          paymentsService.listReceived(),
+        ]);
 
         if (!isMounted) return;
 
         setProducts(liveProducts);
+        setInvoices(liveInvoices);
+        setPayments(livePayments);
       } catch (error) {
         if (!isMounted) return;
 
         setProducts([]);
-        setProductErrorMessage(error instanceof Error ? error.message : 'Unable to load inventory report data.');
+        setInvoices([]);
+        setPayments([]);
+        setReportErrorMessage(error instanceof Error ? error.message : 'Unable to load report data.');
       } finally {
         if (isMounted) {
-          setIsLoadingProducts(false);
+          setIsLoadingReports(false);
         }
       }
     }
 
-    loadProducts();
+    loadReports();
 
     return () => {
       isMounted = false;
     };
   }, []);
 
-  const reports = buildReports(products);
+  const reports = buildReports(products, invoices, payments);
 
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
@@ -168,19 +184,19 @@ export default function ReportsList() {
 
         {/* Report Cards */}
         <div className="space-y-3">
-          {isLoadingProducts && (
+          {isLoadingReports && (
             <div className="bg-white border border-gray-200 rounded-lg p-4 text-sm text-gray-700">
-              Loading inventory report data...
+              Loading report data...
             </div>
           )}
 
-          {!isLoadingProducts && productErrorMessage && (
+          {!isLoadingReports && reportErrorMessage && (
             <div className="bg-white border border-gray-300 rounded-lg p-4 text-sm text-gray-900">
-              {productErrorMessage}
+              {reportErrorMessage}
             </div>
           )}
 
-          {!isLoadingProducts && !productErrorMessage && products.length === 0 && (
+          {!isLoadingReports && !reportErrorMessage && products.length === 0 && (
             <div className="bg-white border border-gray-200 rounded-lg p-4 text-sm text-gray-700">
               No products found.
             </div>

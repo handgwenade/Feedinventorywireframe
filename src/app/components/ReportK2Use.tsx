@@ -1,33 +1,17 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Download, Printer, FileText } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
 import UserIcon from './shared/UserIcon';
-import { invoiceLineItems, invoiceRecords } from '../data/mockData';
+import { invoicesService } from '../services/invoicesService';
 import { formatCurrency } from '../utils/calculations';
-import type { InvoiceRecord } from '../types';
+import type { InvoiceListItem } from '../services/invoicesService';
 
 type DateFilter = 'this-month' | 'last-month' | 'custom';
 
-function getProductsSummary(recordId: string): string {
-  const items = invoiceLineItems.filter((item) => item.invoiceRecordId === recordId);
-
-  if (items.length === 0) return 'No line items';
-
-  return items
-    .map((item) => `${item.description}, ${item.quantity} ${item.quantity === 1 ? 'unit' : 'units'}`)
-    .join('; ');
-}
-
-function getTotalUnits(recordId: string): number {
-  return invoiceLineItems
-    .filter((item) => item.invoiceRecordId === recordId)
-    .reduce((total, item) => total + item.quantity, 0);
-}
-
 function getStatusLabel(status: string): string {
   return status
-    .split('_')
+    .split(/[_-]/)
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
 }
@@ -35,10 +19,44 @@ function getStatusLabel(status: string): string {
 export default function ReportK2Use() {
   const navigate = useNavigate();
   const [dateFilter, setDateFilter] = useState<DateFilter>('this-month');
+  const [invoices, setInvoices] = useState<InvoiceListItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const k2Data = invoiceRecords.filter((record) => record.recordType === 'k2_statement');
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadInvoices() {
+      setIsLoading(true);
+      setErrorMessage(null);
+
+      try {
+        const liveInvoices = await invoicesService.list();
+
+        if (!isMounted) return;
+
+        setInvoices(liveInvoices);
+      } catch (error) {
+        if (!isMounted) return;
+
+        setErrorMessage(error instanceof Error ? error.message : 'Unable to load K2 account use.');
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    loadInvoices();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const k2Data = invoices.filter((record) => record.recordType === 'k2_statement');
   const totalValue = k2Data.reduce((sum, record) => sum + record.total, 0);
-  const totalUnits = k2Data.reduce((sum, record) => sum + getTotalUnits(record.id), 0);
+  const totalUnits = k2Data.reduce((sum, record) => sum + record.totalQuantity, 0);
   const lastStatement = k2Data[0]?.issueDate
     ? new Date(k2Data[0].issueDate).toLocaleDateString()
     : '—';
@@ -84,7 +102,25 @@ export default function ReportK2Use() {
 
         {/* K2 Records List */}
         <div className="space-y-3">
-          {k2Data.map((record) => (
+          {isLoading && (
+            <div className="bg-white border border-gray-200 rounded-lg p-4 text-sm text-gray-700">
+              Loading K2 account use...
+            </div>
+          )}
+
+          {errorMessage && (
+            <div className="bg-white border border-gray-300 rounded-lg p-4 text-sm text-gray-900">
+              {errorMessage}
+            </div>
+          )}
+
+          {!isLoading && !errorMessage && k2Data.length === 0 && (
+            <div className="bg-white border border-gray-200 rounded-lg p-4 text-sm text-gray-700">
+              No K2 statements found.
+            </div>
+          )}
+
+          {!isLoading && !errorMessage && k2Data.map((record) => (
             <K2RecordRow key={record.id} record={record} navigate={navigate} />
           ))}
         </div>
@@ -127,7 +163,7 @@ function K2RecordRow({
   record,
   navigate,
 }: {
-  record: InvoiceRecord;
+  record: InvoiceListItem;
   navigate: (route: string, options?: { state?: unknown }) => void;
 }) {
   return (
@@ -138,11 +174,11 @@ function K2RecordRow({
           {getStatusLabel(record.status)}
         </span>
       </div>
-      <div className="font-semibold text-gray-900 mb-2">{getProductsSummary(record.id)}</div>
+      <div className="font-semibold text-gray-900 mb-2">{record.productsSummary}</div>
       <div className="grid grid-cols-2 gap-3 text-sm mb-3">
         <div>
           <div className="text-gray-600 text-xs">Quantity</div>
-          <div className="font-medium text-gray-900">{getTotalUnits(record.id)} units</div>
+          <div className="font-medium text-gray-900">{record.totalQuantity} units</div>
         </div>
         <div>
           <div className="text-gray-600 text-xs">Value</div>

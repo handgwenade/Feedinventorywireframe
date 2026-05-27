@@ -22,6 +22,7 @@ export interface InvoiceListItem {
   accountName: string;
   type: InvoiceListType;
   productsSummary: string;
+  totalQuantity: number;
   number: string;
   account: string;
   balance: number;
@@ -101,6 +102,12 @@ function getProductsSummary(invoiceId: string, lineItems: InvoiceLineItemRow[]):
     .join('; ');
 }
 
+function getTotalQuantity(invoiceId: string, lineItems: InvoiceLineItemRow[]): number {
+  return lineItems
+    .filter((item) => item.invoice_record_id === invoiceId)
+    .reduce((total, item) => total + Number(item.quantity), 0);
+}
+
 function getDetailProductsSummary(lineItems: InvoiceDetailLineItem[]): string {
   if (lineItems.length === 0) return 'No line items';
 
@@ -113,6 +120,7 @@ function mapInvoiceRow(
   invoice: InvoiceRecordRow,
   accountName: string,
   productsSummary: string,
+  totalQuantity = 0,
 ): InvoiceListItem {
   const type = getInvoiceType(invoice.record_type);
   const total = Number(invoice.total);
@@ -136,6 +144,7 @@ function mapInvoiceRow(
     accountName,
     type,
     productsSummary,
+    totalQuantity,
     number: invoice.display_number,
     account: accountName,
     balance: balanceDue,
@@ -195,6 +204,7 @@ async function listFromSupabase(): Promise<InvoiceListItem[]> {
 
     return {
       ...mapInvoiceRow(invoice, accountName, getProductsSummary(invoice.id, lineItems)),
+      totalQuantity: getTotalQuantity(invoice.id, lineItems),
       type,
       balanceDue,
     };
@@ -232,7 +242,12 @@ async function getByIdFromSupabase(invoiceId: string): Promise<InvoiceDetailReco
   const accountName = await resolveAccountName(invoice);
 
   return {
-    ...mapInvoiceRow(invoice, accountName, getDetailProductsSummary(lineItems)),
+    ...mapInvoiceRow(
+      invoice,
+      accountName,
+      getDetailProductsSummary(lineItems),
+      lineItems.reduce((total, item) => total + item.quantity, 0),
+    ),
     lineItems,
   };
 }

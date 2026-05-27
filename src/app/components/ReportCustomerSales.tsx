@@ -1,33 +1,18 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Download, Printer, FileText } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
 import UserIcon from './shared/UserIcon';
-import { accounts, invoiceLineItems, invoiceRecords } from '../data/mockData';
+import { invoicesService } from '../services/invoicesService';
 import { formatCurrency } from '../utils/calculations';
-import type { InvoiceRecord } from '../types';
+import type { InvoiceListItem } from '../services/invoicesService';
 
 type DateFilter = 'this-month' | 'last-month' | 'custom';
 type StatusFilter = 'all' | 'paid' | 'unpaid' | 'partial';
 
 type CustomerSaleStatus = 'paid' | 'unpaid' | 'partial';
 
-function getCustomerName(accountId?: string): string {
-  if (!accountId) return 'Unknown Customer';
-  return accounts.find((account) => account.id === accountId)?.name ?? 'Unknown Customer';
-}
-
-function getProductsSummary(recordId: string): string {
-  const items = invoiceLineItems.filter((item) => item.invoiceRecordId === recordId);
-
-  if (items.length === 0) return 'No line items';
-
-  return items
-    .map((item) => `${item.description}, ${item.quantity} ${item.quantity === 1 ? 'unit' : 'units'}`)
-    .join('; ');
-}
-
-function getCustomerSaleStatus(record: InvoiceRecord): CustomerSaleStatus {
+function getCustomerSaleStatus(record: InvoiceListItem): CustomerSaleStatus {
   if (record.status === 'paid') return 'paid';
   if (record.status === 'partial') return 'partial';
   return 'unpaid';
@@ -37,8 +22,42 @@ export default function ReportCustomerSales() {
   const navigate = useNavigate();
   const [dateFilter, setDateFilter] = useState<DateFilter>('this-month');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [invoices, setInvoices] = useState<InvoiceListItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const customerSales = invoiceRecords.filter((record) => record.recordType === 'customer_invoice');
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadInvoices() {
+      setIsLoading(true);
+      setErrorMessage(null);
+
+      try {
+        const liveInvoices = await invoicesService.list();
+
+        if (!isMounted) return;
+
+        setInvoices(liveInvoices);
+      } catch (error) {
+        if (!isMounted) return;
+
+        setErrorMessage(error instanceof Error ? error.message : 'Unable to load customer sales.');
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    loadInvoices();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const customerSales = invoices.filter((record) => record.recordType === 'customer_invoice');
   const totalSales = customerSales.reduce((sum, sale) => sum + sale.total, 0);
   const invoiceCount = customerSales.length;
   const unpaidBalance = customerSales.reduce((sum, sale) => sum + sale.balanceDue, 0);
@@ -100,7 +119,25 @@ export default function ReportCustomerSales() {
 
         {/* Sales List */}
         <div className="space-y-3">
-          {filteredData.map((sale) => (
+          {isLoading && (
+            <div className="bg-white border border-gray-200 rounded-lg p-4 text-sm text-gray-700">
+              Loading customer sales...
+            </div>
+          )}
+
+          {errorMessage && (
+            <div className="bg-white border border-gray-300 rounded-lg p-4 text-sm text-gray-900">
+              {errorMessage}
+            </div>
+          )}
+
+          {!isLoading && !errorMessage && filteredData.length === 0 && (
+            <div className="bg-white border border-gray-200 rounded-lg p-4 text-sm text-gray-700">
+              No customer invoices found.
+            </div>
+          )}
+
+          {!isLoading && !errorMessage && filteredData.map((sale) => (
             <SaleRow key={sale.id} sale={sale} navigate={navigate} />
           ))}
         </div>
@@ -156,7 +193,7 @@ function SaleRow({
   sale,
   navigate,
 }: {
-  sale: InvoiceRecord;
+  sale: InvoiceListItem;
   navigate: (route: string, options?: { state?: unknown }) => void;
 }) {
   const status = getCustomerSaleStatus(sale);
@@ -172,14 +209,14 @@ function SaleRow({
     <div className="bg-white border border-gray-200 rounded-lg p-4">
       <div className="flex justify-between items-start mb-2 gap-3">
         <div>
-          <div className="font-semibold text-gray-900 mb-1">{getCustomerName(sale.accountId)}</div>
+          <div className="font-semibold text-gray-900 mb-1">{sale.accountName}</div>
           <div className="text-sm text-gray-600">{new Date(sale.issueDate).toLocaleDateString()}</div>
         </div>
         <span className="text-xs px-2 py-1 rounded border bg-gray-100 border-gray-300 text-gray-700 capitalize">
           {getStatusLabel()}
         </span>
       </div>
-      <div className="text-sm text-gray-700 mb-2">{getProductsSummary(sale.id)}</div>
+      <div className="text-sm text-gray-700 mb-2">{sale.productsSummary}</div>
       <div className="flex justify-between items-center pt-2 border-t border-gray-200 mb-3">
         <span className="text-gray-600 text-sm">Total</span>
         <span className="font-semibold text-gray-900">{formatCurrency(sale.total)}</span>

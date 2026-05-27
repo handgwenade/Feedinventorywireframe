@@ -1,38 +1,17 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Download, Printer, FileText, ChevronDown } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
 import UserIcon from './shared/UserIcon';
-import { invoiceLineItems, invoiceRecords, people } from '../data/mockData';
+import { invoicesService } from '../services/invoicesService';
 import { formatCurrency } from '../utils/calculations';
-import type { InvoiceRecord } from '../types';
+import type { InvoiceListItem } from '../services/invoicesService';
 
 type DateFilter = 'this-month' | 'last-month' | 'custom';
 
-function getPersonName(personId?: string): string {
-  if (!personId) return 'Unknown Person';
-  return people.find((person) => person.id === personId)?.officialDisplayName ?? 'Unknown Person';
-}
-
-function getProductsSummary(recordId: string): string {
-  const items = invoiceLineItems.filter((item) => item.invoiceRecordId === recordId);
-
-  if (items.length === 0) return 'No line items';
-
-  return items
-    .map((item) => `${item.description}, ${item.quantity} ${item.quantity === 1 ? 'unit' : 'units'}`)
-    .join('; ');
-}
-
-function getTotalUnits(recordId: string): number {
-  return invoiceLineItems
-    .filter((item) => item.invoiceRecordId === recordId)
-    .reduce((total, item) => total + item.quantity, 0);
-}
-
 function getStatusLabel(status: string): string {
   return status
-    .split('_')
+    .split(/[_-]/)
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
 }
@@ -40,10 +19,44 @@ function getStatusLabel(status: string): string {
 export default function ReportFamilyUse() {
   const navigate = useNavigate();
   const [dateFilter, setDateFilter] = useState<DateFilter>('this-month');
+  const [invoices, setInvoices] = useState<InvoiceListItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const familyData = invoiceRecords.filter((record) => record.recordType === 'family_use');
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadInvoices() {
+      setIsLoading(true);
+      setErrorMessage(null);
+
+      try {
+        const liveInvoices = await invoicesService.list();
+
+        if (!isMounted) return;
+
+        setInvoices(liveInvoices);
+      } catch (error) {
+        if (!isMounted) return;
+
+        setErrorMessage(error instanceof Error ? error.message : 'Unable to load family use.');
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    loadInvoices();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const familyData = invoices.filter((record) => record.recordType === 'family_use');
   const totalValue = familyData.reduce((sum, record) => sum + record.total, 0);
-  const totalUnits = familyData.reduce((sum, record) => sum + getTotalUnits(record.id), 0);
+  const totalUnits = familyData.reduce((sum, record) => sum + record.totalQuantity, 0);
   const openAmount = familyData.reduce((sum, record) => sum + record.balanceDue, 0);
 
   return (
@@ -93,7 +106,25 @@ export default function ReportFamilyUse() {
 
         {/* Family Records List */}
         <div className="space-y-3">
-          {familyData.map((record) => (
+          {isLoading && (
+            <div className="bg-white border border-gray-200 rounded-lg p-4 text-sm text-gray-700">
+              Loading family use...
+            </div>
+          )}
+
+          {errorMessage && (
+            <div className="bg-white border border-gray-300 rounded-lg p-4 text-sm text-gray-900">
+              {errorMessage}
+            </div>
+          )}
+
+          {!isLoading && !errorMessage && familyData.length === 0 && (
+            <div className="bg-white border border-gray-200 rounded-lg p-4 text-sm text-gray-700">
+              No family use records found.
+            </div>
+          )}
+
+          {!isLoading && !errorMessage && familyData.map((record) => (
             <FamilyRecordRow key={record.id} record={record} navigate={navigate} />
           ))}
         </div>
@@ -136,25 +167,25 @@ function FamilyRecordRow({
   record,
   navigate,
 }: {
-  record: InvoiceRecord;
+  record: InvoiceListItem;
   navigate: (route: string, options?: { state?: unknown }) => void;
 }) {
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-4">
       <div className="flex justify-between items-start mb-2 gap-3">
         <div>
-          <div className="font-semibold text-gray-900 mb-1">{getPersonName(record.personId)}</div>
+          <div className="font-semibold text-gray-900 mb-1">{record.accountName}</div>
           <div className="text-sm text-gray-600">{new Date(record.issueDate).toLocaleDateString()}</div>
         </div>
         <span className="text-xs px-2 py-1 rounded border bg-gray-100 border-gray-300 text-gray-700">
           {getStatusLabel(record.status)}
         </span>
       </div>
-      <div className="text-sm text-gray-700 mb-2">{getProductsSummary(record.id)}</div>
+      <div className="text-sm text-gray-700 mb-2">{record.productsSummary}</div>
       <div className="grid grid-cols-2 gap-3 text-sm mb-3">
         <div>
           <div className="text-gray-600 text-xs">Quantity</div>
-          <div className="font-medium text-gray-900">{getTotalUnits(record.id)} units</div>
+          <div className="font-medium text-gray-900">{record.totalQuantity} units</div>
         </div>
         <div>
           <div className="text-gray-600 text-xs">Value</div>
