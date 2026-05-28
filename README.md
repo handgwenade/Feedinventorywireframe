@@ -63,15 +63,18 @@ See also:
 
 ```text
 wireframes/figma-links.md
+```
 
-Project Documentation
+## Project Documentation
 
 Key docs:
+
 - docs/project-context.md
 - docs/workflow-map.md
 - docs/user-testing-checklist.md
 - docs/production-smoke-test.md
 - docs/known-limitations.md
+- docs/sortly-import.md
 
 Planned future docs:
 
@@ -82,7 +85,7 @@ Planned future docs:
 - data/product-field-map.md
 - data/sample-data.md
 
-Current Code Stack
+## Current Code Stack
 
 This code was exported from Figma Make.
 
@@ -93,15 +96,20 @@ Current stack:
 - TypeScript
 - Tailwind CSS
 - Radix / shadcn-style components
-- Running Locally
+
+## Running Locally
 
 Install dependencies:
 
+```bash
 npm i
+```
 
 Start the development server:
 
+```bash
 npm run dev
+```
 
 ## Deployment
 
@@ -117,7 +125,9 @@ See [docs/deployment.md](docs/deployment.md) for Vercel setup, Supabase Auth red
 
 For production release checks, use [docs/production-smoke-test.md](docs/production-smoke-test.md). For expected gaps, see [docs/known-limitations.md](docs/known-limitations.md).
 
-Important Note
+For the one-time Sortly product snapshot import utility, see [docs/sortly-import.md](docs/sortly-import.md).
+
+## Important Note
 
 The current code is a prototype foundation, not final production app logic.
 
