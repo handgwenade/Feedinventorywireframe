@@ -155,13 +155,25 @@ function mapInvoiceRow(
 
 async function resolveAccountName(invoice: InvoiceRecordRow): Promise<string> {
   if (invoice.account_id) {
-    const accounts = await accountsService.listActive();
-    return accounts.find((account) => account.id === invoice.account_id)?.name ?? 'Unknown Account';
+    const { data: acc } = await supabase
+      .from('accounts')
+      .select('id, name, is_active')
+      .eq('id', invoice.account_id)
+      .maybeSingle();
+
+    if (acc) return `${acc.name}${acc.is_active ? '' : ' (Archived)'}`;
+    return 'Unknown Account';
   }
 
   if (invoice.person_id) {
-    const people = await peopleService.list();
-    return people.find((person) => person.id === invoice.person_id)?.officialDisplayName ?? 'Unknown Person';
+    const { data: person } = await supabase
+      .from('people')
+      .select('id, official_display_name, is_active')
+      .eq('id', invoice.person_id)
+      .maybeSingle();
+
+    if (person) return `${person.official_display_name}${person.is_active ? '' : ' (Archived)'}`;
+    return 'Unknown Person';
   }
 
   return 'Unknown';
@@ -171,6 +183,7 @@ async function listFromSupabase(): Promise<InvoiceListItem[]> {
   const { data: invoiceRows, error: invoiceError } = await supabase
     .from('invoice_records')
     .select('id, display_number, record_type, account_id, person_id, issue_date, created_at, subtotal, tax, total, balance_due, status, notes')
+    .neq('record_type', 'family_use')
     .order('created_at', { ascending: false });
 
   if (invoiceError) {
@@ -179,12 +192,12 @@ async function listFromSupabase(): Promise<InvoiceListItem[]> {
 
   const invoices = (invoiceRows ?? []) as InvoiceRecordRow[];
 
-  const [{ data: lineItemRows, error: lineItemError }, accounts, people] = await Promise.all([
+  const [{ data: lineItemRows, error: lineItemError }, accountsRows, peopleRows] = await Promise.all([
     supabase
       .from('invoice_line_items')
       .select('invoice_record_id, description, quantity, unit_label'),
-    accountsService.listActive(),
-    peopleService.list(),
+    supabase.from('accounts').select('id, account_type, name, phone, email, billing_address, notes, is_active'),
+    supabase.from('people').select('id, official_display_name, phone, notes, is_active'),
   ]);
 
   if (lineItemError) {
@@ -192,14 +205,24 @@ async function listFromSupabase(): Promise<InvoiceListItem[]> {
   }
 
   const lineItems = (lineItemRows ?? []) as InvoiceLineItemRow[];
+  const accounts = (accountsRows?.data ?? []) as any[];
+  const people = (peopleRows?.data ?? []) as any[];
 
   return invoices.map((invoice) => {
     const type = getInvoiceType(invoice.record_type);
-    const accountName = invoice.account_id
-      ? accounts.find((account) => account.id === invoice.account_id)?.name ?? 'Unknown Account'
-      : invoice.person_id
-        ? people.find((person) => person.id === invoice.person_id)?.officialDisplayName ?? 'Unknown Person'
-        : 'Unknown';
+    let accountName = 'Unknown';
+
+    if (invoice.account_id) {
+      const acc = accounts.find((a) => a.id === invoice.account_id);
+      if (acc) accountName = `${acc.name}${acc.is_active ? '' : ' (Archived)'}`;
+      else accountName = 'Unknown Account';
+    } else if (invoice.person_id) {
+      const person = people.find((p) => p.id === invoice.person_id);
+      if (person) accountName = `${person.official_display_name}${person.is_active ? '' : ' (Archived)'}`;
+      else accountName = 'Unknown Person';
+    } else {
+      accountName = 'Unknown';
+    }
     const balanceDue = Number(invoice.balance_due);
 
     return {

@@ -7,7 +7,7 @@ import { invoicesService } from '../services/invoicesService';
 import { formatCurrency } from '../utils/calculations';
 import type { InvoiceListItem, InvoiceListType } from '../services/invoicesService';
 
-type FilterType = 'all' | 'unpaid' | 'paid' | 'customer' | 'k2' | 'family';
+type FilterType = 'all' | 'unpaid' | 'paid' | 'customer' | 'k2';
 type SortType = 'date' | 'balance' | 'account';
 
 export default function InvoicesList() {
@@ -137,7 +137,6 @@ export default function InvoicesList() {
           <FilterChip label="Paid" active={activeFilter === 'paid'} onClick={() => setActiveFilter('paid')} />
           <FilterChip label="Customer" active={activeFilter === 'customer'} onClick={() => setActiveFilter('customer')} />
           <FilterChip label="K2" active={activeFilter === 'k2'} onClick={() => setActiveFilter('k2')} />
-          <FilterChip label="People" active={activeFilter === 'family'} onClick={() => setActiveFilter('family')} />
         </div>
       </div>
 
