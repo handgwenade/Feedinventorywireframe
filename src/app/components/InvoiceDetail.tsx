@@ -124,7 +124,9 @@ export default function InvoiceDetail() {
   const dueDate = 'Due on receipt';
   const amountPaid = invoice.amountPaid;
   const [accountEmail, setAccountEmail] = useState<string | null>(null);
-  const [showNoEmailMessage, setShowNoEmailMessage] = useState(false);
+  const [showSendPanel, setShowSendPanel] = useState(false);
+  const [customEmail, setCustomEmail] = useState('');
+  const [sendErrorMessage, setSendErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -141,7 +143,6 @@ export default function InvoiceDetail() {
           return;
         }
       } catch (err) {
-        // ignore — leave accountEmail null
         if (!isMounted) return;
         setAccountEmail(null);
       }
@@ -153,6 +154,44 @@ export default function InvoiceDetail() {
       isMounted = false;
     };
   }, [invoice.accountId]);
+
+  const invoiceEmailSubject = `Invoice ${displayNumber} from C&C Feed`;
+
+  const invoiceEmailBody = () => {
+    const lines = [
+      `Account: ${accountName}`,
+      `Invoice: ${displayNumber}`,
+      `Total: ${formatCurrency(invoice.total)}`,
+      `Balance due: ${formatCurrency(balanceDue)}`,
+      `Status: ${invoice.status}`,
+      '',
+      'Line items:',
+      ...lineItems.map((li) => `- ${li.description} — ${li.quantity} ${li.unitLabel} — ${formatCurrency(li.lineTotal)}`),
+      '',
+      'This invoice was generated from StockLog (C&C Feed Inventory).',
+    ];
+
+    return lines.join('\n');
+  };
+
+  const openMailClient = (email: string) => {
+    const body = invoiceEmailBody();
+    const mailto = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(invoiceEmailSubject)}&body=${encodeURIComponent(body)}`;
+    window.location.href = mailto;
+  };
+
+  const copyInvoiceText = async () => {
+    try {
+      await navigator.clipboard.writeText(invoiceEmailBody());
+      setSendErrorMessage(null);
+    } catch {
+      setSendErrorMessage('Unable to copy invoice text. Please copy it manually.');
+    }
+  };
+
+  const printInvoice = () => {
+    window.print();
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
@@ -285,17 +324,14 @@ export default function InvoiceDetail() {
         <div className="space-y-2">
           <ActionButton
             icon={<Download size={20} />}
-            label="Download PDF (Not Ready)"
-            onClick={() => {}}
-            disabled
+            label="Save / Print PDF"
+            onClick={printInvoice}
           />
           <ActionButton
             icon={<Printer size={20} />}
-            label="Print (Not Ready)"
-            onClick={() => {}}
-            disabled
+            label="Print"
+            onClick={printInvoice}
           />
-          {/* Send / Email behavior: enable mailto for customer invoices with email */}
           {invoiceType === 'k2' ? (
             <ActionButton
               icon={<Send size={20} />}
@@ -306,39 +342,70 @@ export default function InvoiceDetail() {
           ) : (
             <ActionButton
               icon={<Send size={20} />}
-              label="Send"
+              label={showSendPanel ? 'Hide Email Options' : 'Send'}
               onClick={() => {
-                setShowNoEmailMessage(false);
-                // prefer account email when present
-                if (accountEmail) {
-                  const subject = `Invoice ${displayNumber} from C&C Feed`;
-                  const lines = [
-                    `Account: ${accountName}`,
-                    `Invoice: ${displayNumber}`,
-                    `Total: ${formatCurrency(invoice.total)}`,
-                    `Balance due: ${formatCurrency(balanceDue)}`,
-                    `Status: ${invoice.status}`,
-                    '',
-                    'Line items:',
-                    ...lineItems.map((li) => `- ${li.description} — ${li.quantity} ${li.unitLabel} — ${formatCurrency(li.lineTotal)}`),
-                    '',
-                    'This invoice was generated from StockLog (C&C Feed Inventory).',
-                  ];
-
-                  const body = lines.join('\n');
-                  const mailto = `mailto:${encodeURIComponent(accountEmail)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-
-                  // open mail client
-                  window.location.href = mailto;
-                } else {
-                  setShowNoEmailMessage(true);
-                }
+                setShowSendPanel((prev) => !prev);
+                setSendErrorMessage(null);
               }}
             />
           )}
-          {showNoEmailMessage && (
-            <div className="bg-white border border-dashed border-gray-300 rounded-lg p-3 text-sm text-gray-700">
-              No email address is saved for this customer.
+          {showSendPanel && invoiceType !== 'k2' && (
+            <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-4">
+              <div className="space-y-2">
+                <div className="text-sm font-medium text-gray-700">Email options</div>
+                {accountEmail ? (
+                  <div className="text-sm text-gray-700">Saved customer email: <span className="font-semibold text-gray-900">{accountEmail}</span></div>
+                ) : (
+                  <div className="text-sm text-gray-700">No email address saved for this customer.</div>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">Send to different address</label>
+                <input
+                  type="email"
+                  value={customEmail}
+                  onChange={(event) => setCustomEmail(event.target.value)}
+                  placeholder="Enter alternate email"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900"
+                />
+              </div>
+
+              <div className="grid gap-2 sm:grid-cols-2">
+                <button
+                  onClick={() => accountEmail && openMailClient(accountEmail)}
+                  disabled={!accountEmail}
+                  className="w-full bg-white border border-gray-300 text-gray-900 py-3 rounded-lg font-semibold active:bg-gray-50 disabled:opacity-50"
+                >
+                  Open Email to Saved Address
+                </button>
+                <button
+                  onClick={() => {
+                    if (customEmail.trim()) {
+                      openMailClient(customEmail.trim());
+                    } else {
+                      setSendErrorMessage('Enter a valid email address to send to.');
+                    }
+                  }}
+                  className="w-full bg-white border border-gray-300 text-gray-900 py-3 rounded-lg font-semibold active:bg-gray-50"
+                >
+                  Open Email to Different Address
+                </button>
+              </div>
+
+              <button
+                onClick={copyInvoiceText}
+                className="w-full bg-white border border-gray-300 text-gray-900 py-3 rounded-lg font-semibold active:bg-gray-50"
+              >
+                Copy Invoice Text
+              </button>
+
+              <div className="text-sm text-gray-600">
+                To include a PDF, use Save / Print PDF first, then attach it in your email app.
+              </div>
+              {sendErrorMessage && (
+                <div className="text-sm text-red-600">{sendErrorMessage}</div>
+              )}
             </div>
           )}
           {balanceDue > 0 && (
