@@ -86,11 +86,11 @@ export default function ManageUsers() {
 
         {/* Add User Button */}
         <button
-          onClick={() => {}}
-          className="w-full bg-gray-900 text-white py-3 rounded-lg font-semibold flex items-center justify-center gap-2 active:bg-gray-800"
+          disabled
+          className="w-full bg-gray-100 text-gray-500 py-3 rounded-lg font-semibold flex items-center justify-center gap-2"
         >
           <Plus size={20} />
-          Add User (placeholder)
+          Add User (Not Ready)
         </button>
 
         {/* User List */}

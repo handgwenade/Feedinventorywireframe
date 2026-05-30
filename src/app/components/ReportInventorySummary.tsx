@@ -151,8 +151,8 @@ export default function ReportInventorySummary() {
 
         {/* Action Buttons */}
         <div className="space-y-2">
-          <ActionButton icon={<Download size={20} />} label="Export" onClick={() => {}} />
-          <ActionButton icon={<Printer size={20} />} label="Print" onClick={() => {}} />
+          <ActionButton icon={<Download size={20} />} label="Export (Not Ready)" onClick={() => {}} disabled />
+          <ActionButton icon={<Printer size={20} />} label="Print (Not Ready)" onClick={() => {}} disabled />
         </div>
       </div>
 
@@ -219,11 +219,12 @@ function InventoryRow({ product }: { product: Product }) {
   );
 }
 
-function ActionButton({ icon, label, onClick }: { icon: React.ReactNode; label: string; onClick: () => void }) {
+function ActionButton({ icon, label, onClick, disabled = false }: { icon: React.ReactNode; label: string; onClick?: () => void; disabled?: boolean }) {
   return (
     <button
-      onClick={onClick}
-      className="w-full p-3 rounded-lg flex items-center gap-3 font-medium bg-white border border-gray-300 text-gray-900 active:bg-gray-50"
+      onClick={disabled ? undefined : onClick}
+      disabled={disabled}
+      className={`w-full p-3 rounded-lg flex items-center gap-3 font-medium bg-white border border-gray-300 text-gray-900 active:bg-gray-50 ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
     >
       {icon}
       <span>{label}</span>

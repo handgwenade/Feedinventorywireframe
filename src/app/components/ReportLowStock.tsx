@@ -104,8 +104,8 @@ export default function ReportLowStock() {
             onClick={() => navigate('/add-stock-select')}
             primary
           />
-          <ActionButton icon={<Download size={20} />} label="Export" onClick={() => {}} />
-          <ActionButton icon={<Printer size={20} />} label="Print" onClick={() => {}} />
+          <ActionButton icon={<Download size={20} />} label="Export (Not Ready)" onClick={() => {}} disabled />
+          <ActionButton icon={<Printer size={20} />} label="Print (Not Ready)" onClick={() => {}} disabled />
         </div>
       </div>
 
@@ -156,28 +156,31 @@ function LowStockRow({
   );
 }
 
-function ActionButton({
+ function ActionButton({
   icon,
   label,
   onClick,
   primary = false,
-}: {
+  disabled = false,
+ }: {
   icon: React.ReactNode;
   label: string;
-  onClick: () => void;
+  onClick?: () => void;
   primary?: boolean;
-}) {
+  disabled?: boolean;
+ }) {
   return (
     <button
-      onClick={onClick}
+      onClick={disabled ? undefined : onClick}
+      disabled={disabled}
       className={`w-full p-3 rounded-lg flex items-center gap-3 font-medium ${
         primary
           ? 'bg-gray-900 text-white active:bg-gray-800'
           : 'bg-white border border-gray-300 text-gray-900 active:bg-gray-50'
-      }`}
+      } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
     >
       {icon}
       <span>{label}</span>
     </button>
   );
-}
+ }

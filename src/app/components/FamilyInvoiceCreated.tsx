@@ -137,10 +137,11 @@ export default function FamilyInvoiceCreated() {
 
         {/* Action Buttons */}
         <div className="space-y-2">
-          <ActionButton icon={<Download size={20} />} label="Download PDF" onClick={() => {}} />
-          <ActionButton icon={<Printer size={20} />} label="Print" onClick={() => {}} />
-          <ActionButton icon={<Send size={20} />} label="Send" onClick={() => {}} />
+          <DisabledActionButton icon={<Download size={20} />} label="Download PDF (Not Ready)" />
+          <DisabledActionButton icon={<Printer size={20} />} label="Print (Not Ready)" />
+          <DisabledActionButton icon={<Send size={20} />} label="Send (Not Ready)" />
           <DisabledActionButton icon={<DollarSign size={20} />} label="Record Payment" />
+          <div className="text-xs text-gray-600">Download, print, and send actions are placeholders in this wireframe.</div>
         </div>
       </div>
 

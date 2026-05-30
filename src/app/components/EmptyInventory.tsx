@@ -28,14 +28,14 @@ export default function EmptyInventory() {
 
         <div className="w-full max-w-sm space-y-3">
           <button
-            onClick={() => {}}
-            className="w-full bg-gray-900 text-white py-4 rounded-lg font-semibold flex items-center justify-center gap-2 active:bg-gray-800"
+            disabled
+            className="w-full bg-gray-100 text-gray-500 py-4 rounded-lg font-semibold flex items-center justify-center gap-2"
           >
             <Upload size={20} />
-            Import Products
+            Import Products (Not Ready)
           </button>
           <button
-            onClick={() => {}}
+            onClick={() => navigate('/product-form')}
             className="w-full bg-white border border-gray-300 text-gray-900 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 active:bg-gray-50"
           >
             <Plus size={20} />

@@ -254,18 +254,21 @@ export default function InvoiceDetail() {
         <div className="space-y-2">
           <ActionButton
             icon={<Download size={20} />}
-            label="Download PDF"
+            label="Download PDF (Not Ready)"
             onClick={() => {}}
+            disabled
           />
           <ActionButton
             icon={<Printer size={20} />}
-            label="Print"
+            label="Print (Not Ready)"
             onClick={() => {}}
+            disabled
           />
           <ActionButton
             icon={<Send size={20} />}
-            label="Send"
+            label="Send (Not Ready)"
             onClick={() => {}}
+            disabled
           />
           {balanceDue > 0 && (
             <ActionButton
@@ -277,13 +280,15 @@ export default function InvoiceDetail() {
           )}
           <ActionButton
             icon={<XCircle size={20} />}
-            label="Mark Written Off"
+            label="Mark Written Off (Not Ready)"
             onClick={() => {}}
+            disabled
           />
           <ActionButton
             icon={<Trash2 size={20} />}
-            label="Void Invoice"
+            label="Void Invoice (Not Ready)"
             onClick={() => {}}
+            disabled
           />
         </div>
       </div>
@@ -314,21 +319,24 @@ function ActionButton({
   icon,
   label,
   onClick,
-  primary = false
+  primary = false,
+  disabled = false,
 }: {
   icon: React.ReactNode;
   label: string;
-  onClick: () => void;
+  onClick?: () => void;
   primary?: boolean;
+  disabled?: boolean;
 }) {
   return (
     <button
-      onClick={onClick}
+      onClick={disabled ? undefined : onClick}
+      disabled={disabled}
       className={`w-full p-3 rounded-lg flex items-center gap-3 font-medium ${
         primary
           ? 'bg-gray-900 text-white active:bg-gray-800'
           : 'bg-white border border-gray-300 text-gray-900 active:bg-gray-50'
-      }`}
+      } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
     >
       {icon}
       <span>{label}</span>

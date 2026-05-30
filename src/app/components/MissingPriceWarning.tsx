@@ -35,13 +35,13 @@ export default function MissingPriceWarning() {
 
           <div className="space-y-2">
             {canAddPrice && (
-              <button
-                onClick={() => {}}
-                className="w-full bg-gray-900 text-white py-3 rounded-lg font-semibold active:bg-gray-800"
-              >
-                Add Price
-              </button>
-            )}
+                <button
+                  disabled
+                  className="w-full bg-gray-100 text-gray-500 py-3 rounded-lg font-semibold"
+                >
+                  Add Price (Not Ready)
+                </button>
+              )}
             {!canAddPrice && (
               <div className="text-sm text-gray-600 text-center mb-2">
                 Admin/Manager only

@@ -263,7 +263,7 @@ export default function AccountDetail() {
 
       {account.type === 'customer' && (
         <>
-          <ActionButton icon={<FileText size={20} />} label="Create Invoice" onClick={() => {}} />
+          <ActionButton icon={<FileText size={20} />} label="Create Invoice (Not Ready)" onClick={() => {}} disabled />
           <ActionButton icon={<DollarSign size={20} />} label="Record Payment" onClick={() => navigate('/invoices')} />
           <ActionButton icon={<List size={20} />} label="View Invoices" onClick={() => navigate('/invoices')} />
           <ActionButton icon={<Edit size={20} />} label="Edit Account" onClick={() => navigate('/edit-account-person', { state: { account } })} />
@@ -280,7 +280,7 @@ export default function AccountDetail() {
 
       {account.type === 'k2' && (
         <>
-          <ActionButton icon={<FileText size={20} />} label="Create K2 Statement" onClick={() => {}} />
+          <ActionButton icon={<FileText size={20} />} label="Create K2 Statement (Not Ready)" onClick={() => {}} disabled />
           <ActionButton icon={<List size={20} />} label="View Statements" onClick={() => navigate('/invoices')} />
         </>
       )}
@@ -464,15 +464,18 @@ function ActionButton({
   icon,
   label,
   onClick,
+  disabled = false,
 }: {
   icon: React.ReactNode;
   label: string;
-  onClick: () => void;
+  onClick?: () => void;
+  disabled?: boolean;
 }) {
   return (
     <button
-      onClick={onClick}
-      className="w-full p-3 rounded-lg flex items-center gap-3 font-medium bg-white border border-gray-300 text-gray-900 active:bg-gray-50"
+      onClick={disabled ? undefined : onClick}
+      disabled={disabled}
+      className={`w-full p-3 rounded-lg flex items-center gap-3 font-medium bg-white border border-gray-300 text-gray-900 active:bg-gray-50 ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
     >
       {icon}
       <span>{label}</span>

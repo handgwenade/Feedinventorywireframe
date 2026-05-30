@@ -107,13 +107,14 @@ export default function MyProfile() {
         <div className="space-y-2">
           <ActionButton
             icon={<Edit size={20} />}
-            label="Edit Profile"
+            label="Edit Profile (Not Ready)"
             onClick={() => {}}
+            disabled
           />
           <ActionButton
             icon={<Key size={20} />}
             label="Change Password"
-            onClick={() => {}}
+            onClick={() => navigate('/update-password')}
           />
           <ActionButton
             icon={<LogOut size={20} />}
@@ -131,16 +132,19 @@ export default function MyProfile() {
 function ActionButton({
   icon,
   label,
-  onClick
+  onClick,
+  disabled = false,
 }: {
   icon: React.ReactNode;
   label: string;
-  onClick: () => void;
+  onClick?: () => void;
+  disabled?: boolean;
 }) {
   return (
     <button
-      onClick={onClick}
-      className="w-full p-4 rounded-lg flex items-center gap-3 font-medium bg-white border border-gray-300 text-gray-900 active:bg-gray-50"
+      onClick={disabled ? undefined : onClick}
+      disabled={disabled}
+      className={`w-full p-4 rounded-lg flex items-center gap-3 font-medium bg-white border border-gray-300 text-gray-900 active:bg-gray-50 ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
     >
       {icon}
       <span>{label}</span>
