@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Search, AlertCircle, ChevronDown, Package, Plus } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
 import UserIcon from './shared/UserIcon';
+import useRefreshOnFocus from '../hooks/useRefreshOnFocus';
 
 import { productsService } from '../services/productsService';
 import { calculateInventoryValue, formatCurrency, isLowStock } from '../utils/calculations';
@@ -35,10 +36,25 @@ export default function InventoryList() {
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  async function loadProducts() {
+    setIsLoading(true);
+    setErrorMessage(null);
+
+    try {
+      const liveProducts = await productsService.list();
+      setInventoryProducts(liveProducts);
+    } catch (error) {
+      setInventoryProducts([]);
+      setErrorMessage(error instanceof Error ? error.message : 'Unable to load inventory.');
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
   useEffect(() => {
     let isMounted = true;
 
-    async function loadProducts() {
+    async function loadProductsOnMount() {
       setIsLoading(true);
       setErrorMessage(null);
 
@@ -60,12 +76,14 @@ export default function InventoryList() {
       }
     }
 
-    loadProducts();
+    loadProductsOnMount();
 
     return () => {
       isMounted = false;
     };
   }, []);
+
+  useRefreshOnFocus(loadProducts, isLoading);
 
   const filteredProducts = inventoryProducts
     .filter((product) => {
@@ -188,13 +206,22 @@ export default function InventoryList() {
           )}
           </div>
 
-          <button
-            onClick={() => navigate('/product-form')}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium active:bg-gray-800"
-          >
-            <Plus size={16} />
-            <span>Add Product</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={loadProducts}
+              disabled={isLoading}
+              className="px-4 py-2 bg-white border border-gray-300 text-gray-900 rounded-lg text-sm font-medium active:bg-gray-50 disabled:opacity-50"
+            >
+              {isLoading ? 'Refreshing...' : 'Refresh'}
+            </button>
+            <button
+              onClick={() => navigate('/product-form')}
+              className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium active:bg-gray-800"
+            >
+              <Plus size={16} />
+              <span>Add Product</span>
+            </button>
+          </div>
         </div>
       </div>
 

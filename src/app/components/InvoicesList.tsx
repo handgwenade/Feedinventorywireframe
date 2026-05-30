@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Search, ChevronDown, DollarSign, AlertCircle, TrendingUp } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
 import UserIcon from './shared/UserIcon';
+import useRefreshOnFocus from '../hooks/useRefreshOnFocus';
 import { invoicesService } from '../services/invoicesService';
 import { formatCurrency } from '../utils/calculations';
 import type { InvoiceListItem, InvoiceListType } from '../services/invoicesService';
@@ -20,10 +21,25 @@ export default function InvoicesList() {
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  async function loadInvoices() {
+    setIsLoading(true);
+    setErrorMessage(null);
+
+    try {
+      const liveInvoices = await invoicesService.list();
+      setInvoices(liveInvoices);
+    } catch (error) {
+      setInvoices([]);
+      setErrorMessage(error instanceof Error ? error.message : 'Unable to load invoices.');
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
   useEffect(() => {
     let isMounted = true;
 
-    async function loadInvoices() {
+    async function loadInvoicesOnMount() {
       setIsLoading(true);
       setErrorMessage(null);
 
@@ -45,12 +61,14 @@ export default function InvoicesList() {
       }
     }
 
-    loadInvoices();
+    loadInvoicesOnMount();
 
     return () => {
       isMounted = false;
     };
   }, []);
+
+  useRefreshOnFocus(loadInvoices, isLoading);
 
   const filteredInvoices = invoices
     .filter((invoice) => {
@@ -131,12 +149,21 @@ export default function InvoicesList() {
 
       {/* Filter Chips */}
       <div className="p-4 bg-white border-b border-gray-200">
-        <div className="flex gap-2 overflow-x-auto pb-2">
-          <FilterChip label="All" active={activeFilter === 'all'} onClick={() => setActiveFilter('all')} />
-          <FilterChip label="Unpaid" active={activeFilter === 'unpaid'} onClick={() => setActiveFilter('unpaid')} />
-          <FilterChip label="Paid" active={activeFilter === 'paid'} onClick={() => setActiveFilter('paid')} />
-          <FilterChip label="Customer" active={activeFilter === 'customer'} onClick={() => setActiveFilter('customer')} />
-          <FilterChip label="K2" active={activeFilter === 'k2'} onClick={() => setActiveFilter('k2')} />
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex gap-2 overflow-x-auto pb-2">
+            <FilterChip label="All" active={activeFilter === 'all'} onClick={() => setActiveFilter('all')} />
+            <FilterChip label="Unpaid" active={activeFilter === 'unpaid'} onClick={() => setActiveFilter('unpaid')} />
+            <FilterChip label="Paid" active={activeFilter === 'paid'} onClick={() => setActiveFilter('paid')} />
+            <FilterChip label="Customer" active={activeFilter === 'customer'} onClick={() => setActiveFilter('customer')} />
+            <FilterChip label="K2" active={activeFilter === 'k2'} onClick={() => setActiveFilter('k2')} />
+          </div>
+          <button
+            onClick={loadInvoices}
+            disabled={isLoading}
+            className="self-start px-4 py-2 bg-white border border-gray-300 text-gray-900 rounded-lg text-sm font-medium active:bg-gray-50 disabled:opacity-50"
+          >
+            {isLoading ? 'Refreshing...' : 'Refresh'}
+          </button>
         </div>
       </div>
 

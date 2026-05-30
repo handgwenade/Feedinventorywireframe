@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ShoppingCart, Package, FileText, Users, BarChart3, PlusCircle, Clock, DollarSign, AlertTriangle, TrendingUp } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
 import UserIcon from './shared/UserIcon';
+import useRefreshOnFocus from '../hooks/useRefreshOnFocus';
 import { activityService } from '../services/activityService';
 import { invoicesService } from '../services/invoicesService';
 import { productsService } from '../services/productsService';
@@ -22,10 +23,33 @@ export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  async function loadDashboardData() {
+    setIsLoading(true);
+    setErrorMessage(null);
+
+    try {
+      const [liveProducts, liveInvoices, liveActivities, liveProfile] = await Promise.all([
+        productsService.list(),
+        invoicesService.list(),
+        activityService.list(),
+        userProfileService.getCurrentProfile(),
+      ]);
+
+      setProducts(liveProducts);
+      setInvoices(liveInvoices);
+      setActivities(liveActivities);
+      setProfile(liveProfile);
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : 'Unable to load dashboard data.');
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
   useEffect(() => {
     let isMounted = true;
 
-    async function loadDashboardData() {
+    async function loadDashboardDataOnMount() {
       setIsLoading(true);
       setErrorMessage(null);
 
@@ -54,12 +78,14 @@ export default function Dashboard() {
       }
     }
 
-    loadDashboardData();
+    loadDashboardDataOnMount();
 
     return () => {
       isMounted = false;
     };
   }, []);
+
+  useRefreshOnFocus(loadDashboardData, isLoading);
 
   const inventoryValue = products.reduce((total, product) => total + calculateInventoryValue(product), 0);
   const lowStockCount = products.filter((product) => isLowStock(product)).length;
@@ -71,12 +97,23 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
       {/* Header */}
-      <div className="p-4 mb-2 flex items-start justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-1">C&C Feed Inventory</h1>
-          <p className="text-gray-600">Welcome back, {isLoading ? '...' : greetingName}</p>
+      <div className="p-4 mb-2">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-1">C&C Feed Inventory</h1>
+            <p className="text-gray-600">Welcome back, {isLoading ? '...' : greetingName}</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={loadDashboardData}
+              disabled={isLoading}
+              className="px-4 py-2 bg-white border border-gray-300 text-gray-900 rounded-lg text-sm font-medium active:bg-gray-50 disabled:opacity-50"
+            >
+              {isLoading ? 'Refreshing...' : 'Refresh'}
+            </button>
+            <UserIcon />
+          </div>
         </div>
-        <UserIcon />
       </div>
 
       <div className="px-4">{/* Rest of content */}

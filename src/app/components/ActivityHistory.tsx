@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Search, ArrowLeft, ChevronDown } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
 import UserIcon from './shared/UserIcon';
+import useRefreshOnFocus from '../hooks/useRefreshOnFocus';
 import { activityService } from '../services/activityService';
 import { formatCurrency } from '../utils/calculations';
 import type { ActivityItem, ActivityRecordBadge } from '../services/activityService';
@@ -52,10 +53,24 @@ export default function ActivityHistory() {
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  async function loadActivities() {
+    setIsLoading(true);
+    setErrorMessage(null);
+
+    try {
+      const liveActivities = await activityService.list();
+      setActivities(liveActivities);
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : 'Unable to load activity history.');
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
   useEffect(() => {
     let isMounted = true;
 
-    async function loadActivities() {
+    async function loadActivitiesOnMount() {
       setIsLoading(true);
       setErrorMessage(null);
 
@@ -76,12 +91,14 @@ export default function ActivityHistory() {
       }
     }
 
-    loadActivities();
+    loadActivitiesOnMount();
 
     return () => {
       isMounted = false;
     };
   }, []);
+
+  useRefreshOnFocus(loadActivities, isLoading);
 
   const filteredActivities = activities
     .filter((activity) => {
@@ -134,9 +151,18 @@ export default function ActivityHistory() {
       </div>
 
       <div className="p-4 space-y-4">
-        <p className="text-sm text-gray-600">
-          See who changed inventory, invoices, payments, and accounts.
-        </p>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm text-gray-600">
+            See who changed inventory, invoices, payments, and accounts.
+          </p>
+          <button
+            onClick={loadActivities}
+            disabled={isLoading}
+            className="self-start px-4 py-2 bg-white border border-gray-300 text-gray-900 rounded-lg text-sm font-medium active:bg-gray-50 disabled:opacity-50"
+          >
+            {isLoading ? 'Refreshing...' : 'Refresh'}
+          </button>
+        </div>
 
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />

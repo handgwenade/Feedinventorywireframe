@@ -108,10 +108,34 @@ export default function ReportsList() {
   const [isLoadingReports, setIsLoadingReports] = useState(true);
   const [reportErrorMessage, setReportErrorMessage] = useState<string | null>(null);
 
+  async function loadReports() {
+    setIsLoadingReports(true);
+    setReportErrorMessage(null);
+
+    try {
+      const [liveProducts, liveInvoices, livePayments] = await Promise.all([
+        productsService.list(),
+        invoicesService.list(),
+        paymentsService.listReceived(),
+      ]);
+
+      setProducts(liveProducts);
+      setInvoices(liveInvoices);
+      setPayments(livePayments);
+    } catch (error) {
+      setProducts([]);
+      setInvoices([]);
+      setPayments([]);
+      setReportErrorMessage(error instanceof Error ? error.message : 'Unable to load report data.');
+    } finally {
+      setIsLoadingReports(false);
+    }
+  }
+
   useEffect(() => {
     let isMounted = true;
 
-    async function loadReports() {
+    async function loadReportsOnMount() {
       setIsLoadingReports(true);
       setReportErrorMessage(null);
 
@@ -141,19 +165,21 @@ export default function ReportsList() {
       }
     }
 
-    loadReports();
+    loadReportsOnMount();
 
     return () => {
       isMounted = false;
     };
   }, []);
 
+  useRefreshOnFocus(loadReports, isLoadingReports);
+
   const reports = buildReports(products, invoices, payments);
 
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 p-4 flex items-center justify-between">
+      <div className="bg-white border-b border-gray-200 p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate('/')}
@@ -163,7 +189,16 @@ export default function ReportsList() {
           </button>
           <h1 className="text-xl font-semibold text-gray-900">Reports</h1>
         </div>
-        <UserIcon />
+        <div className="flex items-center gap-3">
+          <button
+            onClick={loadReports}
+            disabled={isLoadingReports}
+            className="px-4 py-2 bg-white border border-gray-300 text-gray-900 rounded-lg text-sm font-medium active:bg-gray-50 disabled:opacity-50"
+          >
+            {isLoadingReports ? 'Refreshing...' : 'Refresh'}
+          </button>
+          <UserIcon />
+        </div>
       </div>
 
       <div className="p-4 space-y-4">
