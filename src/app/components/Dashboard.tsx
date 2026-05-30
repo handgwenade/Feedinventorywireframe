@@ -177,7 +177,7 @@ export default function Dashboard() {
       {/* Workflow Annotation */}
       <div className="mt-6 p-3 bg-gray-50 border border-gray-300 rounded text-xs text-gray-600 leading-relaxed">
         <strong>Navigation:</strong><br />
-        Home is the main command center. All sale/use activity starts from Take Feed. The user first chooses whether the feed is for a Customer, K2, or Family. Inventory, Invoices, Accounts, Reports, Add Stock, and Activity History remain accessible directly from Home.<br /><br />
+        Home is the main command center. All sale/use activity starts from Take Feed. The user first chooses whether the feed is for a Customer or K2. Inventory, Invoices, Accounts, Reports, Add Stock, and Activity History remain accessible directly from Home.<br /><br />
         Bottom navigation provides persistent access to Home, Inventory, Take Feed, Invoices, and Accounts. Reports remain accessible from Home or role-based menus.
       </div>
 

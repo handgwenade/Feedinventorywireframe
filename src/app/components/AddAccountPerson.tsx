@@ -32,10 +32,10 @@ export default function AddAccountPerson() {
   const [address, setAddress] = useState('');
   const [notes, setNotes] = useState('');
 
-  // Family person fields
+  // Person fields
   const [displayName, setDisplayName] = useState('');
-  const [familyPhone, setFamilyPhone] = useState('');
-  const [familyNotes, setFamilyNotes] = useState('');
+  const [personPhone, setPersonPhone] = useState('');
+  const [personNotes, setPersonNotes] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -90,8 +90,8 @@ export default function AddAccountPerson() {
       setIsSaving(true);
       const person = await peopleService.createFamilyPerson({
         officialDisplayName: displayName,
-        phone: familyPhone,
-        notes: familyNotes,
+        phone: personPhone,
+        notes: personNotes,
       });
 
       navigateToAccountDetail({
@@ -104,7 +104,7 @@ export default function AddAccountPerson() {
         source: person,
       });
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : 'Unable to create family/person record.');
+      setErrorMessage(error instanceof Error ? error.message : 'Unable to create person record.');
     } finally {
       setIsSaving(false);
     }
@@ -147,7 +147,7 @@ export default function AddAccountPerson() {
             />
             <TypeOption
               value="family"
-              label="Family Person"
+              label="Person"
               selected={accountType === 'family'}
               onSelect={() => setAccountType('family')}
             />
@@ -194,7 +194,7 @@ export default function AddAccountPerson() {
           </>
         )}
 
-        {/* Family Person Form */}
+        {/* Person Form */}
         {accountType === 'family' && (
           <>
             <FormField
@@ -205,15 +205,15 @@ export default function AddAccountPerson() {
             />
             <FormField
               label="Phone (optional)"
-              value={familyPhone}
-              onChange={setFamilyPhone}
+              value={personPhone}
+              onChange={setPersonPhone}
               placeholder="(555) 123-4567"
               type="tel"
             />
             <FormField
               label="Notes"
-              value={familyNotes}
-              onChange={setFamilyNotes}
+              value={personNotes}
+              onChange={setPersonNotes}
               placeholder="Add notes..."
               multiline
             />

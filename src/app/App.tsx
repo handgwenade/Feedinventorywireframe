@@ -10,10 +10,7 @@ import InvoiceCreated from './components/InvoiceCreated';
 import K2AddProducts from './components/K2AddProducts';
 import K2ReviewStatement from './components/K2ReviewStatement';
 import K2StatementCreated from './components/K2StatementCreated';
-import ChooseFamilyAccount from './components/ChooseFamilyAccount';
-import FamilyAddProducts from './components/FamilyAddProducts';
-import FamilyReviewInvoice from './components/FamilyReviewInvoice';
-import FamilyInvoiceCreated from './components/FamilyInvoiceCreated';
+import FamilyDisabled from './components/FamilyDisabled';
 import AddStockSelectProduct from './components/AddStockSelectProduct';
 import AddStockQuantity from './components/AddStockQuantity';
 import AddStockReview from './components/AddStockReview';
@@ -37,7 +34,7 @@ import ReportInventorySummary from './components/ReportInventorySummary';
 import ReportLowStock from './components/ReportLowStock';
 import ReportCustomerSales from './components/ReportCustomerSales';
 import ReportK2Use from './components/ReportK2Use';
-import ReportFamilyUse from './components/ReportFamilyUse';
+// ReportFamilyUse removed from active navigation; legacy route shows FamilyDisabled
 import ReportUnpaidInvoices from './components/ReportUnpaidInvoices';
 import ReportPaymentsReceived from './components/ReportPaymentsReceived';
 import ProfileMenu from './components/ProfileMenu';
@@ -120,10 +117,10 @@ function AppRoutes() {
           <Route path="/k2-add-products" element={<K2AddProducts />} />
           <Route path="/k2-review-statement" element={<K2ReviewStatement />} />
           <Route path="/k2-statement-created" element={<K2StatementCreated />} />
-          <Route path="/choose-family-account" element={<ChooseFamilyAccount />} />
-          <Route path="/family-add-products" element={<FamilyAddProducts />} />
-          <Route path="/family-review-invoice" element={<FamilyReviewInvoice />} />
-          <Route path="/family-invoice-created" element={<FamilyInvoiceCreated />} />
+          <Route path="/choose-family-account" element={<FamilyDisabled />} />
+          <Route path="/family-add-products" element={<FamilyDisabled />} />
+          <Route path="/family-review-invoice" element={<FamilyDisabled />} />
+          <Route path="/family-invoice-created" element={<FamilyDisabled />} />
           <Route path="/add-stock-select" element={<AddStockSelectProduct />} />
           <Route path="/add-stock-quantity" element={<AddStockQuantity />} />
           <Route path="/add-stock-review" element={<AddStockReview />} />
@@ -147,7 +144,7 @@ function AppRoutes() {
           <Route path="/report-low-stock" element={<ReportLowStock />} />
           <Route path="/report-customer-sales" element={<ReportCustomerSales />} />
           <Route path="/report-k2-use" element={<ReportK2Use />} />
-          <Route path="/report-family-use" element={<ReportFamilyUse />} />
+          <Route path="/report-family-use" element={<FamilyDisabled />} />
           <Route path="/report-unpaid-invoices" element={<ReportUnpaidInvoices />} />
           <Route path="/report-payments-received" element={<ReportPaymentsReceived />} />
           <Route path="/profile-menu" element={<ProfileMenu />} />

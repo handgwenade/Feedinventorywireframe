@@ -102,7 +102,7 @@ export default function ReportUnpaidInvoices() {
           <FilterChip label="All" active={activeFilter === 'all'} onClick={() => setActiveFilter('all')} />
           <FilterChip label="Customers" active={activeFilter === 'customers'} onClick={() => setActiveFilter('customers')} />
           <FilterChip label="K2" active={activeFilter === 'k2'} onClick={() => setActiveFilter('k2')} />
-          <FilterChip label="Family" active={activeFilter === 'family'} onClick={() => setActiveFilter('family')} />
+          <FilterChip label="People" active={activeFilter === 'family'} onClick={() => setActiveFilter('family')} />
         </div>
 
         <div className="space-y-3">
@@ -175,7 +175,7 @@ function UnpaidRecordRow({
   const getTypeLabel = () => {
     if (recordType === 'customer') return 'Customer';
     if (recordType === 'k2') return 'K2';
-    if (recordType === 'family') return 'Family';
+    if (recordType === 'family') return 'Legacy Person Use';
     return recordType;
   };
 

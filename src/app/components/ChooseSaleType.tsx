@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ShoppingCart, FileText, Users, ArrowRight } from 'lucide-react';
+import { ArrowLeft, ShoppingCart, FileText, ArrowRight } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
 import UserIcon from './shared/UserIcon';
 
@@ -37,32 +37,22 @@ export default function ChooseSaleType() {
         <SaleTypeCard
           icon={<FileText size={32} />}
           title="K2"
-          helperText="Record feed or products used by K2."
+          helperText="Record feed or products used by K2. Helpers working on K2 should use K2. The logged-in user is recorded automatically."
           badge="K2"
           nextStep="Add Products"
           note="K2 is preselected, so this skips customer selection."
           onClick={() => navigate('/k2-add-products')}
         />
 
-        {/* Family */}
-        <SaleTypeCard
-          icon={<Users size={32} />}
-          title="Family"
-          helperText="Record feed or products for a family account."
-          badge="Family"
-          nextStep="Who took it?"
-          onClick={() => navigate('/choose-family-account')}
-        />
       </div>
 
       {/* Workflow Annotation */}
       <div className="p-4">
         <div className="p-3 bg-gray-50 border border-gray-300 rounded text-xs text-gray-600 leading-relaxed">
           <strong>Workflow Branches:</strong><br />
-          All sale/use activity starts from Take Feed. The user first chooses whether the feed is for a Customer, K2, or Family.<br /><br />
+          All sale/use activity starts from Take Feed. The user first chooses whether the feed is for a Customer or K2.<br /><br />
           • Customer → Choose Customer → Add Products → Review Invoice → Invoice Created<br />
-          • K2 → Add Products → Review K2 Statement → K2 Statement Created<br />
-          • Family → Who took it? → Add Products → Review Family Use → Family Use Recorded
+          • K2 → Add Products → Review K2 Statement → K2 Statement Created
         </div>
       </div>
 

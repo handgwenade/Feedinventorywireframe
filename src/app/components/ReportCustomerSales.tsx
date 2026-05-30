@@ -86,7 +86,7 @@ export default function ReportCustomerSales() {
       <div className="p-4 space-y-4">
         {/* Helper Text */}
         <p className="text-sm text-gray-600">
-          Outside customer sales only. K2 and Family are excluded by default.
+          Outside customer sales only. K2/internal activity is excluded by default.
         </p>
 
         {/* Summary Cards */}

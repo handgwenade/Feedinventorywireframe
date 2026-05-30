@@ -164,7 +164,7 @@ export default function AccountsList() {
 
       <div className="p-4 space-y-4">
         <p className="text-sm text-gray-600">
-          View customers, K2, and family/person records.
+          View customers, K2, and people records.
         </p>
 
         <div className="relative">
@@ -182,7 +182,7 @@ export default function AccountsList() {
           <FilterChip label="All" active={activeFilter === 'all'} onClick={() => setActiveFilter('all')} />
           <FilterChip label="Customers" active={activeFilter === 'customers'} onClick={() => setActiveFilter('customers')} />
           <FilterChip label="K2" active={activeFilter === 'k2'} onClick={() => setActiveFilter('k2')} />
-          <FilterChip label="Family" active={activeFilter === 'family'} onClick={() => setActiveFilter('family')} />
+          <FilterChip label="People" active={activeFilter === 'family'} onClick={() => setActiveFilter('family')} />
           <FilterChip label="Unpaid" active={activeFilter === 'unpaid'} onClick={() => setActiveFilter('unpaid')} />
         </div>
 
@@ -253,7 +253,7 @@ function AccountCard({ account, onClick }: { account: AccountListItem; onClick: 
   const getTypeLabel = (type: AccountListType) => {
     if (type === 'customer') return 'Customer';
     if (type === 'k2') return 'K2';
-    if (type === 'family') return 'Family';
+    if (type === 'family') return 'Person';
     return type;
   };
 

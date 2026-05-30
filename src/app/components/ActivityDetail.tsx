@@ -262,7 +262,7 @@ function RecordTypeBadge({ recordBadge }: { recordBadge: ActivityRecordBadge }) 
   const labels: Record<ActivityRecordBadge, string> = {
     customer: 'Customer',
     k2: 'K2',
-    family: 'Family',
+    family: 'Legacy Person Use',
   };
 
   return (

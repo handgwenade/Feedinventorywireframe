@@ -299,7 +299,7 @@ export default function InvoiceDetail() {
 }
 
 function TypeBadge({ type }: { type: 'customer' | 'k2' | 'family' }) {
-  const labels = { customer: 'Customer', k2: 'K2', family: 'Family' };
+  const labels = { customer: 'Customer', k2: 'K2', family: 'Legacy Person Use' };
   return (
     <span className="inline-block px-2 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded border border-gray-300">
       {labels[type]}

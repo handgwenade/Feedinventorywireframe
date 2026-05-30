@@ -137,7 +137,7 @@ export default function InvoicesList() {
           <FilterChip label="Paid" active={activeFilter === 'paid'} onClick={() => setActiveFilter('paid')} />
           <FilterChip label="Customer" active={activeFilter === 'customer'} onClick={() => setActiveFilter('customer')} />
           <FilterChip label="K2" active={activeFilter === 'k2'} onClick={() => setActiveFilter('k2')} />
-          <FilterChip label="Family" active={activeFilter === 'family'} onClick={() => setActiveFilter('family')} />
+          <FilterChip label="People" active={activeFilter === 'family'} onClick={() => setActiveFilter('family')} />
         </div>
       </div>
 
@@ -264,7 +264,7 @@ function FilterChip({ label, active, onClick }: { label: string; active: boolean
 }
 
 function TypeBadge({ type }: { type: InvoiceListType }) {
-  const labels = { customer: 'Customer', k2: 'K2', family: 'Family' };
+  const labels = { customer: 'Customer', k2: 'K2', family: 'Legacy Person Use' };
   return (
     <span className="inline-block px-2 py-0.5 bg-gray-100 text-gray-700 text-xs font-medium rounded border border-gray-300">
       {labels[type]}

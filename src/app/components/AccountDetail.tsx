@@ -208,7 +208,7 @@ export default function AccountDetail() {
     <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
       <div className="flex justify-between items-start gap-3">
         <div>
-          <div className="text-sm text-gray-600 mb-1">{account.type === 'family' ? 'Name' : 'Account name'}</div>
+          <div className="text-sm text-gray-600 mb-1">{account.type === 'family' ? 'Person name' : 'Account name'}</div>
           <div className="text-xl font-bold text-gray-900">{account.name}</div>
         </div>
         <TypeBadge type={account.type} />
@@ -217,7 +217,7 @@ export default function AccountDetail() {
       {account.type === 'customer' && <InfoRow label="Balance due" value={formatCurrency(balance)} large />}
       {account.type === 'k2' && <InfoRow label="Account type" value="Separate cattle-side account" />}
       {account.type === 'k2' && <InfoRow label="Status" value={balance > 0 ? `Balance ${formatCurrency(balance)}` : 'Internal Transfer'} />}
-      {account.type === 'family' && <InfoRow label="Record type" value="Controlled person record" />}
+      {account.type === 'family' && <InfoRow label="Record type" value="Legacy person record" />}
       {account.type === 'family' && <InfoRow label="Open amount" value={formatCurrency(balance)} />}
 
       <InfoRow label="Phone" value={account.phone ?? '—'} />
@@ -287,7 +287,7 @@ export default function AccountDetail() {
 
       {account.type === 'family' && (
         <>
-          <ActionButton icon={<List size={20} />} label="View Family Use" onClick={() => navigate('/invoices')} />
+          <ActionButton icon={<List size={20} />} label="View Person History" onClick={() => navigate('/invoices')} />
           <ActionButton icon={<Edit size={20} />} label="Edit Person" onClick={() => navigate('/edit-account-person', { state: { account } })} />
           <ActionButton
             icon={<Archive size={20} />}
@@ -418,7 +418,7 @@ export default function AccountDetail() {
 
         {account.type === 'family' && (
           <div className="p-3 bg-gray-50 border border-gray-300 rounded text-xs text-gray-600 leading-relaxed">
-            <strong>Note:</strong> Family records should use one official display name. Search may support aliases, but duplicate person records should be avoided.
+            <strong>Note:</strong> Person records should use one official display name. Search may support aliases, but duplicate person records should be avoided.
           </div>
         )}
       </div>
@@ -441,7 +441,7 @@ function TypeBadge({ type }: { type: AccountListType }) {
   const labels: Record<AccountListType, string> = {
     customer: 'Customer',
     k2: 'K2',
-    family: 'Family',
+    family: 'Person',
   };
 
   return (

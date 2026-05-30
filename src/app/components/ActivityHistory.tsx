@@ -159,7 +159,7 @@ export default function ActivityHistory() {
             <FilterChip label="Payments" active={activeFilter === 'payments'} onClick={() => setActiveFilter('payments')} />
             <FilterChip label="Customer" active={activeFilter === 'customer'} onClick={() => setActiveFilter('customer')} />
             <FilterChip label="K2" active={activeFilter === 'k2'} onClick={() => setActiveFilter('k2')} />
-            <FilterChip label="Family" active={activeFilter === 'family'} onClick={() => setActiveFilter('family')} />
+            <FilterChip label="People" active={activeFilter === 'family'} onClick={() => setActiveFilter('family')} />
           </div>
         </div>
 
@@ -217,7 +217,7 @@ export default function ActivityHistory() {
             <strong>Data Integrity:</strong> Activity records should not be casually editable. If a correction is needed, create a new correcting activity instead of rewriting history.
           </div>
           <div className="p-3 bg-gray-50 border border-gray-300 rounded text-xs text-gray-600 leading-relaxed">
-            <strong>Included Activities:</strong> Take Feed, Add Stock, Count Adjustment, Payment Recorded, Invoice Created, K2 Statement, and Family Use records.
+            <strong>Included Activities:</strong> Take Feed, Add Stock, Count Adjustment, Payment Recorded, Invoice Created, K2 Statement, and legacy helper records.
           </div>
         </div>
       </div>
@@ -335,7 +335,7 @@ function RecordTypeBadge({ recordBadge }: { recordBadge: ActivityRecordBadge }) 
   const labels: Record<ActivityRecordBadge, string> = {
     customer: 'Customer',
     k2: 'K2',
-    family: 'Family',
+    family: 'Legacy Person Use',
   };
 
   return (

@@ -36,9 +36,7 @@ function buildReports(
   const k2Total = invoices
     .filter((record) => record.recordType === 'k2_statement')
     .reduce((total, record) => total + record.total, 0);
-  const familyTotal = invoices
-    .filter((record) => record.recordType === 'family_use')
-    .reduce((total, record) => total + record.total, 0);
+  // Legacy family_use records remain available in the database, but are not shown in active reports.
   const unpaidTotal = invoices.reduce((total, record) => total + record.balanceDue, 0);
   const paymentsTotal = payments.reduce((total, payment) => total + payment.amount, 0);
 
@@ -82,14 +80,6 @@ function buildReports(
       metric: formatCurrency(k2Total),
       icon: <Truck size={24} />,
       route: '/report-k2-use',
-    },
-    {
-      id: '6',
-      name: 'Family Use',
-      helperText: 'Feed/products recorded to family/person records.',
-      metric: formatCurrency(familyTotal),
-      icon: <HomeIcon size={24} />,
-      route: '/report-family-use',
     },
     {
       id: '7',
@@ -214,7 +204,7 @@ export default function ReportsList() {
         {/* Annotations */}
         <div className="mt-6 space-y-3">
           <div className="p-3 bg-gray-50 border border-gray-300 rounded text-xs text-gray-600 leading-relaxed">
-            <strong>Separation:</strong> Reports should separate Customer, K2, and Family activity so customer sales are not mixed with related-entity or family use.
+            <strong>Separation:</strong> Reports should separate Customer and K2 activity so customer sales are not mixed with related-entity or legacy person use.
           </div>
           <div className="p-3 bg-gray-50 border border-gray-300 rounded text-xs text-gray-600 leading-relaxed">
             <strong>Role-based access:</strong> Admin/Manager can see full reports. Operator/View Only access can be limited.
