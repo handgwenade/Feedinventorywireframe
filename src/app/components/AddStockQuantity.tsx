@@ -9,7 +9,8 @@ export default function AddStockQuantity() {
   const location = useLocation();
   const { product } = (location.state ?? {}) as { product?: Product };
 
-  const [quantityAdded, setQuantityAdded] = useState(40);
+  const [quantityAddedInput, setQuantityAddedInput] = useState('40');
+  const [quantityError, setQuantityError] = useState<string | null>(null);
   const [vendorNote, setVendorNote] = useState('');
   const [notes, setNotes] = useState('');
 
@@ -43,9 +44,17 @@ export default function AddStockQuantity() {
     );
   }
 
-  const newQuantity = product.currentQuantity + quantityAdded;
+  const quantityAdded = Number(quantityAddedInput);
+  const hasValidQuantityAdded = Number.isFinite(quantityAdded) && quantityAdded > 0;
+  const newQuantity = product.currentQuantity + (hasValidQuantityAdded ? quantityAdded : 0);
 
   const handleReview = () => {
+    if (!hasValidQuantityAdded) {
+      setQuantityError('Enter a quantity greater than zero.');
+      return;
+    }
+
+    setQuantityError(null);
     navigate('/add-stock-review', {
       state: {
         product,
@@ -90,24 +99,49 @@ export default function AddStockQuantity() {
           <label className="block text-sm font-medium text-gray-700 mb-3">Quantity added</label>
           <div className="flex items-center gap-4">
             <button
-              onClick={() => setQuantityAdded(Math.max(1, quantityAdded - 1))}
+              onClick={() => {
+                const current = Number(quantityAddedInput);
+                const next = Number.isFinite(current) && current >= 1 ? Math.max(1, current - 1) : 1;
+                setQuantityAddedInput(String(next));
+                setQuantityError(null);
+              }}
               className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center text-2xl font-semibold text-gray-700 active:bg-gray-200"
             >
               −
             </button>
             <input
               type="number"
-              value={quantityAdded}
-              onChange={(event) => setQuantityAdded(Math.max(1, parseInt(event.target.value) || 1))}
+              inputMode="numeric"
+              pattern="[0-9]*"
+              value={quantityAddedInput}
+              onChange={(event) => {
+                const rawValue = event.target.value;
+                if (rawValue === '') {
+                  setQuantityAddedInput('');
+                  return;
+                }
+                if (/^\d*$/.test(rawValue)) {
+                  setQuantityAddedInput(rawValue.replace(/^0+(\d)/, '$1'));
+                }
+                setQuantityError(null);
+              }}
               className="flex-1 text-center text-2xl font-semibold text-gray-900 border border-gray-300 rounded-lg py-2"
             />
             <button
-              onClick={() => setQuantityAdded(quantityAdded + 1)}
+              onClick={() => {
+                const current = Number(quantityAddedInput);
+                const next = Number.isFinite(current) && current >= 0 ? current + 1 : 1;
+                setQuantityAddedInput(String(next));
+                setQuantityError(null);
+              }}
               className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center text-2xl font-semibold text-gray-700 active:bg-gray-200"
             >
               +
             </button>
           </div>
+          {quantityError && (
+            <div className="mt-2 text-sm text-red-600">{quantityError}</div>
+          )}
         </div>
 
         {/* New Quantity Preview */}

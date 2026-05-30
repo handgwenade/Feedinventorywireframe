@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ChangeEvent } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Search, ArrowLeft, ShoppingCart, AlertCircle, Package } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
@@ -291,10 +291,35 @@ function QuantityModal({
   onConfirm: (quantity: number) => void;
   onCancel: () => void;
 }) {
-  const [quantity, setQuantity] = useState(initialQuantity);
+  const [quantityInput, setQuantityInput] = useState(String(initialQuantity));
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const lineTotal = calculateLineTotal(quantity, product.salePrice);
-  const afterSale = product.currentQuantity - quantity;
+  const parsedQuantity = Number(quantityInput);
+  const validQuantity = Number.isFinite(parsedQuantity) ? Math.min(product.currentQuantity, parsedQuantity) : 0;
+  const lineTotal = calculateLineTotal(validQuantity, product.salePrice);
+  const afterSale = product.currentQuantity - validQuantity;
+
+  const handleQuantityChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const rawValue = event.target.value;
+    if (rawValue === '') {
+      setQuantityInput('');
+      return;
+    }
+
+    if (/^\d*$/.test(rawValue)) {
+      setQuantityInput(rawValue.replace(/^0+(\d)/, '$1'));
+    }
+  };
+
+  const handleConfirm = () => {
+    const quantityValue = Number(quantityInput);
+    if (!Number.isFinite(quantityValue) || quantityValue < 1) {
+      setErrorMessage('Enter a quantity of 1 or greater.');
+      return;
+    }
+
+    onConfirm(Math.min(product.currentQuantity, quantityValue));
+  };
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-end z-50" onClick={onCancel}>
@@ -311,24 +336,40 @@ function QuantityModal({
           <label className="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
           <div className="flex items-center gap-4">
             <button
-              onClick={() => setQuantity(Math.max(1, quantity - 1))}
+              onClick={() => {
+                const current = Number(quantityInput);
+                const next = Number.isFinite(current) && current >= 1 ? Math.max(1, current - 1) : 1;
+                setQuantityInput(String(next));
+                setErrorMessage(null);
+              }}
               className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center text-2xl font-semibold text-gray-700 active:bg-gray-200"
             >
               −
             </button>
             <input
               type="number"
-              value={quantity}
-              onChange={(event) => setQuantity(Math.max(1, Math.min(product.currentQuantity, parseInt(event.target.value) || 1)))}
+              inputMode="numeric"
+              pattern="[0-9]*"
+              value={quantityInput}
+              onChange={handleQuantityChange}
               className="flex-1 text-center text-2xl font-semibold text-gray-900 border border-gray-300 rounded-lg py-2"
+              placeholder="1"
             />
             <button
-              onClick={() => setQuantity(Math.min(product.currentQuantity, quantity + 1))}
+              onClick={() => {
+                const current = Number(quantityInput);
+                const next = Number.isFinite(current) && current >= 0 ? current + 1 : 1;
+                setQuantityInput(String(next));
+                setErrorMessage(null);
+              }}
               className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center text-2xl font-semibold text-gray-700 active:bg-gray-200"
             >
               +
             </button>
           </div>
+          {errorMessage && (
+            <div className="mt-2 text-sm text-red-600">{errorMessage}</div>
+          )}
         </div>
 
         <div className="mb-6 p-3 bg-gray-50 rounded-lg border border-gray-200">
@@ -363,7 +404,7 @@ function QuantityModal({
             Cancel
           </button>
           <button
-            onClick={() => onConfirm(quantity)}
+            onClick={handleConfirm}
             className="flex-1 bg-gray-900 text-white py-3 rounded-lg font-semibold active:bg-gray-800"
           >
             Add to Invoice
