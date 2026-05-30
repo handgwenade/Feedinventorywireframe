@@ -1,10 +1,11 @@
--- StockLog seed data
+
+-- C&C Feed seed data (organization name used in queries: 'C&C Feed')
 -- Setup data only. No invoices, payments, inventory transactions, or activity logs yet.
 
 with stocklog_org as (
   select id
   from public.organizations
-  where name = 'StockLog'
+  where name = 'C&C Feed'
   limit 1
 ), categories as (
   insert into public.product_categories (organization_id, name, slug, sort_order)

@@ -1,6 +1,6 @@
 # Known Limitations
 
-This document tracks known production limitations for StockLog / C&C Feed Inventory so they are visible during testing, deployment review, and planning.
+This document tracks known production limitations for StockLog (app) / C&C Feed (organization) Inventory so they are visible during testing, deployment review, and planning.
 
 ## Access And User Management
 

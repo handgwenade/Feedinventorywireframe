@@ -1,6 +1,6 @@
 # Production Smoke Test
 
-Use this checklist after a production deployment to confirm StockLog / C&C Feed Inventory can read and write the core production workflows.
+Use this checklist after a production deployment to confirm StockLog (app) / C&C Feed (organization) Inventory can read and write the core production workflows.
 
 Run smoke tests with intentionally small test records and low quantities. Do not use real customer transactions unless the test is also a real business event.
 

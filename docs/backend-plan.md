@@ -4,6 +4,12 @@
 
 StockLog is the working name for the C&C Feed Inventory app. This document defines the first backend plan before creating Supabase tables or wiring the React app to live data.
 
+### Naming
+
+- **App name:** StockLog (the product/wireframe name used throughout the code and UI)
+- **Organization / tenant name:** C&C Feed (the business/workspace record stored in `public.organizations`)
+- **K2:** a separate cattle-side account/person entry (an internal account type, not the organization)
+
 ## Current state
 
 The app is currently a Vite/React wireframe using shared mock data, shared TypeScript types, shared calculation helpers, and an initial Supabase service layer.
@@ -29,7 +35,7 @@ Completed backend milestones:
 - Supabase project created for StockLog
 - `.env.local` configured locally and ignored by Git
 - Initial schema migration created and applied
-- First `organizations` row created for StockLog
+- First `organizations` row created for C&C Feed
 - First `user_profiles` row created for Gwen Johnson as `admin`
 - Setup seed data inserted for product categories, products, accounts, people, and app settings
 - `@supabase/supabase-js` installed
