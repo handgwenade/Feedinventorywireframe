@@ -4,6 +4,7 @@ import { ArrowLeft, Download, Printer, Send, DollarSign, XCircle, Trash2 } from 
 import BottomNav from './shared/BottomNav';
 import UserIcon from './shared/UserIcon';
 import { invoicesService } from '../services/invoicesService';
+import { accountsService } from '../services/accountsService';
 import { formatCurrency } from '../utils/calculations';
 import type { InvoiceDetailRecord, InvoiceListItem } from '../services/invoicesService';
 
@@ -122,6 +123,36 @@ export default function InvoiceDetail() {
   const invoiceDate = new Date(invoice.issueDate).toLocaleDateString();
   const dueDate = 'Due on receipt';
   const amountPaid = invoice.amountPaid;
+  const [accountEmail, setAccountEmail] = useState<string | null>(null);
+  const [showNoEmailMessage, setShowNoEmailMessage] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadAccountEmail() {
+      setAccountEmail(null);
+
+      try {
+        if (invoice.accountId) {
+          const accounts = await accountsService.listActive();
+          if (!isMounted) return;
+          const acc = accounts.find((a) => a.id === invoice.accountId);
+          setAccountEmail(acc?.email ?? null);
+          return;
+        }
+      } catch (err) {
+        // ignore — leave accountEmail null
+        if (!isMounted) return;
+        setAccountEmail(null);
+      }
+    }
+
+    loadAccountEmail();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [invoice.accountId]);
 
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
@@ -264,12 +295,52 @@ export default function InvoiceDetail() {
             onClick={() => {}}
             disabled
           />
-          <ActionButton
-            icon={<Send size={20} />}
-            label="Send (Not Ready)"
-            onClick={() => {}}
-            disabled
-          />
+          {/* Send / Email behavior: enable mailto for customer invoices with email */}
+          {invoiceType === 'k2' ? (
+            <ActionButton
+              icon={<Send size={20} />}
+              label="Email Not Needed"
+              onClick={() => {}}
+              disabled
+            />
+          ) : (
+            <ActionButton
+              icon={<Send size={20} />}
+              label="Send"
+              onClick={() => {
+                setShowNoEmailMessage(false);
+                // prefer account email when present
+                if (accountEmail) {
+                  const subject = `Invoice ${displayNumber} from C&C Feed`;
+                  const lines = [
+                    `Account: ${accountName}`,
+                    `Invoice: ${displayNumber}`,
+                    `Total: ${formatCurrency(invoice.total)}`,
+                    `Balance due: ${formatCurrency(balanceDue)}`,
+                    `Status: ${invoice.status}`,
+                    '',
+                    'Line items:',
+                    ...lineItems.map((li) => `- ${li.description} — ${li.quantity} ${li.unitLabel} — ${formatCurrency(li.lineTotal)}`),
+                    '',
+                    'This invoice was generated from StockLog (C&C Feed Inventory).',
+                  ];
+
+                  const body = lines.join('\n');
+                  const mailto = `mailto:${encodeURIComponent(accountEmail)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+                  // open mail client
+                  window.location.href = mailto;
+                } else {
+                  setShowNoEmailMessage(true);
+                }
+              }}
+            />
+          )}
+          {showNoEmailMessage && (
+            <div className="bg-white border border-dashed border-gray-300 rounded-lg p-3 text-sm text-gray-700">
+              No email address is saved for this customer.
+            </div>
+          )}
           {balanceDue > 0 && (
             <ActionButton
               icon={<DollarSign size={20} />}
