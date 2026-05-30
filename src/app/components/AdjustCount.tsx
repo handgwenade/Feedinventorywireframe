@@ -197,8 +197,14 @@ export default function AdjustCount() {
             type="number"
             min="0"
             step="any"
+            inputMode="decimal"
             value={physicalCount}
             onChange={(e) => setPhysicalCount(e.target.value)}
+            onFocus={(e) => {
+              if (e.target.value === '0') {
+                e.target.select();
+              }
+            }}
             placeholder="Enter actual count..."
             className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 text-2xl font-semibold focus:outline-none focus:ring-2 focus:ring-gray-900"
           />

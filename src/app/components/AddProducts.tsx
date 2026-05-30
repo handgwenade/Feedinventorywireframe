@@ -1,4 +1,4 @@
-import { useEffect, useState, type ChangeEvent } from 'react';
+import { useEffect, useState, type ChangeEvent, type FocusEvent } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Search, ArrowLeft, ShoppingCart, AlertCircle, Package } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
@@ -282,7 +282,7 @@ export default function AddProducts() {
 
 function QuantityModal({
   product,
-  initialQuantity = 1,
+  initialQuantity = 0,
   onConfirm,
   onCancel,
 }: {
@@ -314,11 +314,16 @@ function QuantityModal({
   const handleConfirm = () => {
     const quantityValue = Number(quantityInput);
     if (!Number.isFinite(quantityValue) || quantityValue < 1) {
-      setErrorMessage('Enter a quantity of 1 or greater.');
+      setErrorMessage('Enter a quantity greater than 0.');
       return;
     }
 
-    onConfirm(Math.min(product.currentQuantity, quantityValue));
+    if (quantityValue > product.currentQuantity) {
+      setErrorMessage('Enter a quantity less than or equal to available stock.');
+      return;
+    }
+
+    onConfirm(quantityValue);
   };
 
   return (
@@ -338,7 +343,7 @@ function QuantityModal({
             <button
               onClick={() => {
                 const current = Number(quantityInput);
-                const next = Number.isFinite(current) && current >= 1 ? Math.max(1, current - 1) : 1;
+                const next = Number.isFinite(current) ? Math.max(0, current - 1) : 0;
                 setQuantityInput(String(next));
                 setErrorMessage(null);
               }}
@@ -352,13 +357,18 @@ function QuantityModal({
               pattern="[0-9]*"
               value={quantityInput}
               onChange={handleQuantityChange}
+              onFocus={(event: FocusEvent<HTMLInputElement>) => {
+                if (event.target.value === '0') {
+                  setQuantityInput('');
+                }
+              }}
               className="flex-1 text-center text-2xl font-semibold text-gray-900 border border-gray-300 rounded-lg py-2"
-              placeholder="1"
+              placeholder="0"
             />
             <button
               onClick={() => {
                 const current = Number(quantityInput);
-                const next = Number.isFinite(current) && current >= 0 ? current + 1 : 1;
+                const next = Number.isFinite(current) ? current + 1 : 1;
                 setQuantityInput(String(next));
                 setErrorMessage(null);
               }}

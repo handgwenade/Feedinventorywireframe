@@ -9,7 +9,7 @@ export default function AddStockQuantity() {
   const location = useLocation();
   const { product } = (location.state ?? {}) as { product?: Product };
 
-  const [quantityAddedInput, setQuantityAddedInput] = useState('40');
+  const [quantityAddedInput, setQuantityAddedInput] = useState('0');
   const [quantityError, setQuantityError] = useState<string | null>(null);
   const [vendorNote, setVendorNote] = useState('');
   const [notes, setNotes] = useState('');
@@ -50,7 +50,7 @@ export default function AddStockQuantity() {
 
   const handleReview = () => {
     if (!hasValidQuantityAdded) {
-      setQuantityError('Enter a quantity greater than zero.');
+      setQuantityError('Enter a quantity greater than 0.');
       return;
     }
 
@@ -101,7 +101,7 @@ export default function AddStockQuantity() {
             <button
               onClick={() => {
                 const current = Number(quantityAddedInput);
-                const next = Number.isFinite(current) && current >= 1 ? Math.max(1, current - 1) : 1;
+                const next = Number.isFinite(current) ? Math.max(0, current - 1) : 0;
                 setQuantityAddedInput(String(next));
                 setQuantityError(null);
               }}
@@ -125,12 +125,18 @@ export default function AddStockQuantity() {
                 }
                 setQuantityError(null);
               }}
+              onFocus={(event) => {
+                if (event.target.value === '0') {
+                  setQuantityAddedInput('');
+                }
+              }}
+              placeholder="0"
               className="flex-1 text-center text-2xl font-semibold text-gray-900 border border-gray-300 rounded-lg py-2"
             />
             <button
               onClick={() => {
                 const current = Number(quantityAddedInput);
-                const next = Number.isFinite(current) && current >= 0 ? current + 1 : 1;
+                const next = Number.isFinite(current) ? current + 1 : 1;
                 setQuantityAddedInput(String(next));
                 setQuantityError(null);
               }}
