@@ -140,10 +140,13 @@ export default function ActivityHistory() {
       <div className="bg-white border-b border-[#e8dfd1] p-4 flex items-center justify-between shadow-[0_1px_4px_rgba(61,47,31,0.06)]">
         <div className="flex items-center gap-3">
           <button
+            type="button"
+            aria-label="Back to Dashboard"
+            title="Back to Dashboard"
             onClick={() => navigate('/')}
             className="text-[#8b7a6f] active:text-[#3d2f1f]"
           >
-            <ArrowLeft size={24} />
+            <ArrowLeft size={24} aria-hidden="true" />
           </button>
           <h1 className="text-xl font-bold text-[#3d2f1f]">Activity History</h1>
         </div>
