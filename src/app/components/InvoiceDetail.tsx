@@ -274,7 +274,256 @@ export default function InvoiceDetail() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f7f4ed] pb-24">
+    <>
+      <style>{`
+        .invoice-print-document {
+          display: none;
+        }
+
+        @media print {
+          @page {
+            size: letter;
+            margin: 0.5in;
+          }
+
+          html,
+          body,
+          #root {
+            background: #ffffff !important;
+            width: 100% !important;
+            min-height: auto !important;
+          }
+
+          body * {
+            visibility: hidden !important;
+          }
+
+          .invoice-print-document,
+          .invoice-print-document * {
+            visibility: visible !important;
+          }
+
+          .invoice-screen-view {
+            display: none !important;
+          }
+
+          .invoice-print-document {
+            display: block !important;
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 100% !important;
+            color: #111111 !important;
+            background: #ffffff !important;
+            font-family: Arial, sans-serif !important;
+            font-size: 11pt !important;
+            line-height: 1.35 !important;
+          }
+
+          .invoice-print-header {
+            display: flex !important;
+            justify-content: space-between !important;
+            gap: 24px !important;
+            border-bottom: 2px solid #111111 !important;
+            padding-bottom: 16px !important;
+            margin-bottom: 18px !important;
+          }
+
+          .invoice-print-title {
+            font-size: 26pt !important;
+            font-weight: 700 !important;
+            letter-spacing: 0.04em !important;
+            margin: 0 0 8px 0 !important;
+          }
+
+          .invoice-print-business {
+            font-size: 14pt !important;
+            font-weight: 700 !important;
+            margin: 0 0 4px 0 !important;
+          }
+
+          .invoice-print-muted {
+            color: #444444 !important;
+          }
+
+          .invoice-print-section {
+            margin-bottom: 18px !important;
+          }
+
+          .invoice-print-grid {
+            display: grid !important;
+            grid-template-columns: 1fr 1fr !important;
+            gap: 24px !important;
+          }
+
+          .invoice-print-label {
+            font-size: 8.5pt !important;
+            color: #555555 !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.05em !important;
+            margin-bottom: 3px !important;
+          }
+
+          .invoice-print-value {
+            font-weight: 700 !important;
+          }
+
+          .invoice-print-table {
+            width: 100% !important;
+            border-collapse: collapse !important;
+            margin-top: 8px !important;
+          }
+
+          .invoice-print-table th {
+            border-bottom: 1px solid #111111 !important;
+            padding: 8px 6px !important;
+            text-align: left !important;
+            font-size: 9pt !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.04em !important;
+          }
+
+          .invoice-print-table td {
+            border-bottom: 1px solid #dddddd !important;
+            padding: 8px 6px !important;
+            vertical-align: top !important;
+          }
+
+          .invoice-print-number {
+            text-align: right !important;
+            white-space: nowrap !important;
+          }
+
+          .invoice-print-totals {
+            width: 260px !important;
+            margin-left: auto !important;
+            margin-top: 16px !important;
+          }
+
+          .invoice-print-total-row {
+            display: flex !important;
+            justify-content: space-between !important;
+            gap: 16px !important;
+            padding: 4px 0 !important;
+          }
+
+          .invoice-print-grand-total {
+            border-top: 2px solid #111111 !important;
+            margin-top: 6px !important;
+            padding-top: 8px !important;
+            font-size: 13pt !important;
+            font-weight: 700 !important;
+          }
+
+          .invoice-print-balance {
+            background: #f2f2f2 !important;
+            border: 1px solid #111111 !important;
+            padding: 10px !important;
+            margin-top: 8px !important;
+            font-size: 14pt !important;
+            font-weight: 700 !important;
+          }
+
+          .invoice-print-notes {
+            border-top: 1px solid #dddddd !important;
+            padding-top: 12px !important;
+            margin-top: 20px !important;
+          }
+        }
+      `}</style>
+
+      <div className="invoice-print-document" aria-hidden="true">
+        <div className="invoice-print-header">
+          <div>
+            <div className="invoice-print-title">INVOICE</div>
+            <div className="invoice-print-business">C&amp;C Feed</div>
+            <div className="invoice-print-muted">Generated from StockLog</div>
+          </div>
+          <div className="invoice-print-number">
+            <div className="invoice-print-label">Invoice Number</div>
+            <div className="invoice-print-value">{displayNumber}</div>
+            <div style={{ marginTop: '10px' }}>
+              <div className="invoice-print-label">Status</div>
+              <div className="invoice-print-value">{invoice.status.replace('-', ' ')}</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="invoice-print-section invoice-print-grid">
+          <div>
+            <div className="invoice-print-label">Bill To</div>
+            <div className="invoice-print-value">{accountName}</div>
+            <div className="invoice-print-muted">{invoiceType === 'k2' ? 'K2 account use' : 'Customer invoice'}</div>
+          </div>
+          <div>
+            <div className="invoice-print-label">Invoice Date</div>
+            <div className="invoice-print-value">{invoiceDate}</div>
+            <div style={{ marginTop: '8px' }}>
+              <div className="invoice-print-label">Due Date</div>
+              <div className="invoice-print-value">{dueDate}</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="invoice-print-section">
+          <table className="invoice-print-table">
+            <thead>
+              <tr>
+                <th>Description</th>
+                <th className="invoice-print-number">Qty</th>
+                <th className="invoice-print-number">Unit Price</th>
+                <th className="invoice-print-number">Line Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {lineItems.length > 0 ? (
+                lineItems.map((item) => (
+                  <tr key={item.id}>
+                    <td>{item.description}</td>
+                    <td className="invoice-print-number">{item.quantity} {item.unitLabel}</td>
+                    <td className="invoice-print-number">{formatCurrency(item.unitPrice)}</td>
+                    <td className="invoice-print-number">{formatCurrency(item.lineTotal)}</td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={4}>No line items recorded.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+
+          <div className="invoice-print-totals">
+            <div className="invoice-print-total-row">
+              <span>Subtotal</span>
+              <span>{formatCurrency(invoice.subtotal)}</span>
+            </div>
+            <div className="invoice-print-total-row">
+              <span>Tax</span>
+              <span>{invoice.taxAmount > 0 ? formatCurrency(invoice.taxAmount) : 'Off'}</span>
+            </div>
+            <div className="invoice-print-total-row invoice-print-grand-total">
+              <span>Total</span>
+              <span>{formatCurrency(invoice.total)}</span>
+            </div>
+            <div className="invoice-print-total-row">
+              <span>Amount Paid</span>
+              <span>{formatCurrency(amountPaid)}</span>
+            </div>
+            <div className="invoice-print-total-row invoice-print-balance">
+              <span>Balance Due</span>
+              <span>{formatCurrency(balanceDue)}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="invoice-print-notes">
+          <div className="invoice-print-label">Notes</div>
+          <div>{invoice.notes ?? '—'}</div>
+        </div>
+      </div>
+
+      <div className="invoice-screen-view min-h-screen bg-[#f7f4ed] pb-24">
       {/* Header */}
       <div className="bg-white border-b border-[#e8dfd1] p-4 flex items-center justify-between shadow-[0_1px_4px_rgba(61,47,31,0.06)]">
         <div className="flex items-center gap-3">
@@ -617,8 +866,9 @@ export default function InvoiceDetail() {
         </div>
       </div>
 
-      <BottomNav />
-    </div>
+        <BottomNav />
+      </div>
+    </>
   );
 }
 
