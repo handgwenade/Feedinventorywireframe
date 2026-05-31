@@ -116,8 +116,9 @@ export default function ProfileMenu() {
           />
           <MenuOption
             icon={<HelpCircle size={20} />}
-            label="Help / Support"
+            label="Help / Support (Coming Soon)"
             onClick={() => {}}
+            disabled
           />
 
           {/* Admin-only options */}
