@@ -11,25 +11,25 @@ export default function MissingPriceWarning() {
   const canAddPrice = userRole === 'admin' || userRole === 'manager';
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24">
+    <div className="min-h-screen bg-[#f7f4ed] pb-24">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 p-4 flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-gray-900">Add Products</h1>
+      <div className="bg-white border-b border-[#e8dfd1] p-4 flex items-center justify-between shadow-[0_1px_4px_rgba(61,47,31,0.06)]">
+        <h1 className="text-xl font-bold text-[#3d2f1f]">Add Products</h1>
         <UserIcon />
       </div>
 
       {/* Warning Modal Overlay */}
-      <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center p-4 z-50">
-        <div className="bg-white rounded-lg p-6 max-w-sm w-full border-2 border-gray-900">
+      <div className="fixed inset-0 bg-[#3d2f1f]/50 flex items-center justify-center p-4 z-50">
+        <div className="bg-white rounded-2xl p-6 max-w-sm w-full border border-[#ded2c0] shadow-[0_8px_28px_rgba(61,47,31,0.22)]">
           <div className="flex justify-center mb-4">
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center border-2 border-gray-900">
-              <AlertTriangle size={32} className="text-gray-900" />
+            <div className="w-16 h-16 bg-[#fff4d8] rounded-full flex items-center justify-center border-2 border-[#d4a574] shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
+              <AlertTriangle size={32} className="text-[#8b5a1f]" />
             </div>
           </div>
 
-          <h2 className="text-xl font-bold text-gray-900 mb-3 text-center">Missing Price</h2>
+          <h2 className="text-xl font-bold text-[#3d2f1f] mb-3 text-center">Missing Price</h2>
 
-          <p className="text-gray-700 text-center mb-6">
+          <p className="text-[#8b7a6f] text-center mb-6">
             This product needs a price before it can be invoiced.
           </p>
 
@@ -37,19 +37,19 @@ export default function MissingPriceWarning() {
             {canAddPrice && (
                 <button
                   disabled
-                  className="w-full bg-gray-100 text-gray-500 py-3 rounded-lg font-semibold"
+                  className="w-full bg-[#f7f4ed] border border-[#ded2c0] text-[#8b7a6f] py-3 rounded-2xl font-semibold shadow-[0_2px_8px_rgba(61,47,31,0.08)]"
                 >
                   Add Price (Not Ready)
                 </button>
               )}
             {!canAddPrice && (
-              <div className="text-sm text-gray-600 text-center mb-2">
+              <div className="text-sm font-medium text-[#8b7a6f] text-center mb-2">
                 Admin/Manager only
               </div>
             )}
             <button
               onClick={() => navigate(-1)}
-              className="w-full bg-white border border-gray-300 text-gray-900 py-3 rounded-lg font-semibold active:bg-gray-50"
+              className="w-full bg-white border border-[#ded2c0] text-[#3d2f1f] py-3 rounded-2xl font-semibold active:bg-[#faf8f5] shadow-[0_2px_8px_rgba(61,47,31,0.08)]"
             >
               Cancel
             </button>
