@@ -263,7 +263,7 @@ export default function AccountDetail() {
 
       {account.type === 'customer' && (
         <>
-          <ActionButton icon={<FileText size={20} />} label="Create Invoice (Not Ready)" onClick={() => {}} disabled />
+          <ActionButton icon={<FileText size={20} />} label="Start Customer Sale" onClick={() => navigate('/choose-customer')} />
           <ActionButton icon={<DollarSign size={20} />} label="Record Payment" onClick={() => navigate('/invoices')} />
           <ActionButton icon={<List size={20} />} label="View Invoices" onClick={() => navigate('/invoices')} />
           <ActionButton icon={<Edit size={20} />} label="Edit Account" onClick={() => navigate('/edit-account-person', { state: { account } })} />
@@ -280,7 +280,7 @@ export default function AccountDetail() {
 
       {account.type === 'k2' && (
         <>
-          <ActionButton icon={<FileText size={20} />} label="Create K2 Statement (Not Ready)" onClick={() => {}} disabled />
+          <ActionButton icon={<FileText size={20} />} label="Start K2 Use" onClick={() => navigate('/k2-add-products')} />
           <ActionButton icon={<List size={20} />} label="View Statements" onClick={() => navigate('/invoices')} />
         </>
       )}
@@ -475,7 +475,11 @@ function ActionButton({
     <button
       onClick={disabled ? undefined : onClick}
       disabled={disabled}
-      className={`w-full p-3 rounded-2xl flex items-center gap-3 font-semibold bg-white border border-[#ded2c0] text-[#3d2f1f] active:bg-[#faf8f5] shadow-[0_2px_8px_rgba(61,47,31,0.08)] transition-colors ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+      className={`w-full p-3 rounded-2xl flex items-center gap-3 font-semibold shadow-[0_2px_8px_rgba(61,47,31,0.08)] transition-colors ${
+        disabled
+          ? 'bg-[#f7f4ed] border border-[#ded2c0] text-[#8b7a6f] cursor-not-allowed opacity-75'
+          : 'bg-white border border-[#ded2c0] text-[#3d2f1f] active:bg-[#faf8f5]'
+      }`}
     >
       {icon}
       <span>{label}</span>
