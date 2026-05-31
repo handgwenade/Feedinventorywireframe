@@ -136,47 +136,47 @@ export default function ActivityHistory() {
     });
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24">
-      <div className="bg-white border-b border-gray-200 p-4 flex items-center justify-between">
+    <div className="min-h-screen bg-[#f7f4ed] pb-24">
+      <div className="bg-white border-b border-[#e8dfd1] p-4 flex items-center justify-between shadow-[0_1px_4px_rgba(61,47,31,0.06)]">
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate('/')}
-            className="text-gray-600 active:text-gray-900"
+            className="text-[#8b7a6f] active:text-[#3d2f1f]"
           >
             <ArrowLeft size={24} />
           </button>
-          <h1 className="text-xl font-semibold text-gray-900">Activity History</h1>
+          <h1 className="text-xl font-bold text-[#3d2f1f]">Activity History</h1>
         </div>
         <UserIcon />
       </div>
 
       <div className="p-4 space-y-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-[#8b7a6f]">
             See who changed inventory, invoices, payments, and accounts.
           </p>
           <button
             onClick={loadActivities}
             disabled={isLoading}
-            className="self-start px-4 py-2 bg-white border border-gray-300 text-gray-900 rounded-lg text-sm font-medium active:bg-gray-50 disabled:opacity-50"
+            className="self-start px-4 py-2 bg-white border border-[#ded2c0] text-[#3d2f1f] rounded-2xl text-sm font-semibold active:bg-[#faf8f5] disabled:opacity-50 shadow-[0_2px_8px_rgba(61,47,31,0.08)]"
           >
             {isLoading ? 'Refreshing...' : 'Refresh'}
           </button>
         </div>
 
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8b7a6f]" size={20} />
           <input
             type="text"
             placeholder="Search products, people, accounts..."
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
-            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900"
+            className="w-full pl-10 pr-4 py-3 bg-white border border-[#ded2c0] rounded-2xl text-[#3d2f1f] placeholder:text-[#8b7a6f] focus:outline-none focus:ring-2 focus:ring-[#5a7a4d] shadow-[0_2px_8px_rgba(61,47,31,0.08)]"
           />
         </div>
 
         <div>
-          <div className="text-xs font-medium text-gray-600 mb-2">Activity Type</div>
+          <div className="text-xs font-semibold text-[#8b7a6f] mb-2">Activity Type</div>
           <div className="flex gap-2 overflow-x-auto pb-2">
             <FilterChip label="All" active={activeFilter === 'all'} onClick={() => setActiveFilter('all')} />
             <FilterChip label="Taken" active={activeFilter === 'taken'} onClick={() => setActiveFilter('taken')} />
@@ -190,7 +190,7 @@ export default function ActivityHistory() {
         </div>
 
         <div>
-          <div className="text-xs font-medium text-gray-600 mb-2">Date Range</div>
+          <div className="text-xs font-semibold text-[#8b7a6f] mb-2">Date Range</div>
           <div className="flex gap-2">
             <DateFilterChip label="Today" active={dateFilter === 'today'} onClick={() => setDateFilter('today')} />
             <DateFilterChip label="This Week" active={dateFilter === 'this-week'} onClick={() => setDateFilter('this-week')} />
@@ -201,27 +201,27 @@ export default function ActivityHistory() {
 
         <button
           onClick={() => setSortOption(sortOption === 'newest' ? 'oldest' : 'newest')}
-          className="w-full bg-white border border-gray-300 rounded-lg p-3 flex items-center justify-between text-gray-900 active:bg-gray-50"
+          className="w-full bg-white border border-[#ded2c0] rounded-2xl p-3 flex items-center justify-between text-[#3d2f1f] active:bg-[#faf8f5] shadow-[0_2px_8px_rgba(61,47,31,0.08)]"
         >
           <span className="font-medium">Sort: {sortOption === 'newest' ? 'Newest First' : 'Oldest First'}</span>
-          <ChevronDown size={20} className="text-gray-500" />
+          <ChevronDown size={20} className="text-[#8b7a6f]" />
         </button>
 
         <div className="space-y-3">
           {isLoading && (
-            <div className="bg-white border border-gray-200 rounded-lg p-4 text-sm text-gray-700">
+            <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 text-sm text-[#8b7a6f] shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
               Loading activity history...
             </div>
           )}
 
           {errorMessage && (
-            <div className="bg-white border border-gray-300 rounded-lg p-4 text-sm text-gray-900">
+            <div className="bg-white border border-[#b7791f] rounded-2xl p-4 text-sm text-[#3d2f1f] shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
               {errorMessage}
             </div>
           )}
 
           {!isLoading && !errorMessage && filteredActivities.length === 0 && (
-            <div className="bg-white border border-gray-200 rounded-lg p-4 text-sm text-gray-700">
+            <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 text-sm text-[#8b7a6f] shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
               No activity found.
             </div>
           )}
@@ -236,13 +236,13 @@ export default function ActivityHistory() {
         </div>
 
         <div className="mt-6 space-y-3">
-          <div className="p-3 bg-gray-50 border border-gray-300 rounded text-xs text-gray-600 leading-relaxed">
+          <div className="p-3 bg-white border border-[#ded2c0] rounded-2xl text-xs text-[#8b7a6f] leading-relaxed shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
             <strong>Audit Trail:</strong> Activity History shows who recorded the action, what changed, when it changed, and the resulting quantity or balance.
           </div>
-          <div className="p-3 bg-gray-50 border border-gray-300 rounded text-xs text-gray-600 leading-relaxed">
+          <div className="p-3 bg-white border border-[#ded2c0] rounded-2xl text-xs text-[#8b7a6f] leading-relaxed shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
             <strong>Data Integrity:</strong> Activity records should not be casually editable. If a correction is needed, create a new correcting activity instead of rewriting history.
           </div>
-          <div className="p-3 bg-gray-50 border border-gray-300 rounded text-xs text-gray-600 leading-relaxed">
+          <div className="p-3 bg-white border border-[#ded2c0] rounded-2xl text-xs text-[#8b7a6f] leading-relaxed shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
             <strong>Included Activities:</strong> Take Feed, Add Stock, Count Adjustment, Payment Recorded, Invoice Created, K2 Statement, and legacy helper records.
           </div>
         </div>
@@ -257,8 +257,8 @@ function FilterChip({ label, active, onClick }: { label: string; active: boolean
   return (
     <button
       onClick={onClick}
-      className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap ${
-        active ? 'bg-gray-900 text-white' : 'bg-white border border-gray-300 text-gray-700 active:bg-gray-50'
+      className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${
+        active ? 'bg-[#5a7a4d] text-white shadow-[0_2px_8px_rgba(61,47,31,0.12)]' : 'bg-white border border-[#ded2c0] text-[#3d2f1f] active:bg-[#faf8f5]'
       }`}
     >
       {label}
@@ -270,8 +270,8 @@ function DateFilterChip({ label, active, onClick }: { label: string; active: boo
   return (
     <button
       onClick={onClick}
-      className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium ${
-        active ? 'bg-gray-900 text-white' : 'bg-white border border-gray-300 text-gray-700 active:bg-gray-50'
+      className={`flex-1 px-3 py-2 rounded-2xl text-sm font-semibold transition-colors ${
+        active ? 'bg-[#5a7a4d] text-white shadow-[0_2px_8px_rgba(61,47,31,0.12)]' : 'bg-white border border-[#ded2c0] text-[#3d2f1f] active:bg-[#faf8f5]'
       }`}
     >
       {label}
@@ -285,72 +285,72 @@ function ActivityCard({ activity, onClick }: { activity: ActivityItem; onClick: 
   return (
     <div
       onClick={onClick}
-      className="bg-white border border-gray-200 rounded-lg p-4 active:bg-gray-50 cursor-pointer"
+      className="bg-white border border-[#ded2c0] rounded-2xl p-4 active:bg-[#faf8f5] cursor-pointer shadow-[0_2px_8px_rgba(61,47,31,0.08)] transition-colors"
     >
       <div className="flex items-start justify-between mb-2">
         <div>
-          <div className="font-semibold text-gray-900 mb-1">
+          <div className="font-semibold text-[#3d2f1f] mb-1">
             {getActivityTypeLabel(activity.activityType)}
             {activity.recordBadge && <RecordTypeBadge recordBadge={activity.recordBadge} />}
           </div>
-          <div className="text-sm text-gray-600">
+          <div className="text-sm text-[#8b7a6f]">
             {formatActivityDate(activity.createdAt)} {formatActivityTime(activity.createdAt)}
           </div>
         </div>
       </div>
 
       <div className="space-y-1 text-sm">
-        <div className="text-gray-700">
-          <span className="text-gray-600">Recorded by:</span> {activity.actorUserName}
+        <div className="text-[#3d2f1f]">
+          <span className="text-[#8b7a6f]">Recorded by:</span> {activity.actorUserName}
         </div>
 
         {activity.personName && (
-          <div className="text-gray-700">
-            <span className="text-gray-600">Taken by:</span> {activity.personName}
+          <div className="text-[#3d2f1f]">
+            <span className="text-[#8b7a6f]">Taken by:</span> {activity.personName}
           </div>
         )}
 
         {activity.accountName && (
-          <div className="text-gray-700">
-            <span className="text-gray-600">Account:</span> {activity.accountName}
+          <div className="text-[#3d2f1f]">
+            <span className="text-[#8b7a6f]">Account:</span> {activity.accountName}
           </div>
         )}
 
         {activity.productName && (
-          <div className="text-gray-700">
-            <span className="text-gray-600">Product:</span> {activity.productName}
+          <div className="text-[#3d2f1f]">
+            <span className="text-[#8b7a6f]">Product:</span> {activity.productName}
           </div>
         )}
 
         {transaction && (
           <>
-            <div className="text-gray-700">
-              <span className="text-gray-600">Quantity:</span> {transaction.quantityChange > 0 ? '+' : ''}{transaction.quantityChange} units
+            <div className="text-[#3d2f1f]">
+              <span className="text-[#8b7a6f]">Quantity:</span> {transaction.quantityChange > 0 ? '+' : ''}{transaction.quantityChange} units
             </div>
-            <div className="text-gray-700">
-              <span className="text-gray-600">New quantity:</span> {transaction.quantityAfter}
+            <div className="text-[#3d2f1f]">
+              <span className="text-[#8b7a6f]">New quantity:</span> {transaction.quantityAfter}
             </div>
           </>
         )}
 
         {activity.paymentAmount !== undefined && (
-          <div className="text-gray-700">
-            <span className="text-gray-600">Payment amount:</span> {formatCurrency(activity.paymentAmount)}
+          <div className="text-[#3d2f1f]">
+            <span className="text-[#8b7a6f]">Payment amount:</span> {formatCurrency(activity.paymentAmount)}
           </div>
         )}
 
         {activity.invoiceRecordId && (
-          <div className="text-gray-700">
-            <span className="text-gray-600">Related record:</span> {activity.invoiceDisplayNumber ?? activity.invoiceRecordId}
+          <div className="text-[#3d2f1f]">
+            <span className="text-[#8b7a6f]">Related record:</span> {activity.invoiceDisplayNumber ?? activity.invoiceRecordId}
           </div>
         )}
 
-        <div className="text-gray-700">
-          <span className="text-gray-600">Summary:</span> {activity.summary}
+        <div className="text-[#3d2f1f]">
+          <span className="text-[#8b7a6f]">Summary:</span> {activity.summary}
         </div>
       </div>
 
-      <button className="mt-3 w-full bg-white border border-gray-300 text-gray-900 py-2 rounded-lg font-medium text-sm active:bg-gray-50">
+      <button className="mt-3 w-full bg-white border border-[#ded2c0] text-[#3d2f1f] py-2 rounded-2xl font-semibold text-sm active:bg-[#faf8f5] shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
         View Detail
       </button>
     </div>
@@ -365,7 +365,7 @@ function RecordTypeBadge({ recordBadge }: { recordBadge: ActivityRecordBadge }) 
   };
 
   return (
-    <span className="inline-block px-2 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded border border-gray-300 ml-2">
+    <span className="inline-block px-3 py-1 bg-[#e9f0e5] text-[#5a7a4d] text-xs font-semibold rounded-full border border-[#cbd8c4] ml-2">
       {labels[recordBadge]}
     </span>
   );
