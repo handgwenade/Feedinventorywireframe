@@ -96,16 +96,16 @@ export default function ProductForm() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-48">
-      <div className="bg-white border-b border-gray-200 p-4 flex items-center justify-between">
+    <div className="min-h-screen bg-[#f7f4ed] pb-48">
+      <div className="bg-white border-b border-[#e8dfd1] p-4 flex items-center justify-between shadow-[0_1px_4px_rgba(61,47,31,0.06)]">
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate(product ? '/product-detail' : '/inventory', product ? { state: { product } } : undefined)}
-            className="text-gray-600 active:text-gray-900"
+            className="text-[#8b7a6f] active:text-[#3d2f1f]"
           >
             <ArrowLeft size={24} />
           </button>
-          <h1 className="text-xl font-semibold text-gray-900">
+          <h1 className="text-xl font-bold text-[#3d2f1f]">
             {isEditMode ? 'Edit Product' : 'Add Product'}
           </h1>
         </div>
@@ -114,7 +114,7 @@ export default function ProductForm() {
 
       <div className="p-4 space-y-4">
         {errorMessage && (
-          <div className="bg-white border border-gray-300 rounded-lg p-4 text-sm text-gray-900">
+          <div className="bg-white border border-[#b7791f] rounded-2xl p-4 text-sm text-[#3d2f1f] shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
             {errorMessage}
           </div>
         )}
@@ -134,12 +134,12 @@ export default function ProductForm() {
         />
 
         {isEditMode ? (
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="text-sm text-gray-600 mb-1">Current quantity</div>
-            <div className="text-2xl font-bold text-gray-900">
+          <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
+            <div className="text-sm text-[#8b7a6f] mb-1">Current quantity</div>
+            <div className="text-2xl font-bold text-[#3d2f1f]">
               {product?.currentQuantity} {product?.unitLabel}
             </div>
-            <div className="text-sm text-gray-600 mt-2">
+            <div className="text-sm text-[#8b7a6f] mt-2">
               Use Add Stock or Adjust Count to change quantity.
             </div>
           </div>
@@ -169,10 +169,10 @@ export default function ProductForm() {
           type="number"
         />
 
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
+        <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
           <div className="flex justify-between gap-4">
-            <span className="text-gray-700">Price preview</span>
-            <span className="font-medium text-gray-900">
+            <span className="text-[#8b7a6f]">Price preview</span>
+            <span className="font-semibold text-[#3d2f1f]">
               {formatCurrency(parseNumber(salePrice))} / {unitLabel || 'unit'}
             </span>
           </div>
@@ -194,23 +194,23 @@ export default function ProductForm() {
         />
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 max-w-md mx-auto space-y-2">
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#e8dfd1] p-4 max-w-md mx-auto space-y-2 shadow-[0_-4px_18px_rgba(61,47,31,0.14)]">
         <button
           onClick={handleSave}
           disabled={isSaving}
-          className="w-full bg-gray-900 text-white py-4 rounded-lg font-semibold active:bg-gray-800 disabled:bg-gray-400"
+          className="w-full bg-[#5a7a4d] text-white py-4 rounded-2xl font-semibold active:bg-[#4a6a3d] disabled:bg-[#c7bdb0] shadow-[0_3px_10px_rgba(61,47,31,0.18)]"
         >
           {isSaving ? 'Saving Product...' : isEditMode ? 'Save Product' : 'Create Product'}
         </button>
         <button
           onClick={() => navigate(product ? '/product-detail' : '/inventory', product ? { state: { product } } : undefined)}
           disabled={isSaving}
-          className="w-full bg-white border border-gray-300 text-gray-900 py-3 rounded-lg font-semibold active:bg-gray-50"
+          className="w-full bg-white border border-[#ded2c0] text-[#3d2f1f] py-3 rounded-2xl font-semibold active:bg-[#faf8f5] shadow-[0_2px_8px_rgba(61,47,31,0.08)]"
         >
           Cancel
         </button>
 
-        <div className="mt-3 p-3 bg-gray-50 border border-gray-300 rounded text-xs text-gray-600 leading-relaxed">
+        <div className="mt-3 p-3 bg-[#f7f4ed] border border-[#ded2c0] rounded-2xl text-xs text-[#8b7a6f] leading-relaxed">
           <strong>Product setup:</strong><br />
           Quantity changes after creation should use Add Stock or Adjust Count so the inventory ledger stays auditable.
         </div>
@@ -237,8 +237,8 @@ function FormField({
   multiline?: boolean;
 }) {
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-4">
-      <label className="block text-sm font-medium text-gray-700 mb-2">
+    <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
+      <label className="block text-sm font-semibold text-[#3d2f1f] mb-2">
         {label}
       </label>
       {multiline ? (
@@ -247,7 +247,7 @@ function FormField({
           onChange={(event) => onChange(event.target.value)}
           placeholder={placeholder}
           rows={3}
-          className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-gray-900 text-gray-900"
+          className="w-full bg-white border border-[#ded2c0] rounded-2xl p-3 focus:outline-none focus:ring-2 focus:ring-[#5a7a4d] text-[#3d2f1f] placeholder:text-[#8b7a6f]"
         />
       ) : (
         <input
@@ -257,7 +257,7 @@ function FormField({
           value={value}
           onChange={(event) => onChange(event.target.value)}
           placeholder={placeholder}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900"
+          className="w-full px-4 py-3 bg-white border border-[#ded2c0] rounded-2xl text-[#3d2f1f] placeholder:text-[#8b7a6f] focus:outline-none focus:ring-2 focus:ring-[#5a7a4d]"
         />
       )}
     </div>
