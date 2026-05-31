@@ -125,12 +125,14 @@ export default function Dashboard() {
       )}
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-3 gap-3 mb-6">
-        <SummaryCard
-          icon={<DollarSign size={20} />}
-          label="Inventory Value"
-          value={isLoading ? '...' : formatCurrency(inventoryValue)}
-        />
+      <div className="grid grid-cols-2 gap-3 mb-6">
+        <div className="col-span-2">
+          <SummaryCard
+            icon={<DollarSign size={20} />}
+            label="Inventory Value"
+            value={isLoading ? '...' : formatCurrency(inventoryValue)}
+          />
+        </div>
         <SummaryCard
           icon={<AlertTriangle size={20} />}
           label="Low Stock"
@@ -242,7 +244,7 @@ function SummaryCard({
         {icon}
       </div>
       <div className="text-xs text-[#8b7a6f] mb-1">{label}</div>
-      <div className="text-lg font-bold text-[#3d2f1f]">{value}</div>
+      <div className="text-xl font-bold text-[#3d2f1f] break-words">{value}</div>
       {detail && <div className="text-xs text-[#8b7a6f] mt-1">{detail}</div>}
     </div>
   );
