@@ -97,65 +97,65 @@ export default function ReviewInvoice() {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gray-50 pb-48">
+return (
+    <div className="min-h-screen bg-[#f7f4ed] pb-48">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 p-4 flex items-center gap-3">
+      <div className="bg-white border-b border-[#e8dfd1] p-4 flex items-center gap-3 shadow-[0_1px_4px_rgba(61,47,31,0.06)]">
         <button
           onClick={() => navigate('/add-products', { state: { customerName, customerId, accountId, cart } })}
-          className="text-gray-600 active:text-gray-900"
+          className="text-[#8b7a6f] active:text-[#3d2f1f]"
         >
           <ArrowLeft size={24} />
         </button>
-        <h1 className="text-xl font-semibold text-gray-900">Review Invoice</h1>
+        <h1 className="text-xl font-bold text-[#3d2f1f]">Review Invoice</h1>
       </div>
 
       <div className="p-4 space-y-4">
         {errorMessage && (
-          <div className="bg-white border border-gray-300 rounded-lg p-4 text-sm text-gray-900">
+          <div className="bg-white border border-[#b7791f] rounded-2xl p-4 text-sm text-[#3d2f1f] shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
             {errorMessage}
           </div>
         )}
 
         {/* Customer Info & Invoice Number */}
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
+        <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
           <div className="flex items-start justify-between mb-3">
             <div>
-              <div className="text-sm text-gray-600 mb-1">Customer</div>
-              <div className="font-semibold text-gray-900">{customerName}</div>
+              <div className="text-sm text-[#8b7a6f] mb-1">Customer</div>
+              <div className="font-semibold text-[#3d2f1f]">{customerName}</div>
             </div>
             <div className="text-right">
-              <div className="text-sm text-gray-600 mb-1">Invoice #</div>
-              <div className="font-semibold text-gray-900">{invoiceNumber}</div>
+              <div className="text-sm text-[#8b7a6f] mb-1">Invoice #</div>
+              <div className="font-semibold text-[#3d2f1f]">{invoiceNumber}</div>
             </div>
           </div>
           <div>
-            <span className="inline-block px-2 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded border border-gray-300">
+            <span className="inline-block px-3 py-1 bg-[#e9f0e5] text-[#5a7a4d] text-xs font-semibold rounded-full border border-[#cbd8c4]">
               Customer
             </span>
           </div>
         </div>
 
         {/* Line Items */}
-        <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-          <div className="p-4 border-b border-gray-200 bg-gray-50">
-            <h2 className="font-semibold text-gray-900">Line Items</h2>
+        <div className="bg-white border border-[#ded2c0] rounded-2xl overflow-hidden shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
+          <div className="p-4 border-b border-[#e8dfd1] bg-[#f7f4ed]">
+            <h2 className="font-semibold text-[#3d2f1f]">Line Items</h2>
           </div>
-          <div className="divide-y divide-gray-200">
+          <div className="divide-y divide-[#e8dfd1]">
             {cart.map((item: CartItem, index: number) => (
               <div key={index} className="p-4">
                 <div className="flex justify-between items-start mb-2">
                   <div className="flex-1">
-                    <div className="font-medium text-gray-900 mb-1">{item.name}</div>
-                    <div className="text-sm text-gray-600">
+                    <div className="font-medium text-[#3d2f1f] mb-1">{item.name}</div>
+                    <div className="text-sm text-[#8b7a6f]">
                       Quantity: {item.quantity} {item.unitLabel ?? 'units'}
                     </div>
-                    <div className="text-sm text-gray-600">
+                    <div className="text-sm text-[#8b7a6f]">
                       Unit price: {formatCurrency(item.price)}
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="font-semibold text-gray-900 text-lg mb-2">
+                    <div className="font-semibold text-[#3d2f1f] text-lg mb-2">
                       {formatCurrency(calculateLineTotal(item.quantity, item.price))}
                     </div>
                   </div>
@@ -163,14 +163,14 @@ export default function ReviewInvoice() {
                 <div className="flex gap-2 mt-3">
                   <button
                     onClick={() => handleEditItem(index)}
-                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg active:bg-gray-200"
+                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-white border border-[#ded2c0] text-[#3d2f1f] rounded-2xl active:bg-[#faf8f5] shadow-[0_2px_8px_rgba(61,47,31,0.08)]"
                   >
                     <Edit2 size={16} />
                     <span className="text-sm font-medium">Edit</span>
                   </button>
                   <button
                     onClick={() => handleRemoveItem(index)}
-                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-red-50 text-red-700 rounded-lg active:bg-red-100"
+                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-[#fff4f0] border border-[#d8a59a] text-[#8b3f2f] rounded-2xl active:bg-[#fbe8e1] shadow-[0_2px_8px_rgba(61,47,31,0.08)]"
                   >
                     <Trash2 size={16} />
                     <span className="text-sm font-medium">Remove</span>
@@ -184,32 +184,32 @@ export default function ReviewInvoice() {
         {/* Add Another Product */}
         <button
           onClick={handleAddProduct}
-          className="w-full bg-white border-2 border-dashed border-gray-300 p-4 rounded-lg flex items-center justify-center gap-2 text-gray-600 active:bg-gray-50"
+          className="w-full bg-white border-2 border-dashed border-[#d4a574] p-4 rounded-2xl flex items-center justify-center gap-2 text-[#5a7a4d] active:bg-[#faf8f5] shadow-[0_2px_8px_rgba(61,47,31,0.08)] transition-colors"
         >
           <Plus size={20} />
-          <span className="font-medium">Add Another Product</span>
+          <span className="font-semibold">Add Another Product</span>
         </button>
 
         {/* Totals */}
-        <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
-          <div className="flex justify-between text-gray-700">
+        <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 space-y-3 shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
+          <div className="flex justify-between text-[#8b7a6f]">
             <span>Subtotal</span>
             <span className="font-medium">{formatCurrency(subtotal)}</span>
           </div>
 
           {/* Tax Toggle */}
           <div className="flex justify-between items-center">
-            <span className="text-gray-700">Tax (8%)</span>
+            <span className="text-[#8b7a6f]">Tax (8%)</span>
             <div className="flex items-center gap-3">
               {taxEnabled && (
-                <span className="font-medium text-gray-900">
+                <span className="font-medium text-[#3d2f1f]">
                   {formatCurrency(tax)}
                 </span>
               )}
               <button
                 onClick={() => setTaxEnabled(!taxEnabled)}
                 className={`w-12 h-6 rounded-full transition-colors relative ${
-                  taxEnabled ? 'bg-gray-900' : 'bg-gray-300'
+                  taxEnabled ? 'bg-[#5a7a4d]' : 'bg-[#ded2c0]'
                 }`}
               >
                 <div
@@ -221,17 +221,17 @@ export default function ReviewInvoice() {
             </div>
           </div>
 
-          <div className="pt-3 border-t border-gray-200 flex justify-between items-center">
-            <span className="font-semibold text-gray-900 text-lg">Total</span>
-            <span className="font-bold text-gray-900 text-2xl">
+          <div className="pt-3 border-t border-[#e8dfd1] flex justify-between items-center">
+            <span className="font-semibold text-[#3d2f1f] text-lg">Total</span>
+            <span className="font-bold text-[#3d2f1f] text-2xl">
               {formatCurrency(total)}
             </span>
           </div>
         </div>
 
         {/* Notes */}
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+        <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
+          <label className="block text-sm font-semibold text-[#3d2f1f] mb-2">
             Notes
           </label>
           <textarea
@@ -239,13 +239,13 @@ export default function ReviewInvoice() {
             onChange={(event) => setNotes(event.target.value)}
             placeholder="Add note, pickup details, check info..."
             rows={3}
-            className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+            className="w-full bg-white border border-[#ded2c0] rounded-2xl p-3 focus:outline-none focus:ring-2 focus:ring-[#5a7a4d] text-[#3d2f1f] placeholder:text-[#8b7a6f]"
           />
         </div>
 
         {/* Payment Status */}
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <label className="block text-sm font-medium text-gray-700 mb-3">
+        <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
+          <label className="block text-sm font-semibold text-[#3d2f1f] mb-3">
             Payment Status
           </label>
           <div className="space-y-2">
@@ -272,16 +272,16 @@ export default function ReviewInvoice() {
       </div>
 
       {/* Fixed Bottom Button */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-gray-900 p-4 max-w-md mx-auto">
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#e8dfd1] p-4 max-w-md mx-auto shadow-[0_-4px_18px_rgba(61,47,31,0.14)]">
         <button
           onClick={handleCreateInvoice}
           disabled={isCreating}
-          className="w-full bg-gray-900 text-white py-4 rounded-lg font-semibold active:bg-gray-800 disabled:bg-gray-400"
+          className="w-full bg-[#5a7a4d] text-white py-4 rounded-2xl font-semibold active:bg-[#4a6a3d] disabled:bg-[#c7bdb0] shadow-[0_3px_10px_rgba(61,47,31,0.18)]"
         >
           {isCreating ? 'Creating Invoice...' : 'Create Invoice'}
         </button>
         {/* Payment Flow Annotation */}
-        <div className="mt-3 p-3 bg-gray-50 border border-gray-300 rounded text-xs text-gray-600 leading-relaxed">
+        <div className="mt-3 p-3 bg-[#f7f4ed] border border-[#ded2c0] rounded-2xl text-xs text-[#8b7a6f] leading-relaxed">
           <strong>Payment Flow:</strong><br />
           If <em>Unpaid</em> is selected, Create Invoice goes directly to Invoice Created.<br />
           If <em>Paid Now</em> or <em>Partial Payment</em> is selected, the user goes to Payment Details before Invoice Created.
@@ -307,20 +307,20 @@ function PaymentOption({
   return (
     <button
       onClick={onSelect}
-      className={`w-full p-3 border rounded-lg flex items-center gap-3 active:bg-gray-50 ${
+      className={`w-full p-3 border rounded-2xl flex items-center gap-3 active:bg-[#faf8f5] transition-colors ${
         selected
-          ? 'border-gray-900 bg-gray-50'
-          : 'border-gray-300 bg-white'
+          ? 'border-[#5a7a4d] bg-[#e9f0e5] shadow-[0_2px_8px_rgba(61,47,31,0.08)]'
+          : 'border-[#ded2c0] bg-white'
       }`}
     >
       <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-        selected ? 'border-gray-900' : 'border-gray-300'
+        selected ? 'border-[#5a7a4d]' : 'border-[#ded2c0]'
       }`}>
         {selected && (
-          <div className="w-3 h-3 rounded-full bg-gray-900" />
+          <div className="w-3 h-3 rounded-full bg-[#5a7a4d]" />
         )}
       </div>
-      <span className="font-medium text-gray-900">
+      <span className="font-semibold text-[#3d2f1f]">
         {label}
       </span>
     </button>
