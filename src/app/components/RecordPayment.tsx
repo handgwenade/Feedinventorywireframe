@@ -76,23 +76,23 @@ export default function RecordPayment() {
 
   if (!invoice?.id) {
     return (
-      <div className="min-h-screen bg-gray-50 pb-24">
-        <div className="bg-white border-b border-gray-200 p-4 flex items-center gap-3">
+      <div className="min-h-screen bg-[#f7f4ed] pb-24">
+        <div className="bg-white border-b border-[#e8dfd1] p-4 flex items-center gap-3 shadow-[0_1px_4px_rgba(61,47,31,0.06)]">
           <button
             onClick={() => navigate('/invoices')}
-            className="text-gray-600 active:text-gray-900"
+            className="text-[#8b7a6f] active:text-[#3d2f1f]"
           >
             <ArrowLeft size={24} />
           </button>
-          <h1 className="text-xl font-semibold text-gray-900">Record Payment</h1>
+          <h1 className="text-xl font-bold text-[#3d2f1f]">Record Payment</h1>
         </div>
 
         <div className="p-4">
-          <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
-            <div className="text-sm text-gray-700">Select an invoice before recording a payment.</div>
+          <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 space-y-3 shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
+            <div className="text-sm text-[#8b7a6f]">Select an invoice before recording a payment.</div>
             <button
               onClick={() => navigate('/invoices')}
-              className="w-full bg-white border border-gray-300 text-gray-900 py-3 rounded-lg font-semibold active:bg-gray-50"
+              className="w-full bg-white border border-[#ded2c0] text-[#3d2f1f] py-3 rounded-2xl font-semibold active:bg-[#faf8f5] shadow-[0_2px_8px_rgba(61,47,31,0.08)]"
             >
               Back to Invoices
             </button>
@@ -105,62 +105,62 @@ export default function RecordPayment() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-32">
+    <div className="min-h-screen bg-[#f7f4ed] pb-32">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 p-4 flex items-center gap-3">
+      <div className="bg-white border-b border-[#e8dfd1] p-4 flex items-center gap-3 shadow-[0_1px_4px_rgba(61,47,31,0.06)]">
         <button
           onClick={() => navigate('/invoice-detail', { state: { invoice } })}
-          className="text-gray-600 active:text-gray-900"
+          className="text-[#8b7a6f] active:text-[#3d2f1f]"
         >
           <ArrowLeft size={24} />
         </button>
-        <h1 className="text-xl font-semibold text-gray-900">Record Payment</h1>
+        <h1 className="text-xl font-bold text-[#3d2f1f]">Record Payment</h1>
       </div>
 
       <div className="p-4 space-y-4">
         {errorMessage && (
-          <div className="bg-white border border-gray-300 rounded-lg p-4 text-sm text-gray-900">
+          <div className="bg-white border border-[#b7791f] rounded-2xl p-4 text-sm text-[#3d2f1f] shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
             {errorMessage}
           </div>
         )}
 
         {/* Invoice Info */}
-        <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-2">
+        <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 space-y-2 shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
           <div>
-            <div className="text-sm text-gray-600 mb-1">Invoice</div>
-            <div className="font-semibold text-gray-900">{displayNumber}</div>
+            <div className="text-sm text-[#8b7a6f] mb-1">Invoice</div>
+            <div className="font-semibold text-[#3d2f1f]">{displayNumber}</div>
           </div>
           <div>
-            <div className="text-sm text-gray-600 mb-1">Customer</div>
-            <div className="font-semibold text-gray-900">{accountName}</div>
+            <div className="text-sm text-[#8b7a6f] mb-1">Customer</div>
+            <div className="font-semibold text-[#3d2f1f]">{accountName}</div>
           </div>
-          <div className="pt-2 border-t border-gray-200">
-            <div className="text-sm text-gray-600 mb-1">Balance due</div>
-            <div className="text-2xl font-bold text-gray-900">{formatCurrency(balanceDue)}</div>
+          <div className="pt-2 border-t border-[#e8dfd1]">
+            <div className="text-sm text-[#8b7a6f] mb-1">Balance due</div>
+            <div className="text-2xl font-bold text-[#3d2f1f]">{formatCurrency(balanceDue)}</div>
           </div>
         </div>
 
         {/* Amount Paid */}
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+        <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
+          <label className="block text-sm font-medium text-[#8b7a6f] mb-2">
             Amount paid
           </label>
           <div className="relative">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 text-xl">$</span>
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#8b7a6f] text-xl">$</span>
             <input
               type="number"
               step="0.01"
               value={amountPaid}
               onChange={(e) => setAmountPaid(e.target.value)}
               placeholder="0.00"
-              className="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-lg text-xl font-semibold text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900"
+              className="w-full pl-8 pr-4 py-3 bg-white border border-[#ded2c0] rounded-2xl text-xl font-bold text-[#3d2f1f] placeholder:text-[#8b7a6f] focus:outline-none focus:ring-2 focus:ring-[#5a7a4d]"
             />
           </div>
         </div>
 
         {/* Payment Method */}
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <label className="block text-sm font-medium text-gray-700 mb-3">
+        <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
+          <label className="block text-sm font-medium text-[#8b7a6f] mb-3">
             Payment method
           </label>
           <div className="space-y-2">
@@ -184,8 +184,8 @@ export default function RecordPayment() {
 
         {/* Check Number (conditional) */}
         {paymentMethod === 'check' && (
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+          <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
+            <label className="block text-sm font-medium text-[#8b7a6f] mb-2">
               Check number
             </label>
             <input
@@ -193,14 +193,14 @@ export default function RecordPayment() {
               value={referenceNumber}
               onChange={(e) => setReferenceNumber(e.target.value)}
               placeholder="Enter check number..."
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900"
+              className="w-full px-4 py-3 bg-white border border-[#ded2c0] rounded-2xl text-[#3d2f1f] placeholder:text-[#8b7a6f] focus:outline-none focus:ring-2 focus:ring-[#5a7a4d]"
             />
           </div>
         )}
 
         {/* Payment Note */}
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+        <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
+          <label className="block text-sm font-medium text-[#8b7a6f] mb-2">
             Payment note
           </label>
           <textarea
@@ -208,36 +208,36 @@ export default function RecordPayment() {
             onChange={(e) => setPaymentNote(e.target.value)}
             placeholder="Add payment note..."
             rows={3}
-            className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-gray-900 text-gray-900"
+            className="w-full bg-white border border-[#ded2c0] rounded-2xl p-3 focus:outline-none focus:ring-2 focus:ring-[#5a7a4d] text-[#3d2f1f] placeholder:text-[#8b7a6f]"
           />
         </div>
 
         {/* Received By */}
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <div className="text-sm text-gray-600 mb-1">Received by</div>
-          <div className="font-medium text-gray-900">Current user</div>
+        <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
+          <div className="text-sm text-[#8b7a6f] mb-1">Received by</div>
+          <div className="font-medium text-[#3d2f1f]">Current user</div>
         </div>
       </div>
 
       {/* Fixed Bottom Buttons */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 max-w-md mx-auto space-y-2">
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#e8dfd1] p-4 max-w-md mx-auto space-y-2 shadow-[0_-4px_18px_rgba(61,47,31,0.14)]">
         <button
           onClick={handleSavePayment}
           disabled={isSaving}
-          className="w-full bg-gray-900 text-white py-4 rounded-lg font-semibold active:bg-gray-800 disabled:bg-gray-500"
+          className="w-full bg-[#5a7a4d] text-white py-4 rounded-2xl font-semibold active:bg-[#4a6a3d] disabled:bg-[#c7bdb0] shadow-[0_3px_10px_rgba(61,47,31,0.18)]"
         >
           {isSaving ? 'Saving Payment...' : 'Save Payment'}
         </button>
         <button
           onClick={() => navigate('/invoice-detail', { state: { invoice } })}
           disabled={isSaving}
-          className="w-full bg-white border border-gray-300 text-gray-900 py-3 rounded-lg font-semibold active:bg-gray-50 disabled:text-gray-400"
+          className="w-full bg-white border border-[#ded2c0] text-[#3d2f1f] py-3 rounded-2xl font-semibold active:bg-[#faf8f5] disabled:text-[#c7bdb0] shadow-[0_2px_8px_rgba(61,47,31,0.08)]"
         >
           Cancel
         </button>
 
         {/* Workflow Annotations */}
-        <div className="mt-3 p-3 bg-gray-50 border border-gray-300 rounded text-xs text-gray-600 leading-relaxed">
+        <div className="mt-3 p-3 bg-[#f7f4ed] border border-[#ded2c0] rounded-2xl text-xs text-[#8b7a6f] leading-relaxed">
           <strong>Payment Workflow:</strong><br />
           Recording a payment updates invoice status and balance due. It does not change inventory.<br /><br />
           <strong>Role-based access:</strong><br />
@@ -262,16 +262,16 @@ function PaymentMethodOption({
   return (
     <button
       onClick={onSelect}
-      className={`w-full p-3 border rounded-lg flex items-center gap-3 active:bg-gray-50 ${
-        selected ? 'border-gray-900 bg-gray-50' : 'border-gray-300 bg-white'
+      className={`w-full p-3 border rounded-2xl flex items-center gap-3 active:bg-[#faf8f5] transition-colors ${
+        selected ? 'border-[#5a7a4d] bg-[#e9f0e5] shadow-[0_2px_8px_rgba(61,47,31,0.08)]' : 'border-[#ded2c0] bg-white'
       }`}
     >
       <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-        selected ? 'border-gray-900' : 'border-gray-300'
+        selected ? 'border-[#5a7a4d]' : 'border-[#ded2c0]'
       }`}>
-        {selected && <div className="w-3 h-3 rounded-full bg-gray-900" />}
+        {selected && <div className="w-3 h-3 rounded-full bg-[#5a7a4d]" />}
       </div>
-      <span className="font-medium text-gray-900">{label}</span>
+      <span className="font-semibold text-[#3d2f1f]">{label}</span>
     </button>
   );
 }
