@@ -137,9 +137,9 @@ export default function K2StatementCreated() {
 
         {/* Action Buttons */}
         <div className="space-y-2">
-          <ActionButton icon={<Download size={20} />} label="Download PDF" onClick={() => {}} />
-          <ActionButton icon={<Printer size={20} />} label="Print" onClick={() => {}} />
-          <ActionButton icon={<Send size={20} />} label="Send" onClick={() => {}} />
+          <ActionButton icon={<Download size={20} />} label="Download PDF (Coming Soon)" onClick={() => {}} disabled />
+          <ActionButton icon={<Printer size={20} />} label="Print (Coming Soon)" onClick={() => {}} disabled />
+          <ActionButton icon={<Send size={20} />} label="Send (Coming Soon)" onClick={() => {}} disabled />
           <DisabledActionButton icon={<DollarSign size={20} />} label="Record Payment" />
         </div>
       </div>
@@ -170,16 +170,23 @@ export default function K2StatementCreated() {
 function ActionButton({
   icon,
   label,
-  onClick
+  onClick,
+  disabled = false
 }: {
   icon: React.ReactNode;
   label: string;
   onClick: () => void;
+  disabled?: boolean;
 }) {
   return (
     <button
-      onClick={onClick}
-      className="w-full p-3 rounded-2xl flex items-center gap-3 font-semibold bg-white border border-[#ded2c0] text-[#3d2f1f] active:bg-[#faf8f5] shadow-[0_2px_8px_rgba(61,47,31,0.08)] transition-colors"
+      onClick={disabled ? undefined : onClick}
+      disabled={disabled}
+      className={`w-full p-3 rounded-2xl flex items-center gap-3 font-semibold shadow-[0_2px_8px_rgba(61,47,31,0.08)] transition-colors ${
+        disabled
+          ? 'bg-[#f7f4ed] border border-[#ded2c0] text-[#8b7a6f] cursor-not-allowed opacity-75'
+          : 'bg-white border border-[#ded2c0] text-[#3d2f1f] active:bg-[#faf8f5]'
+      }`}
     >
       {icon}
       <span>{label}</span>
