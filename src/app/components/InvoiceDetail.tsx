@@ -123,6 +123,8 @@ export default function InvoiceDetail() {
   const invoiceDate = new Date(invoice.issueDate).toLocaleDateString();
   const dueDate = 'Due on receipt';
   const amountPaid = invoice.amountPaid;
+  const isWrittenOff = invoice.status === 'written_off' || invoice.status === 'written-off';
+  const isVoid = invoice.status === 'void';
   const [accountEmail, setAccountEmail] = useState<string | null>(null);
   const [showSendPanel, setShowSendPanel] = useState(false);
   const [customEmail, setCustomEmail] = useState('');
@@ -674,13 +676,13 @@ export default function InvoiceDetail() {
               </div>
               <ActionButton
                 icon={<XCircle size={20} />}
-                label="Mark Written Off"
+                label="Mark Written Off (Not Available)"
                 onClick={() => {}}
                 disabled
               />
               <ActionButton
                 icon={<Trash2 size={20} />}
-                label="Void Invoice"
+                label="Void Invoice (Not Available)"
                 onClick={() => {}}
                 disabled
               />
@@ -766,7 +768,7 @@ export default function InvoiceDetail() {
                   setWriteOffError(null);
                   setWriteOffSuccess(null);
                 }}
-                disabled={balanceDue <= 0 || invoice.status === 'written_off' || invoice.status === 'void'}
+                disabled={balanceDue <= 0 || isWrittenOff || isVoid}
               />
               <ActionButton
                 icon={<Trash2 size={20} />}
@@ -777,7 +779,7 @@ export default function InvoiceDetail() {
                   setVoidError(null);
                   setVoidSuccess(null);
                 }}
-                disabled={invoice.status === 'void'}
+                disabled={isVoid}
               />
 
               {showWriteOffPanel && (
@@ -907,10 +909,12 @@ function ActionButton({
       onClick={disabled ? undefined : onClick}
       disabled={disabled}
       className={`w-full p-3 rounded-2xl flex items-center gap-3 font-semibold shadow-[0_2px_8px_rgba(61,47,31,0.08)] transition-colors ${
-        primary
-          ? 'bg-[#5a7a4d] text-white active:bg-[#4a6a3d]'
-          : 'bg-white border border-[#ded2c0] text-[#3d2f1f] active:bg-[#faf8f5]'
-      } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+        disabled
+          ? 'bg-[#f7f4ed] border border-[#ded2c0] text-[#8b7a6f] cursor-not-allowed opacity-75'
+          : primary
+            ? 'bg-[#5a7a4d] text-white active:bg-[#4a6a3d]'
+            : 'bg-white border border-[#ded2c0] text-[#3d2f1f] active:bg-[#faf8f5]'
+      }`}
     >
       {icon}
       <span>{label}</span>
