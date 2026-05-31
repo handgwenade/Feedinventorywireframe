@@ -132,28 +132,28 @@ export default function AccountDetail() {
 
   if (!account) {
     return (
-      <div className="min-h-screen bg-gray-50 pb-24">
-        <div className="bg-white border-b border-gray-200 p-4 flex items-center justify-between">
+      <div className="min-h-screen bg-[#f7f4ed] pb-24">
+        <div className="bg-white border-b border-[#e8dfd1] p-4 flex items-center justify-between shadow-[0_1px_4px_rgba(61,47,31,0.06)]">
           <div className="flex items-center gap-3">
             <button
               onClick={() => navigate('/accounts')}
-              className="text-gray-600 active:text-gray-900"
+              className="text-[#8b7a6f] active:text-[#3d2f1f]"
             >
               <ArrowLeft size={24} />
             </button>
-            <h1 className="text-xl font-semibold text-gray-900">Account Detail</h1>
+            <h1 className="text-xl font-bold text-[#3d2f1f]">Account Detail</h1>
           </div>
           <UserIcon />
         </div>
 
         <div className="p-4">
-          <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
-            <div className="text-sm text-gray-700">
+          <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 space-y-3 shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
+            <div className="text-sm text-[#8b7a6f]">
               Select an account or person from Accounts to view details.
             </div>
             <button
               onClick={() => navigate('/accounts')}
-              className="w-full bg-white border border-gray-300 text-gray-900 py-3 rounded-lg font-semibold active:bg-gray-50"
+              className="w-full bg-white border border-[#ded2c0] text-[#3d2f1f] py-3 rounded-2xl font-semibold active:bg-[#faf8f5] shadow-[0_2px_8px_rgba(61,47,31,0.08)]"
             >
               Back to Accounts
             </button>
@@ -205,11 +205,11 @@ export default function AccountDetail() {
   };
 
   const renderAccountInfo = () => (
-    <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
+    <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 space-y-3 shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
       <div className="flex justify-between items-start gap-3">
         <div>
-          <div className="text-sm text-gray-600 mb-1">{account.type === 'family' ? 'Person name' : 'Account name'}</div>
-          <div className="text-xl font-bold text-gray-900">{account.name}</div>
+          <div className="text-sm text-[#8b7a6f] mb-1">{account.type === 'family' ? 'Person name' : 'Account name'}</div>
+          <div className="text-xl font-bold text-[#3d2f1f]">{account.name}</div>
         </div>
         <TypeBadge type={account.type} />
       </div>
@@ -305,13 +305,13 @@ export default function AccountDetail() {
   );
 
   const renderRecentActivity = () => (
-    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-      <div className="p-4 border-b border-gray-200 bg-gray-50">
-        <h2 className="font-semibold text-gray-900">Recent Activity</h2>
+    <div className="bg-white border border-[#ded2c0] rounded-2xl overflow-hidden shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
+      <div className="p-4 border-b border-[#e8dfd1] bg-[#f7f4ed]">
+        <h2 className="font-semibold text-[#3d2f1f]">Recent Activity</h2>
       </div>
       <div className="p-4 space-y-3">
         {isLoading && (
-          <div className="text-sm text-gray-600">Loading account activity...</div>
+          <div className="text-sm text-[#8b7a6f]">Loading account activity...</div>
         )}
 
         {!isLoading && records.slice(0, 3).map((record) => (
@@ -324,11 +324,11 @@ export default function AccountDetail() {
         ))}
 
         {!isLoading && records.length === 0 && recentActivity.length === 0 && (
-          <div className="text-sm text-gray-600">No recent activity yet.</div>
+          <div className="text-sm text-[#8b7a6f]">No recent activity yet.</div>
         )}
 
         {!isLoading && recentActivity.map((activity) => (
-          <div key={activity.id} className="text-sm text-gray-600 border-t border-gray-200 pt-3">
+          <div key={activity.id} className="text-sm text-[#8b7a6f] border-t border-[#e8dfd1] pt-3">
             {activity.summary}
           </div>
         ))}
@@ -337,23 +337,23 @@ export default function AccountDetail() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24">
-      <div className="bg-white border-b border-gray-200 p-4 flex items-center justify-between">
+    <div className="min-h-screen bg-[#f7f4ed] pb-24">
+      <div className="bg-white border-b border-[#e8dfd1] p-4 flex items-center justify-between shadow-[0_1px_4px_rgba(61,47,31,0.06)]">
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate('/accounts')}
-            className="text-gray-600 active:text-gray-900"
+            className="text-[#8b7a6f] active:text-[#3d2f1f]"
           >
             <ArrowLeft size={24} />
           </button>
-          <h1 className="text-xl font-semibold text-gray-900">Account Detail</h1>
+          <h1 className="text-xl font-bold text-[#3d2f1f]">Account Detail</h1>
         </div>
         <UserIcon />
       </div>
 
       <div className="p-4 space-y-4">
         {errorMessage && (
-          <div className="bg-white border border-gray-300 rounded-lg p-4 text-sm text-gray-900">
+          <div className="bg-white border border-[#b7791f] rounded-2xl p-4 text-sm text-[#3d2f1f] shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
             {errorMessage}
           </div>
         )}
@@ -362,18 +362,18 @@ export default function AccountDetail() {
         {renderSummaryCards()}
         {renderActions()}
         {showArchivePanel && account.type !== 'k2' && (
-          <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
+          <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 space-y-3 shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
             <div>
-              <div className="font-semibold text-gray-900">
+              <div className="font-semibold text-[#3d2f1f]">
                 {account.type === 'customer' ? 'Archive Account' : 'Archive Person'}
               </div>
-              <div className="text-sm text-gray-600 mt-1">
+              <div className="text-sm text-[#8b7a6f] mt-1">
                 This hides the record from normal account and picker screens. Historical invoices, payments, and activity stay intact.
               </div>
             </div>
 
             {archiveError && (
-              <div className="bg-white border border-gray-300 rounded-lg p-3 text-sm text-gray-900">
+              <div className="bg-white border border-[#b7791f] rounded-2xl p-3 text-sm text-[#3d2f1f]">
                 {archiveError}
               </div>
             )}
@@ -383,7 +383,7 @@ export default function AccountDetail() {
               onChange={(event) => setArchiveReason(event.target.value)}
               placeholder="Reason for archive..."
               rows={3}
-              className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-gray-900 text-gray-900"
+              className="w-full bg-white border border-[#ded2c0] rounded-2xl p-3 focus:outline-none focus:ring-2 focus:ring-[#5a7a4d] text-[#3d2f1f] placeholder:text-[#8b7a6f]"
             />
 
             <div className="flex gap-2">
@@ -394,14 +394,14 @@ export default function AccountDetail() {
                   setArchiveReason('');
                 }}
                 disabled={isArchiving}
-                className="flex-1 bg-white border border-gray-300 text-gray-900 py-3 rounded-lg font-semibold active:bg-gray-50"
+                className="flex-1 bg-white border border-[#ded2c0] text-[#3d2f1f] py-3 rounded-2xl font-semibold active:bg-[#faf8f5] shadow-[0_2px_8px_rgba(61,47,31,0.08)]"
               >
                 Cancel
               </button>
               <button
                 onClick={handleArchive}
                 disabled={isArchiving}
-                className="flex-1 bg-gray-900 text-white py-3 rounded-lg font-semibold active:bg-gray-800 disabled:bg-gray-400"
+                className="flex-1 bg-[#8b3f2f] text-white py-3 rounded-2xl font-semibold active:bg-[#733426] disabled:bg-[#c7bdb0] shadow-[0_3px_10px_rgba(61,47,31,0.18)]"
               >
                 {isArchiving ? 'Archiving...' : 'Archive'}
               </button>
@@ -411,13 +411,13 @@ export default function AccountDetail() {
         {renderRecentActivity()}
 
         {account.type === 'k2' && (
-          <div className="p-3 bg-gray-50 border border-gray-300 rounded text-xs text-gray-600 leading-relaxed">
+          <div className="p-3 bg-white border border-[#ded2c0] rounded-2xl text-xs text-[#8b7a6f] leading-relaxed shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
             <strong>Note:</strong> K2 is not a standard customer. K2 activity is tracked separately from outside customer sales by default.
           </div>
         )}
 
         {account.type === 'family' && (
-          <div className="p-3 bg-gray-50 border border-gray-300 rounded text-xs text-gray-600 leading-relaxed">
+          <div className="p-3 bg-white border border-[#ded2c0] rounded-2xl text-xs text-[#8b7a6f] leading-relaxed shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
             <strong>Note:</strong> Person records should use one official display name. Search may support aliases, but duplicate person records should be avoided.
           </div>
         )}
@@ -430,9 +430,9 @@ export default function AccountDetail() {
 
 function InfoRow({ label, value, large = false }: { label: string; value: string; large?: boolean }) {
   return (
-    <div className="border-t border-gray-200 pt-3">
-      <div className="text-sm text-gray-600 mb-1">{label}</div>
-      <div className={large ? 'text-2xl font-bold text-gray-900' : 'font-medium text-gray-900'}>{value}</div>
+    <div className="border-t border-[#e8dfd1] pt-3">
+      <div className="text-sm text-[#8b7a6f] mb-1">{label}</div>
+      <div className={large ? 'text-2xl font-bold text-[#3d2f1f]' : 'font-medium text-[#3d2f1f]'}>{value}</div>
     </div>
   );
 }
@@ -445,7 +445,7 @@ function TypeBadge({ type }: { type: AccountListType }) {
   };
 
   return (
-    <span className="inline-block px-2 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded border border-gray-300">
+    <span className="inline-block px-3 py-1 bg-[#e9f0e5] text-[#5a7a4d] text-xs font-semibold rounded-full border border-[#cbd8c4]">
       {labels[type]}
     </span>
   );
@@ -453,9 +453,9 @@ function TypeBadge({ type }: { type: AccountListType }) {
 
 function SummaryCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-3">
-      <div className="text-xs text-gray-600 mb-1">{label}</div>
-      <div className="font-semibold text-gray-900 text-sm">{value}</div>
+    <div className="bg-white border border-[#ded2c0] rounded-2xl p-3 shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
+      <div className="text-xs text-[#8b7a6f] mb-1">{label}</div>
+      <div className="font-bold text-[#3d2f1f] text-sm">{value}</div>
     </div>
   );
 }
@@ -475,7 +475,7 @@ function ActionButton({
     <button
       onClick={disabled ? undefined : onClick}
       disabled={disabled}
-      className={`w-full p-3 rounded-lg flex items-center gap-3 font-medium bg-white border border-gray-300 text-gray-900 active:bg-gray-50 ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+      className={`w-full p-3 rounded-2xl flex items-center gap-3 font-semibold bg-white border border-[#ded2c0] text-[#3d2f1f] active:bg-[#faf8f5] shadow-[0_2px_8px_rgba(61,47,31,0.08)] transition-colors ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
     >
       {icon}
       <span>{label}</span>
@@ -486,9 +486,9 @@ function ActionButton({
 function ActivityItem({ label, description, status }: { label: string; description: string; status: string }) {
   return (
     <div className="space-y-1">
-      <div className="font-semibold text-gray-900">{label}</div>
-      <div className="text-sm text-gray-600">{description}</div>
-      <div className="text-sm font-medium text-gray-700">{status}</div>
+      <div className="font-semibold text-[#3d2f1f]">{label}</div>
+      <div className="text-sm text-[#8b7a6f]">{description}</div>
+      <div className="text-sm font-semibold text-[#5a7a4d]">{status}</div>
     </div>
   );
 }
