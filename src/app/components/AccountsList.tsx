@@ -156,25 +156,25 @@ export default function AccountsList() {
   });
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24">
-      <div className="bg-white border-b border-gray-200 p-4 flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-gray-900">Accounts</h1>
+    <div className="min-h-screen bg-[#f7f4ed] pb-24">
+      <div className="bg-white border-b border-[#e8dfd1] p-4 flex items-center justify-between shadow-[0_1px_4px_rgba(61,47,31,0.06)]">
+        <h1 className="text-xl font-bold text-[#3d2f1f]">Accounts</h1>
         <UserIcon />
       </div>
 
       <div className="p-4 space-y-4">
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-[#8b7a6f]">
           View customers, K2, and people records.
         </p>
 
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8b7a6f]" size={20} />
           <input
             type="text"
             placeholder="Search accounts or people..."
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
-            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900"
+            className="w-full pl-10 pr-4 py-3 bg-white border border-[#ded2c0] rounded-2xl text-[#3d2f1f] placeholder:text-[#8b7a6f] focus:outline-none focus:ring-2 focus:ring-[#5a7a4d] shadow-[0_2px_8px_rgba(61,47,31,0.08)]"
           />
         </div>
 
@@ -188,7 +188,7 @@ export default function AccountsList() {
 
         <button
           onClick={() => navigate('/add-account-person')}
-          className="w-full bg-gray-900 text-white py-3 rounded-lg font-semibold flex items-center justify-center gap-2 active:bg-gray-800"
+          className="w-full bg-[#5a7a4d] text-white py-3 rounded-2xl font-semibold flex items-center justify-center gap-2 active:bg-[#4a6a3d] shadow-[0_3px_10px_rgba(61,47,31,0.18)]"
         >
           <Plus size={20} />
           Add Account / Person
@@ -196,19 +196,19 @@ export default function AccountsList() {
 
         <div className="space-y-3">
           {isLoading && (
-            <div className="bg-white border border-gray-200 rounded-lg p-4 text-sm text-gray-700">
+            <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 text-sm text-[#8b7a6f] shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
               Loading accounts...
             </div>
           )}
 
           {!isLoading && errorMessage && (
-            <div className="bg-white border border-gray-300 rounded-lg p-4 text-sm text-gray-900">
+            <div className="bg-white border border-[#b7791f] rounded-2xl p-4 text-sm text-[#3d2f1f] shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
               {errorMessage}
             </div>
           )}
 
           {!isLoading && !errorMessage && filteredAccounts.length === 0 && (
-            <div className="bg-white border border-gray-200 rounded-lg p-4 text-sm text-gray-700">
+            <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 text-sm text-[#8b7a6f] shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
               No accounts found.
             </div>
           )}
@@ -240,8 +240,8 @@ function FilterChip({
   return (
     <button
       onClick={onClick}
-      className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap ${
-        active ? 'bg-gray-900 text-white' : 'bg-white border border-gray-300 text-gray-700 active:bg-gray-50'
+      className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${
+        active ? 'bg-[#5a7a4d] text-white shadow-[0_2px_8px_rgba(61,47,31,0.12)]' : 'bg-white border border-[#ded2c0] text-[#3d2f1f] active:bg-[#faf8f5]'
       }`}
     >
       {label}
@@ -267,30 +267,30 @@ function AccountCard({ account, onClick }: { account: AccountListItem; onClick: 
   return (
     <div
       onClick={onClick}
-      className="bg-white border border-gray-200 rounded-lg p-4 active:bg-gray-50 cursor-pointer"
+      className="bg-white border border-[#ded2c0] rounded-2xl p-4 active:bg-[#faf8f5] cursor-pointer shadow-[0_2px_8px_rgba(61,47,31,0.08)] transition-colors"
     >
       <div className="flex justify-between items-start mb-2">
         <div className="flex-1">
-          <div className="font-semibold text-gray-900 mb-1">{account.name}</div>
-          <span className="inline-block px-2 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded border border-gray-300">
+          <div className="font-semibold text-[#3d2f1f] mb-1">{account.name}</div>
+          <span className="inline-block px-3 py-1 bg-[#e9f0e5] text-[#5a7a4d] text-xs font-semibold rounded-full border border-[#cbd8c4]">
             {getTypeLabel(account.type)}
           </span>
         </div>
       </div>
 
       {(account.phone || account.email) && (
-        <div className="text-sm text-gray-600 mb-2">
+        <div className="text-sm text-[#8b7a6f] mb-2">
           {account.phone && <div>{account.phone}</div>}
           {account.email && <div>{account.email}</div>}
         </div>
       )}
 
-      <div className="flex justify-between items-center text-sm pt-2 border-t border-gray-200 gap-3">
-        <span className="text-gray-600">{getStatusLabel(account)}</span>
-        <span className="text-gray-500 text-right">Last activity {account.lastActivity}</span>
+      <div className="flex justify-between items-center text-sm pt-2 border-t border-[#e8dfd1] gap-3">
+        <span className="text-[#8b7a6f]">{getStatusLabel(account)}</span>
+        <span className="text-[#8b7a6f] text-right">Last activity {account.lastActivity}</span>
       </div>
 
-      <button className="mt-3 w-full bg-white border border-gray-300 text-gray-900 py-2 rounded-lg font-medium text-sm active:bg-gray-50">
+      <button className="mt-3 w-full bg-white border border-[#ded2c0] text-[#3d2f1f] py-2 rounded-2xl font-semibold text-sm active:bg-[#faf8f5] shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
         View
       </button>
     </div>
