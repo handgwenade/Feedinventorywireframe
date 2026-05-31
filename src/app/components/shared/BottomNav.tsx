@@ -15,8 +15,8 @@ export default function BottomNav() {
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#e8dfd1] max-w-md mx-auto">
-      <div className="grid grid-cols-5 h-16">
+    <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur border-t border-[#e8dfd1] max-w-md mx-auto shadow-[0_-4px_18px_rgba(61,47,31,0.14)]">
+      <div className="grid grid-cols-5 h-17 min-h-16">
         <NavItem
           icon={<Home size={20} />}
           label="Home"
@@ -69,14 +69,14 @@ function NavItem({
   return (
     <button
       onClick={onClick}
-      className={`flex flex-col items-center justify-center gap-1 transition-colors ${
+      className={`flex flex-col items-center justify-center gap-1 transition-colors rounded-2xl mx-1 my-1 ${
         active
-          ? 'text-[#5a7a4d]'
-          : 'text-[#8b7a6f]'
-      } active:bg-[#f7f4ed]`}
+          ? 'text-[#5a7a4d] bg-[#e9f0e5]'
+          : 'text-[#8b7a6f] active:bg-[#f7f4ed]'
+      }`}
     >
       {primary ? (
-        <div className={`w-12 h-12 rounded-full flex items-center justify-center -mt-2 transition-colors ${
+        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center -mt-3 transition-colors shadow-[0_3px_10px_rgba(61,47,31,0.20)] ${
           active ? 'bg-[#5a7a4d] text-white' : 'bg-[#d4a574] text-white'
         }`}>
           {icon}
@@ -84,7 +84,7 @@ function NavItem({
       ) : (
         icon
       )}
-      <span className={`text-xs ${primary ? 'font-semibold' : 'font-medium'}`}>
+      <span className={`text-[11px] leading-none ${primary ? 'font-bold' : 'font-semibold'}`}>
         {label}
       </span>
     </button>
