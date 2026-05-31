@@ -7,30 +7,30 @@ export default function PermissionNeeded() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24">
+    <div className="min-h-screen bg-[#f7f4ed] pb-24">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 p-4 flex items-center justify-between">
+      <div className="bg-white border-b border-[#e8dfd1] p-4 flex items-center justify-between shadow-[0_1px_4px_rgba(61,47,31,0.06)]">
         <div className="flex items-center gap-3">
-          <h1 className="text-xl font-semibold text-gray-900">Permission Needed</h1>
+          <h1 className="text-xl font-bold text-[#3d2f1f]">Permission Needed</h1>
         </div>
         <UserIcon />
       </div>
 
       {/* Permission State */}
       <div className="flex flex-col items-center justify-center p-8 mt-16">
-        <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-6 border-2 border-gray-300">
-          <Lock size={48} className="text-gray-600" />
+        <div className="w-24 h-24 bg-[#fff4d8] rounded-full flex items-center justify-center mb-6 border-2 border-[#d4a574] shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
+          <Lock size={48} className="text-[#8b5a1f]" />
         </div>
 
-        <h2 className="text-xl font-bold text-gray-900 mb-2">Permission Needed</h2>
+        <h2 className="text-xl font-bold text-[#3d2f1f] mb-2">Permission Needed</h2>
 
-        <p className="text-gray-700 text-center mb-6 max-w-sm">
+        <p className="text-[#8b7a6f] text-center mb-6 max-w-sm">
           Your role does not allow this action.
         </p>
 
-        <div className="bg-gray-50 border border-gray-300 rounded-lg p-4 mb-8 max-w-sm">
-          <div className="text-sm font-medium text-gray-900 mb-2">Example:</div>
-          <div className="text-sm text-gray-600">
+        <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 mb-8 max-w-sm shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
+          <div className="text-sm font-semibold text-[#3d2f1f] mb-2">Example:</div>
+          <div className="text-sm text-[#8b7a6f]">
             Operators cannot see cost per unit or manage users.
           </div>
         </div>
@@ -38,7 +38,7 @@ export default function PermissionNeeded() {
         <div className="w-full max-w-sm">
           <button
             onClick={() => navigate(-1)}
-            className="w-full bg-gray-900 text-white py-4 rounded-lg font-semibold active:bg-gray-800"
+            className="w-full bg-[#5a7a4d] text-white py-4 rounded-2xl font-semibold active:bg-[#4a6a3d] shadow-[0_3px_10px_rgba(61,47,31,0.18)]"
           >
             Back
           </button>
