@@ -57,7 +57,9 @@ export type ActivityType =
   | 'product_created'
   | 'product_updated'
   | 'product_archived'
-  | 'status_changed';
+  | 'status_changed'
+  | 'invoice_written_off'
+  | 'invoice_voided';
 
 export interface User {
   id: string;

@@ -83,6 +83,34 @@ function mapLineItem(row: InvoiceLineItemRow): InvoiceDetailLineItem {
   };
 }
 
+interface InvoiceStatusActionRow {
+  invoice_record_id: string;
+  display_number: string;
+  previous_balance_due: string;
+  new_balance_due: string;
+  status: string;
+  previous_status?: string;
+}
+
+export interface InvoiceStatusActionResult {
+  invoiceRecordId: string;
+  displayNumber: string;
+  previousBalanceDue: number;
+  newBalanceDue: number;
+  status: string;
+  previousStatus?: string;
+}
+
+export interface MarkInvoiceWrittenOffInput {
+  invoiceId: string;
+  reason: string;
+}
+
+export interface VoidInvoiceInput {
+  invoiceId: string;
+  reason: string;
+}
+
 function getInvoiceType(recordType: InvoiceListRecordType): InvoiceListType {
   if (recordType === 'k2_statement') return 'k2';
   if (recordType === 'family_use') return 'family';
@@ -275,6 +303,17 @@ async function getByIdFromSupabase(invoiceId: string): Promise<InvoiceDetailReco
   };
 }
 
+function mapInvoiceStatusActionRow(row: InvoiceStatusActionRow): InvoiceStatusActionResult {
+  return {
+    invoiceRecordId: row.invoice_record_id,
+    displayNumber: row.display_number,
+    previousBalanceDue: Number(row.previous_balance_due),
+    newBalanceDue: Number(row.new_balance_due),
+    status: row.status,
+    previousStatus: row.previous_status,
+  };
+}
+
 export const invoicesService = {
   async getById(invoiceId: string): Promise<InvoiceDetailRecord | null> {
     return getByIdFromSupabase(invoiceId);
@@ -282,5 +321,43 @@ export const invoicesService = {
 
   async list(): Promise<InvoiceListItem[]> {
     return listFromSupabase();
+  },
+
+  async markInvoiceWrittenOff({ invoiceId, reason }: MarkInvoiceWrittenOffInput): Promise<InvoiceStatusActionResult> {
+    const { data, error } = await supabase.rpc('mark_invoice_written_off', {
+      p_invoice_record_id: invoiceId,
+      p_reason: reason,
+    });
+
+    if (error) {
+      throw new Error(`${error.message}${error.details ? ` — ${error.details}` : ''}`);
+    }
+
+    const row = Array.isArray(data) ? data[0] : data;
+
+    if (!row) {
+      throw new Error('Failed to mark invoice written off.');
+    }
+
+    return mapInvoiceStatusActionRow(row as InvoiceStatusActionRow);
+  },
+
+  async voidInvoice({ invoiceId, reason }: VoidInvoiceInput): Promise<InvoiceStatusActionResult> {
+    const { data, error } = await supabase.rpc('void_invoice', {
+      p_invoice_record_id: invoiceId,
+      p_reason: reason,
+    });
+
+    if (error) {
+      throw new Error(`${error.message}${error.details ? ` — ${error.details}` : ''}`);
+    }
+
+    const row = Array.isArray(data) ? data[0] : data;
+
+    if (!row) {
+      throw new Error('Failed to void invoice.');
+    }
+
+    return mapInvoiceStatusActionRow(row as InvoiceStatusActionRow);
   },
 };
