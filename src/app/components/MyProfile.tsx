@@ -53,53 +53,53 @@ export default function MyProfile() {
   const roleLabel = profile ? userProfileService.formatRole(profile.role) : '—';
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24">
+    <div className="min-h-screen bg-[#f7f4ed] pb-24">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 p-4 flex items-center justify-between">
+      <div className="bg-white border-b border-[#e8dfd1] p-4 flex items-center justify-between shadow-[0_1px_4px_rgba(61,47,31,0.06)]">
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate('/profile-menu')}
-            className="text-gray-600 active:text-gray-900"
+            className="text-[#8b7a6f] active:text-[#3d2f1f]"
           >
             <ArrowLeft size={24} />
           </button>
-          <h1 className="text-xl font-semibold text-gray-900">My Profile</h1>
+          <h1 className="text-xl font-bold text-[#3d2f1f]">My Profile</h1>
         </div>
         <UserIcon />
       </div>
 
       <div className="p-4 space-y-4">
         {errorMessage && (
-          <div className="bg-white border border-gray-300 rounded-lg p-4 text-sm text-gray-900">
+          <div className="bg-white border border-[#b7791f] rounded-2xl p-4 text-sm text-[#3d2f1f] shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
             {errorMessage}
           </div>
         )}
 
         {/* Profile Info */}
-        <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
+        <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 space-y-3 shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
           <div>
-            <div className="text-sm text-gray-600 mb-1">Name</div>
-            <div className="font-medium text-gray-900">{isLoading ? 'Loading...' : displayName}</div>
+            <div className="text-sm text-[#8b7a6f] mb-1">Name</div>
+            <div className="font-medium text-[#3d2f1f]">{isLoading ? 'Loading...' : displayName}</div>
           </div>
 
-          <div className="border-t border-gray-200 pt-3">
-            <div className="text-sm text-gray-600 mb-1">Email</div>
-            <div className="font-medium text-gray-900">{isLoading ? 'Loading...' : profile?.email ?? '—'}</div>
+          <div className="border-t border-[#e8dfd1] pt-3">
+            <div className="text-sm text-[#8b7a6f] mb-1">Email</div>
+            <div className="font-medium text-[#3d2f1f]">{isLoading ? 'Loading...' : profile?.email ?? '—'}</div>
           </div>
 
-          <div className="border-t border-gray-200 pt-3">
-            <div className="text-sm text-gray-600 mb-1">Business</div>
-            <div className="font-medium text-gray-900">{isLoading ? 'Loading...' : profile?.organizationName ?? '—'}</div>
+          <div className="border-t border-[#e8dfd1] pt-3">
+            <div className="text-sm text-[#8b7a6f] mb-1">Business</div>
+            <div className="font-medium text-[#3d2f1f]">{isLoading ? 'Loading...' : profile?.organizationName ?? '—'}</div>
           </div>
 
-          <div className="border-t border-gray-200 pt-3">
-            <div className="text-sm text-gray-600 mb-1">Current role</div>
-            <div className="font-medium text-gray-900">{isLoading ? 'Loading...' : roleLabel}</div>
+          <div className="border-t border-[#e8dfd1] pt-3">
+            <div className="text-sm text-[#8b7a6f] mb-1">Current role</div>
+            <div className="font-medium text-[#3d2f1f]">{isLoading ? 'Loading...' : roleLabel}</div>
           </div>
 
-          <div className="border-t border-gray-200 pt-3">
-            <div className="text-sm text-gray-600 mb-1">Profile status</div>
-            <div className="font-medium text-gray-900">{isLoading ? 'Loading...' : profile?.isActive ? 'Active' : 'Inactive'}</div>
+          <div className="border-t border-[#e8dfd1] pt-3">
+            <div className="text-sm text-[#8b7a6f] mb-1">Profile status</div>
+            <div className="font-medium text-[#3d2f1f]">{isLoading ? 'Loading...' : profile?.isActive ? 'Active' : 'Inactive'}</div>
           </div>
         </div>
 
@@ -144,7 +144,7 @@ function ActionButton({
     <button
       onClick={disabled ? undefined : onClick}
       disabled={disabled}
-      className={`w-full p-4 rounded-lg flex items-center gap-3 font-medium bg-white border border-gray-300 text-gray-900 active:bg-gray-50 ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+      className={`w-full p-4 rounded-2xl flex items-center gap-3 font-semibold bg-white border border-[#ded2c0] text-[#3d2f1f] active:bg-[#faf8f5] shadow-[0_2px_8px_rgba(61,47,31,0.08)] transition-colors ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
     >
       {icon}
       <span>{label}</span>
