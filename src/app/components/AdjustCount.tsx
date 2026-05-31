@@ -19,23 +19,23 @@ export default function AdjustCount() {
 
   if (!product) {
     return (
-      <div className="min-h-screen bg-gray-50 pb-24">
-        <div className="bg-white border-b border-gray-200 p-4 flex items-center gap-3">
+      <div className="min-h-screen bg-[#f7f4ed] pb-24">
+        <div className="bg-white border-b border-[#e8dfd1] p-4 flex items-center gap-3 shadow-[0_1px_4px_rgba(61,47,31,0.06)]">
           <button
             onClick={() => navigate('/inventory')}
-            className="text-gray-600 active:text-gray-900"
+            className="text-[#8b7a6f] active:text-[#3d2f1f]"
           >
             <ArrowLeft size={24} />
           </button>
-          <h1 className="text-xl font-semibold text-gray-900">Adjust Count</h1>
+          <h1 className="text-xl font-bold text-[#3d2f1f]">Adjust Count</h1>
         </div>
 
         <div className="p-4">
-          <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
-            <div className="text-sm text-gray-700">Select a product before continuing.</div>
+          <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 space-y-3 shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
+            <div className="text-sm text-[#8b7a6f]">Select a product before continuing.</div>
             <button
               onClick={() => navigate('/inventory')}
-              className="w-full bg-white border border-gray-300 text-gray-900 py-3 rounded-lg font-semibold active:bg-gray-50"
+              className="w-full bg-white border border-[#ded2c0] text-[#3d2f1f] py-3 rounded-2xl font-semibold active:bg-[#faf8f5] shadow-[0_2px_8px_rgba(61,47,31,0.08)]"
             >
               Back to Inventory
             </button>
@@ -87,48 +87,48 @@ export default function AdjustCount() {
 
   if (adjustmentResult) {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col">
-        <div className="bg-white border-b border-gray-200 p-6">
+      <div className="min-h-screen bg-[#f7f4ed] flex flex-col">
+        <div className="bg-white border-b border-[#e8dfd1] p-6 shadow-[0_1px_4px_rgba(61,47,31,0.06)]">
           <div className="flex flex-col items-center text-center">
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4 border-2 border-gray-900">
-              <CheckCircle2 size={32} className="text-gray-900" />
+            <div className="w-16 h-16 bg-[#e9f0e5] rounded-full flex items-center justify-center mb-4 border-2 border-[#5a7a4d] shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
+              <CheckCircle2 size={32} className="text-[#5a7a4d]" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Count Adjusted</h1>
-            <p className="text-gray-600">Inventory correction was recorded.</p>
+            <h1 className="text-2xl font-bold text-[#3d2f1f] mb-2">Count Adjusted</h1>
+            <p className="text-[#8b7a6f]">Inventory correction was recorded.</p>
           </div>
         </div>
 
         <div className="flex-1 p-4 space-y-4">
-          <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
+          <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 space-y-3 shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
             <div>
-              <div className="text-sm text-gray-600 mb-1">Product</div>
-              <div className="font-semibold text-gray-900 text-lg">{adjustmentResult.productName}</div>
+              <div className="text-sm text-[#8b7a6f] mb-1">Product</div>
+              <div className="font-semibold text-[#3d2f1f] text-lg">{adjustmentResult.productName}</div>
             </div>
 
-            <div className="border-t border-gray-200 pt-3">
-              <div className="text-sm text-gray-600 mb-1">Previous quantity</div>
-              <div className="font-semibold text-gray-900">
+            <div className="border-t border-[#e8dfd1] pt-3">
+              <div className="text-sm text-[#8b7a6f] mb-1">Previous quantity</div>
+              <div className="font-semibold text-[#3d2f1f]">
                 {adjustmentResult.quantityBefore} {adjustmentResult.unitLabel}
               </div>
             </div>
 
-            <div className="border-t border-gray-200 pt-3">
-              <div className="text-sm text-gray-600 mb-1">New quantity</div>
-              <div className="text-2xl font-bold text-gray-900">
+            <div className="border-t border-[#e8dfd1] pt-3">
+              <div className="text-sm text-[#8b7a6f] mb-1">New quantity</div>
+              <div className="text-2xl font-bold text-[#3d2f1f]">
                 {adjustmentResult.quantityAfter} {adjustmentResult.unitLabel}
               </div>
             </div>
 
-            <div className="border-t border-gray-200 pt-3">
-              <div className="text-sm text-gray-600 mb-1">Change</div>
-              <div className="font-semibold text-gray-900">
+            <div className="border-t border-[#e8dfd1] pt-3">
+              <div className="text-sm text-[#8b7a6f] mb-1">Change</div>
+              <div className="font-semibold text-[#3d2f1f]">
                 {adjustmentResult.quantityChange > 0 ? '+' : ''}{adjustmentResult.quantityChange} {adjustmentResult.unitLabel}
               </div>
             </div>
 
-            <div className="border-t border-gray-200 pt-3">
-              <div className="text-sm text-gray-600 mb-1">Reason</div>
-              <div className="text-gray-900">{adjustmentResult.reason}</div>
+            <div className="border-t border-[#e8dfd1] pt-3">
+              <div className="text-sm text-[#8b7a6f] mb-1">Reason</div>
+              <div className="text-[#3d2f1f]">{adjustmentResult.reason}</div>
             </div>
           </div>
         </div>
@@ -136,14 +136,14 @@ export default function AdjustCount() {
         <div className="p-4 space-y-2">
           <button
             onClick={() => navigate('/product-detail', { state: { product: updatedProduct, adjustmentResult } })}
-            className="w-full bg-gray-900 text-white py-3 rounded-lg font-semibold flex items-center justify-center gap-2 active:bg-gray-800"
+            className="w-full bg-[#5a7a4d] text-white py-3 rounded-2xl font-semibold flex items-center justify-center gap-2 active:bg-[#4a6a3d] shadow-[0_3px_10px_rgba(61,47,31,0.18)]"
           >
             <Package size={20} />
             View Product
           </button>
           <button
             onClick={() => navigate('/inventory')}
-            className="w-full bg-white border border-gray-300 text-gray-900 py-3 rounded-lg font-semibold active:bg-gray-50"
+            className="w-full bg-white border border-[#ded2c0] text-[#3d2f1f] py-3 rounded-2xl font-semibold active:bg-[#faf8f5] shadow-[0_2px_8px_rgba(61,47,31,0.08)]"
           >
             Back to Inventory
           </button>
@@ -155,42 +155,42 @@ export default function AdjustCount() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-32">
+    <div className="min-h-screen bg-[#f7f4ed] pb-32">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 p-4 flex items-center gap-3">
+      <div className="bg-white border-b border-[#e8dfd1] p-4 flex items-center gap-3 shadow-[0_1px_4px_rgba(61,47,31,0.06)]">
         <button
           onClick={() => navigate('/product-detail', { state: { product } })}
-          className="text-gray-600 active:text-gray-900"
+          className="text-[#8b7a6f] active:text-[#3d2f1f]"
         >
           <ArrowLeft size={24} />
         </button>
-        <h1 className="text-xl font-semibold text-gray-900">Adjust Count</h1>
+        <h1 className="text-xl font-bold text-[#3d2f1f]">Adjust Count</h1>
       </div>
 
       <div className="p-4 space-y-4">
         {errorMessage && (
-          <div className="bg-white border border-gray-300 rounded-lg p-4 text-sm text-gray-900">
+          <div className="bg-white border border-[#b7791f] rounded-2xl p-4 text-sm text-[#3d2f1f] shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
             {errorMessage}
           </div>
         )}
 
         {/* Product */}
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <div className="text-sm text-gray-600 mb-1">Product</div>
-          <div className="font-semibold text-gray-900 text-lg">{product.name}</div>
+        <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
+          <div className="text-sm text-[#8b7a6f] mb-1">Product</div>
+          <div className="font-semibold text-[#3d2f1f] text-lg">{product.name}</div>
         </div>
 
         {/* Current App Quantity */}
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <div className="text-sm text-gray-600 mb-1">Current app quantity</div>
-          <div className="text-2xl font-bold text-gray-900">
+        <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
+          <div className="text-sm text-[#8b7a6f] mb-1">Current app quantity</div>
+          <div className="text-2xl font-bold text-[#3d2f1f]">
             {product.currentQuantity} {product.unitLabel}
           </div>
         </div>
 
         {/* Physical Count */}
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+        <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
+          <label className="block text-sm font-medium text-[#8b7a6f] mb-2">
             Physical count
           </label>
           <input
@@ -206,30 +206,30 @@ export default function AdjustCount() {
               }
             }}
             placeholder="Enter actual count..."
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 text-2xl font-semibold focus:outline-none focus:ring-2 focus:ring-gray-900"
+            className="w-full px-4 py-3 bg-white border border-[#ded2c0] rounded-2xl text-[#3d2f1f] text-2xl font-bold placeholder:text-[#8b7a6f] focus:outline-none focus:ring-2 focus:ring-[#5a7a4d]"
           />
         </div>
 
         {/* Difference Preview */}
         {physicalCount && hasValidPhysicalCount && (
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="text-sm font-medium text-gray-700 mb-3">Difference preview</div>
+          <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
+            <div className="text-sm font-medium text-[#8b7a6f] mb-3">Difference preview</div>
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Current app quantity:</span>
-                <span className="font-medium text-gray-900">
+                <span className="text-[#8b7a6f]">Current app quantity:</span>
+                <span className="font-medium text-[#3d2f1f]">
                   {product.currentQuantity} {product.unitLabel}
                 </span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Physical count:</span>
-                <span className="font-medium text-gray-900">
+                <span className="text-[#8b7a6f]">Physical count:</span>
+                <span className="font-medium text-[#3d2f1f]">
                   {physicalCount} {product.unitLabel}
                 </span>
               </div>
-              <div className="pt-2 border-t border-gray-200 flex justify-between">
-                <span className="font-semibold text-gray-900">Difference:</span>
-                <span className={`text-xl font-bold ${difference > 0 ? 'text-gray-900' : 'text-gray-900'}`}>
+              <div className="pt-2 border-t border-[#e8dfd1] flex justify-between">
+                <span className="font-semibold text-[#3d2f1f]">Difference:</span>
+                <span className={`text-xl font-bold ${difference > 0 ? 'text-[#3d2f1f]' : 'text-[#3d2f1f]'}`}>
                   {differenceText} {product.unitLabel}
                 </span>
               </div>
@@ -238,8 +238,8 @@ export default function AdjustCount() {
         )}
 
         {/* Reason/Note */}
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+        <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
+          <label className="block text-sm font-medium text-[#8b7a6f] mb-2">
             Reason
           </label>
           <textarea
@@ -247,13 +247,13 @@ export default function AdjustCount() {
             onChange={(e) => setReasonNote(e.target.value)}
             placeholder="Explain the count adjustment..."
             rows={3}
-            className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-gray-900 text-gray-900"
+            className="w-full bg-white border border-[#ded2c0] rounded-2xl p-3 focus:outline-none focus:ring-2 focus:ring-[#5a7a4d] text-[#3d2f1f] placeholder:text-[#8b7a6f]"
           />
         </div>
 
         {/* Notes */}
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+        <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
+          <label className="block text-sm font-medium text-[#8b7a6f] mb-2">
             Notes
           </label>
           <textarea
@@ -261,23 +261,23 @@ export default function AdjustCount() {
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Add optional audit note..."
             rows={3}
-            className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-gray-900 text-gray-900"
+            className="w-full bg-white border border-[#ded2c0] rounded-2xl p-3 focus:outline-none focus:ring-2 focus:ring-[#5a7a4d] text-[#3d2f1f] placeholder:text-[#8b7a6f]"
           />
         </div>
       </div>
 
       {/* Fixed Bottom Button */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 max-w-md mx-auto">
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#e8dfd1] p-4 max-w-md mx-auto shadow-[0_-4px_18px_rgba(61,47,31,0.14)]">
         <button
           onClick={handleSave}
           disabled={isSaving}
-          className="w-full bg-gray-900 text-white py-3 rounded-lg font-semibold active:bg-gray-800 disabled:bg-gray-400"
+          className="w-full bg-[#5a7a4d] text-white py-3 rounded-2xl font-semibold active:bg-[#4a6a3d] disabled:bg-[#c7bdb0] shadow-[0_3px_10px_rgba(61,47,31,0.18)]"
         >
           {isSaving ? 'Saving Adjustment...' : 'Save Count Adjustment'}
         </button>
 
         {/* Workflow Annotation */}
-        <div className="mt-3 p-3 bg-gray-50 border border-gray-300 rounded text-xs text-gray-600 leading-relaxed">
+        <div className="mt-3 p-3 bg-[#f7f4ed] border border-[#ded2c0] rounded-2xl text-xs text-[#8b7a6f] leading-relaxed">
           <strong>Adjust Count:</strong><br />
           Adjust Count is for inventory corrections only. It does not create an invoice.
         </div>

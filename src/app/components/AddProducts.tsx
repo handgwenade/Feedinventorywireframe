@@ -136,50 +136,50 @@ export default function AddProducts() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col pb-24">
-      <div className="bg-white border-b border-gray-200 p-4">
+    <div className="min-h-screen bg-[#f7f4ed] flex flex-col pb-24">
+      <div className="bg-white border-b border-[#e8dfd1] p-4 shadow-[0_1px_4px_rgba(61,47,31,0.06)]">
         <div className="flex items-center gap-3 mb-3">
           <button
             onClick={() => navigate('/choose-customer')}
-            className="text-gray-600 active:text-gray-900"
+            className="text-[#8b7a6f] active:text-[#3d2f1f]"
           >
             <ArrowLeft size={24} />
           </button>
-          <h1 className="text-xl font-semibold text-gray-900">Add Products</h1>
+          <h1 className="text-xl font-bold text-[#3d2f1f]">Add Products</h1>
         </div>
-        <div className="text-sm text-gray-600">
-          Customer: <span className="font-medium text-gray-900">{customerName}</span>
+        <div className="text-sm text-[#8b7a6f]">
+          Customer: <span className="font-semibold text-[#3d2f1f]">{customerName}</span>
         </div>
       </div>
 
-      <div className="p-4 bg-white border-b border-gray-200">
+      <div className="p-4 bg-[#f7f4ed]">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8b7a6f]" size={20} />
           <input
             type="text"
             placeholder="Search products..."
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
-            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full pl-10 pr-4 py-3 bg-white border border-[#ded2c0] rounded-2xl text-[#3d2f1f] placeholder:text-[#8b7a6f] focus:outline-none focus:ring-2 focus:ring-[#5a7a4d] shadow-[0_2px_8px_rgba(61,47,31,0.08)]"
           />
         </div>
       </div>
 
       <div className="flex-1 p-4 space-y-3">
         {isLoading && (
-          <div className="bg-white border border-gray-200 rounded-lg p-4 text-sm text-gray-700">
+          <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 text-sm text-[#8b7a6f] shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
             Loading products...
           </div>
         )}
 
         {!isLoading && errorMessage && (
-          <div className="bg-white border border-gray-300 rounded-lg p-4 text-sm text-gray-900">
+          <div className="bg-white border border-[#b7791f] rounded-2xl p-4 text-sm text-[#3d2f1f] shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
             {errorMessage}
           </div>
         )}
 
         {!isLoading && !errorMessage && filteredProducts.length === 0 && (
-          <div className="bg-white border border-gray-200 rounded-lg p-4 text-sm text-gray-700">
+          <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 text-sm text-[#8b7a6f] shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
             No products found.
           </div>
         )}
@@ -189,38 +189,38 @@ export default function AddProducts() {
           const cartItem = cart.find((item) => item.productId === product.id);
 
           return (
-            <div key={product.id} className="bg-white border border-gray-200 rounded-lg p-4">
+            <div key={product.id} className="bg-white border border-[#ded2c0] rounded-2xl p-4 shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
               <div className="flex gap-3">
-                <div className="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <Package size={32} className="text-gray-400" />
+                <div className="w-20 h-20 bg-[#f7f4ed] border border-[#e8dfd1] rounded-2xl flex items-center justify-center flex-shrink-0">
+                  <Package size={32} className="text-[#8b7a6f]" />
                 </div>
 
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-gray-900 mb-1">{product.name}</h3>
+                  <h3 className="font-semibold text-[#3d2f1f] mb-1">{product.name}</h3>
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="text-sm text-gray-600">
+                    <span className="text-sm text-[#8b7a6f]">
                       {product.currentQuantity} {product.unitLabel} available
                     </span>
                     {lowStock && (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 text-gray-700 text-xs font-medium rounded border border-gray-300">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#fff4d8] text-[#8b5a1f] text-xs font-semibold rounded-full border border-[#d4a574]">
                         <AlertCircle size={12} />
                         Low Stock
                       </span>
                     )}
                     {cartItem && (
-                      <span className="inline-flex px-2 py-0.5 bg-gray-100 text-gray-700 text-xs font-medium rounded border border-gray-300">
+                      <span className="inline-flex px-2 py-0.5 bg-[#e9f0e5] text-[#5a7a4d] text-xs font-semibold rounded-full border border-[#cbd8c4]">
                         In invoice: {cartItem.quantity}
                       </span>
                     )}
                   </div>
-                  <div className="text-lg font-semibold text-gray-900">
+                  <div className="text-lg font-bold text-[#3d2f1f]">
                     {formatCurrency(product.salePrice)}
                   </div>
                 </div>
 
                 <button
                   onClick={() => handleAddToCart(product)}
-                  className="bg-gray-900 text-white px-4 py-2 rounded-lg font-medium active:bg-gray-800 h-fit"
+                  className="bg-[#5a7a4d] text-white px-4 py-2 rounded-2xl font-semibold active:bg-[#4a6a3d] h-fit shadow-[0_3px_10px_rgba(61,47,31,0.18)]"
                 >
                   Add
                 </button>
@@ -231,7 +231,7 @@ export default function AddProducts() {
       </div>
 
       {cart.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 bg-gray-900 text-white p-4 shadow-lg max-w-md mx-auto">
+        <div className="fixed bottom-0 left-0 right-0 bg-[#3d2f1f] text-white p-4 shadow-[0_-4px_18px_rgba(61,47,31,0.24)] max-w-md mx-auto border-t border-[#8b6f47]">
           <div
             onClick={handleReviewInvoice}
             className="flex items-center justify-between mb-3 cursor-pointer active:opacity-80"
@@ -247,7 +247,7 @@ export default function AddProducts() {
                 <div className="font-medium">
                   {cartItemCount} {cartItemCount === 1 ? 'item' : 'items'} in invoice
                 </div>
-                <div className="text-xs text-gray-300">Tap to review</div>
+                <div className="text-xs text-[#d4c6b3]">Tap to review</div>
               </div>
             </div>
             <div className="text-xl font-bold">
@@ -256,7 +256,7 @@ export default function AddProducts() {
           </div>
           <button
             onClick={handleReviewInvoice}
-            className="w-full bg-white text-gray-900 py-3 rounded-lg font-semibold active:bg-gray-100"
+            className="w-full bg-white text-[#3d2f1f] py-3 rounded-2xl font-semibold active:bg-[#faf8f5]"
           >
             Review Invoice
           </button>
@@ -329,16 +329,16 @@ function QuantityModal({
   return (
     <div className="fixed inset-0 bg-black/50 flex items-end z-50" onClick={onCancel}>
       <div
-        className="bg-white rounded-t-2xl w-full p-6 animate-slide-up"
+        className="bg-white rounded-t-3xl w-full p-6 animate-slide-up border-t border-[#e8dfd1] shadow-[0_-4px_18px_rgba(61,47,31,0.18)]"
         onClick={(event) => event.stopPropagation()}
       >
-        <h3 className="text-xl font-semibold text-gray-900 mb-1">{product.name}</h3>
-        <p className="text-sm text-gray-600 mb-6">
+        <h3 className="text-xl font-bold text-[#3d2f1f] mb-1">{product.name}</h3>
+        <p className="text-sm text-[#8b7a6f] mb-6">
           {formatCurrency(product.salePrice)} each
         </p>
 
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
+          <label className="block text-sm font-semibold text-[#3d2f1f] mb-2">Quantity</label>
           <div className="flex items-center gap-4">
             <button
               onClick={() => {
@@ -347,7 +347,7 @@ function QuantityModal({
                 setQuantityInput(String(next));
                 setErrorMessage(null);
               }}
-              className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center text-2xl font-semibold text-gray-700 active:bg-gray-200"
+              className="w-12 h-12 bg-[#f7f4ed] border border-[#ded2c0] rounded-2xl flex items-center justify-center text-2xl font-semibold text-[#3d2f1f] active:bg-[#faf8f5]"
             >
               −
             </button>
@@ -362,7 +362,7 @@ function QuantityModal({
                   setQuantityInput('');
                 }
               }}
-              className="flex-1 text-center text-2xl font-semibold text-gray-900 border border-gray-300 rounded-lg py-2"
+              className="flex-1 text-center text-2xl font-bold text-[#3d2f1f] bg-white border border-[#ded2c0] rounded-2xl py-2 focus:outline-none focus:ring-2 focus:ring-[#5a7a4d]"
               placeholder="0"
             />
             <button
@@ -372,35 +372,35 @@ function QuantityModal({
                 setQuantityInput(String(next));
                 setErrorMessage(null);
               }}
-              className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center text-2xl font-semibold text-gray-700 active:bg-gray-200"
+              className="w-12 h-12 bg-[#f7f4ed] border border-[#ded2c0] rounded-2xl flex items-center justify-center text-2xl font-semibold text-[#3d2f1f] active:bg-[#faf8f5]"
             >
               +
             </button>
           </div>
           {errorMessage && (
-            <div className="mt-2 text-sm text-red-600">{errorMessage}</div>
+            <div className="mt-2 text-sm font-medium text-[#8b3f2f]">{errorMessage}</div>
           )}
         </div>
 
-        <div className="mb-6 p-3 bg-gray-50 rounded-lg border border-gray-200">
+        <div className="mb-6 p-3 bg-[#f7f4ed] rounded-2xl border border-[#e8dfd1]">
           <div className="flex justify-between text-sm mb-1">
-            <span className="text-gray-600">Available now:</span>
-            <span className="font-medium text-gray-900">
+            <span className="text-[#8b7a6f]">Available now:</span>
+            <span className="font-medium text-[#3d2f1f]">
               {product.currentQuantity} {product.unitLabel}
             </span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-gray-600">After sale:</span>
-            <span className="font-medium text-gray-900">
+            <span className="text-[#8b7a6f]">After sale:</span>
+            <span className="font-medium text-[#3d2f1f]">
               {afterSale} {product.unitLabel}
             </span>
           </div>
         </div>
 
-        <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+        <div className="mb-6 p-4 bg-[#f7f4ed] rounded-2xl border border-[#e8dfd1]">
           <div className="flex justify-between items-center">
-            <span className="text-gray-700">Line Total</span>
-            <span className="text-2xl font-bold text-gray-900">
+            <span className="text-[#8b7a6f]">Line Total</span>
+            <span className="text-2xl font-bold text-[#3d2f1f]">
               {formatCurrency(lineTotal)}
             </span>
           </div>
@@ -409,13 +409,13 @@ function QuantityModal({
         <div className="flex gap-3">
           <button
             onClick={onCancel}
-            className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-lg font-semibold active:bg-gray-200"
+            className="flex-1 bg-white border border-[#ded2c0] text-[#3d2f1f] py-3 rounded-2xl font-semibold active:bg-[#faf8f5]"
           >
             Cancel
           </button>
           <button
             onClick={handleConfirm}
-            className="flex-1 bg-gray-900 text-white py-3 rounded-lg font-semibold active:bg-gray-800"
+            className="flex-1 bg-[#5a7a4d] text-white py-3 rounded-2xl font-semibold active:bg-[#4a6a3d] shadow-[0_3px_10px_rgba(61,47,31,0.18)]"
           >
             Add to Invoice
           </button>
