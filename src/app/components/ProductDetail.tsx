@@ -78,26 +78,26 @@ export default function ProductDetail() {
 
   if (!product) {
     return (
-      <div className="min-h-screen bg-gray-50 pb-24">
-        <div className="bg-white border-b border-gray-200 p-4 flex items-center justify-between">
+      <div className="min-h-screen bg-[#f7f4ed] pb-24">
+        <div className="bg-white border-b border-[#e8dfd1] p-4 flex items-center justify-between shadow-[0_1px_4px_rgba(61,47,31,0.06)]">
           <div className="flex items-center gap-3">
             <button
               onClick={() => navigate('/inventory')}
-              className="text-gray-600 active:text-gray-900"
+              className="text-[#8b7a6f] active:text-[#3d2f1f]"
             >
               <ArrowLeft size={24} />
             </button>
-            <h1 className="text-xl font-semibold text-gray-900">Product Detail</h1>
+            <h1 className="text-xl font-bold text-[#3d2f1f]">Product Detail</h1>
           </div>
           <UserIcon />
         </div>
 
         <div className="p-4">
-          <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
-            <div className="text-sm text-gray-700">Select a product before continuing.</div>
+          <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 space-y-3 shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
+            <div className="text-sm text-[#8b7a6f]">Select a product before continuing.</div>
             <button
               onClick={() => navigate('/inventory')}
-              className="w-full bg-white border border-gray-300 text-gray-900 py-3 rounded-lg font-semibold active:bg-gray-50"
+              className="w-full bg-white border border-[#ded2c0] text-[#3d2f1f] py-3 rounded-2xl font-semibold active:bg-[#faf8f5] shadow-[0_2px_8px_rgba(61,47,31,0.08)]"
             >
               Back to Inventory
             </button>
@@ -136,65 +136,65 @@ export default function ProductDetail() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24">
-      <div className="bg-white border-b border-gray-200 p-4 flex items-center justify-between">
+    <div className="min-h-screen bg-[#f7f4ed] pb-24">
+      <div className="bg-white border-b border-[#e8dfd1] p-4 flex items-center justify-between shadow-[0_1px_4px_rgba(61,47,31,0.06)]">
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate('/inventory')}
-            className="text-gray-600 active:text-gray-900"
+            className="text-[#8b7a6f] active:text-[#3d2f1f]"
           >
             <ArrowLeft size={24} />
           </button>
-          <h1 className="text-xl font-semibold text-gray-900">Product Detail</h1>
+          <h1 className="text-xl font-bold text-[#3d2f1f]">Product Detail</h1>
         </div>
         <UserIcon />
       </div>
 
       <div className="p-4 space-y-4">
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <div className="w-full h-48 bg-gray-100 rounded-lg flex items-center justify-center mb-4">
-            <Package size={64} className="text-gray-400" />
+        <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
+          <div className="w-full h-48 bg-[#f7f4ed] border border-[#e8dfd1] rounded-2xl flex items-center justify-center mb-4">
+            <Package size={64} className="text-[#8b7a6f]" />
           </div>
-          <h2 className="text-xl font-bold text-gray-900">{product.name}</h2>
+          <h2 className="text-xl font-bold text-[#3d2f1f]">{product.name}</h2>
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
+        <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 space-y-3 shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
           <div className="flex justify-between gap-4">
-            <span className="text-gray-700">Current quantity</span>
-            <span className="text-xl font-bold text-gray-900">
+            <span className="text-[#8b7a6f]">Current quantity</span>
+            <span className="text-xl font-bold text-[#3d2f1f]">
               {product.currentQuantity} {product.unitLabel}
             </span>
           </div>
           <div className="flex justify-between gap-4">
-            <span className="text-gray-700">Minimum quantity</span>
-            <span className="font-medium text-gray-900">
+            <span className="text-[#8b7a6f]">Minimum quantity</span>
+            <span className="font-medium text-[#3d2f1f]">
               {product.minimumQuantity} {product.unitLabel}
             </span>
           </div>
           <div className="flex justify-between gap-4">
-            <span className="text-gray-700">Unit price</span>
-            <span className="font-medium text-gray-900">
+            <span className="text-[#8b7a6f]">Unit price</span>
+            <span className="font-medium text-[#3d2f1f]">
               {formatCurrency(product.salePrice)} / {product.unitLabel}
             </span>
           </div>
           <div className="flex justify-between gap-4">
-            <span className="text-gray-700">Inventory value</span>
-            <span className="font-semibold text-gray-900">{formatCurrency(inventoryValue)}</span>
+            <span className="text-[#8b7a6f]">Inventory value</span>
+            <span className="font-semibold text-[#3d2f1f]">{formatCurrency(inventoryValue)}</span>
           </div>
-          <div className="pt-3 border-t border-gray-200 flex justify-between gap-4">
-            <span className="text-gray-700">Status</span>
-            <span className="font-semibold text-gray-900">{status}</span>
+          <div className="pt-3 border-t border-[#e8dfd1] flex justify-between gap-4">
+            <span className="text-[#8b7a6f]">Status</span>
+            <span className="font-semibold text-[#3d2f1f]">{status}</span>
           </div>
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <div className="text-sm text-gray-600 mb-1">Vendor/source note</div>
-          <div className="text-gray-900">{product.vendor ?? '—'}</div>
+        <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
+          <div className="text-sm text-[#8b7a6f] mb-1">Vendor/source note</div>
+          <div className="text-[#3d2f1f]">{product.vendor ?? '—'}</div>
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <div className="text-sm text-gray-600 mb-1">Notes</div>
-          <div className="text-gray-900">{product.sourceNotes ?? '—'}</div>
+        <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
+          <div className="text-sm text-[#8b7a6f] mb-1">Notes</div>
+          <div className="text-[#3d2f1f]">{product.sourceNotes ?? '—'}</div>
         </div>
 
         <div className="space-y-2">
@@ -234,16 +234,16 @@ export default function ProductDetail() {
         </div>
 
         {showArchivePanel && (
-          <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
+          <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 space-y-3 shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
             <div>
-              <div className="font-semibold text-gray-900">Archive Product</div>
-              <div className="text-sm text-gray-600 mt-1">
+              <div className="font-semibold text-[#3d2f1f]">Archive Product</div>
+              <div className="text-sm text-[#8b7a6f] mt-1">
                 This hides the product from normal inventory and picker screens. Historical records stay intact.
               </div>
             </div>
 
             {archiveError && (
-              <div className="bg-white border border-gray-300 rounded-lg p-3 text-sm text-gray-900">
+              <div className="bg-white border border-[#ded2c0] rounded-lg p-3 text-sm text-[#3d2f1f]">
                 {archiveError}
               </div>
             )}
@@ -253,7 +253,7 @@ export default function ProductDetail() {
               onChange={(event) => setArchiveReason(event.target.value)}
               placeholder="Reason for archive..."
               rows={3}
-              className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-gray-900 text-gray-900"
+              className="w-full bg-white border border-[#ded2c0] rounded-2xl p-3 focus:outline-none focus:ring-2 focus:ring-[#5a7a4d] text-[#3d2f1f] placeholder:text-[#8b7a6f]"
             />
 
             <div className="flex gap-2">
@@ -264,14 +264,14 @@ export default function ProductDetail() {
                   setArchiveReason('');
                 }}
                 disabled={isArchiving}
-                className="flex-1 bg-white border border-gray-300 text-gray-900 py-3 rounded-lg font-semibold active:bg-gray-50"
+                className="flex-1 bg-white border border-[#ded2c0] text-[#3d2f1f] py-3 rounded-2xl font-semibold active:bg-[#faf8f5] shadow-[0_2px_8px_rgba(61,47,31,0.08)]"
               >
                 Cancel
               </button>
               <button
                 onClick={handleArchiveProduct}
                 disabled={isArchiving}
-                className="flex-1 bg-gray-900 text-white py-3 rounded-lg font-semibold active:bg-gray-800 disabled:bg-gray-400"
+                className="flex-1 bg-[#8b3f2f] text-white py-3 rounded-2xl font-semibold active:bg-[#733426] disabled:bg-[#c7bdb0] shadow-[0_3px_10px_rgba(61,47,31,0.18)]"
               >
                 {isArchiving ? 'Archiving...' : 'Archive'}
               </button>
@@ -279,13 +279,13 @@ export default function ProductDetail() {
           </div>
         )}
 
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <h3 className="font-semibold text-gray-900 mb-3">Recent Activity</h3>
+        <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
+          <h3 className="font-semibold text-[#3d2f1f] mb-3">Recent Activity</h3>
           <div className="space-y-3">
             {isLoadingTransactions ? (
-              <p className="text-sm text-gray-600">Loading recent movements...</p>
+              <p className="text-sm text-[#8b7a6f]">Loading recent movements...</p>
             ) : transactionError ? (
-              <div className="bg-white border border-gray-300 rounded-lg p-3 text-sm text-gray-900">
+              <div className="bg-white border border-[#ded2c0] rounded-lg p-3 text-sm text-[#3d2f1f]">
                 {transactionError}
               </div>
             ) : transactions.length > 0 ? (
@@ -293,7 +293,7 @@ export default function ProductDetail() {
                 <ActivityItem key={transaction.id} transaction={transaction} unitLabel={product.unitLabel} />
               ))
             ) : (
-              <p className="text-sm text-gray-600">No recent inventory movements for this product.</p>
+              <p className="text-sm text-[#8b7a6f]">No recent inventory movements for this product.</p>
             )}
           </div>
         </div>
@@ -316,7 +316,7 @@ function ActionButton({
   return (
     <button
       onClick={onClick}
-      className="w-full p-4 rounded-lg flex items-center gap-3 font-medium bg-white border border-gray-300 text-gray-900 active:bg-gray-50"
+      className="w-full p-4 rounded-2xl flex items-center gap-3 font-semibold bg-white border border-[#ded2c0] text-[#3d2f1f] active:bg-[#faf8f5] shadow-[0_2px_8px_rgba(61,47,31,0.08)] transition-colors"
     >
       {icon}
       <span>{label}</span>
@@ -337,18 +337,18 @@ function ActivityItem({
 
   return (
     <div className="flex items-start gap-2">
-      <div className="w-1.5 h-1.5 rounded-full bg-gray-400 mt-2 flex-shrink-0" />
-      <div className="text-sm text-gray-700 flex-1">
+      <div className="w-1.5 h-1.5 rounded-full bg-[#d4a574] mt-2 flex-shrink-0" />
+      <div className="text-sm text-[#8b7a6f] flex-1">
         <div className="flex justify-between gap-3">
-          <span className="font-medium text-gray-900">{getTransactionTypeLabel(transaction.transactionType)}</span>
-          <span className="font-semibold text-gray-900">{quantityChange} {unitLabel}</span>
+          <span className="font-medium text-[#3d2f1f]">{getTransactionTypeLabel(transaction.transactionType)}</span>
+          <span className="font-semibold text-[#3d2f1f]">{quantityChange} {unitLabel}</span>
         </div>
-        <div className="text-gray-600">
+        <div className="text-[#8b7a6f]">
           {transaction.quantityBefore} to {transaction.quantityAfter} {unitLabel}
         </div>
-        <div className="text-gray-600">{formatMovementDate(transaction.createdAt)}</div>
+        <div className="text-[#8b7a6f]">{formatMovementDate(transaction.createdAt)}</div>
         {transaction.notes && (
-          <div className="text-gray-700 mt-1">{transaction.notes}</div>
+          <div className="text-[#8b7a6f] mt-1">{transaction.notes}</div>
         )}
       </div>
     </div>
