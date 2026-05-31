@@ -265,7 +265,7 @@ export default function AccountDetail() {
         <>
           <ActionButton icon={<FileText size={20} />} label="Start Customer Sale" onClick={() => navigate('/choose-customer')} />
           <ActionButton icon={<DollarSign size={20} />} label="Record Payment" onClick={() => navigate('/invoices')} />
-          <ActionButton icon={<List size={20} />} label="View Invoices" onClick={() => navigate('/invoices')} />
+          <ActionButton icon={<List size={20} />} label="View Invoices" onClick={() => navigate('/invoices', { state: { filterType: 'customer', accountName: account.name } })} />
           <ActionButton icon={<Edit size={20} />} label="Edit Account" onClick={() => navigate('/edit-account-person', { state: { account } })} />
           <ActionButton
             icon={<Archive size={20} />}
@@ -281,7 +281,7 @@ export default function AccountDetail() {
       {account.type === 'k2' && (
         <>
           <ActionButton icon={<FileText size={20} />} label="Start K2 Use" onClick={() => navigate('/k2-add-products')} />
-          <ActionButton icon={<List size={20} />} label="View Statements" onClick={() => navigate('/invoices')} />
+          <ActionButton icon={<List size={20} />} label="View Statements" onClick={() => navigate('/invoices', { state: { filterType: 'k2', accountName: account.name } })} />
         </>
       )}
 
