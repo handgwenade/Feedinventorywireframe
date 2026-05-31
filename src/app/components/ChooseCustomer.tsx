@@ -55,29 +55,29 @@ export default function ChooseCustomer() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-[#f7f4ed] flex flex-col pb-24">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 p-4 flex items-center gap-3">
+      <div className="bg-white border-b border-[#e8dfd1] p-4 flex items-center gap-3 shadow-[0_1px_4px_rgba(61,47,31,0.06)]">
         <button
           onClick={() => navigate('/')}
-          className="text-gray-600 active:text-gray-900"
+          className="text-[#8b7a6f] active:text-[#3d2f1f]"
         >
           <ArrowLeft size={24} />
         </button>
-        <h1 className="text-xl font-semibold text-gray-900">New Sale</h1>
+        <h1 className="text-xl font-bold text-[#3d2f1f]">New Sale</h1>
       </div>
 
       <div className="flex-1 p-4">
         {/* Search */}
         <div className="mb-6">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8b7a6f]" size={20} />
             <input
               type="text"
               placeholder="Search customers or accounts..."
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full pl-10 pr-4 py-3 bg-white border border-[#ded2c0] rounded-2xl text-[#3d2f1f] placeholder:text-[#8b7a6f] focus:outline-none focus:ring-2 focus:ring-[#5a7a4d] shadow-[0_2px_8px_rgba(61,47,31,0.08)]"
             />
           </div>
         </div>
@@ -85,30 +85,30 @@ export default function ChooseCustomer() {
         {/* Add New Customer Button */}
         <button
           onClick={() => navigate('/add-account-person')}
-          className="w-full bg-white border-2 border-dashed border-gray-300 p-4 rounded-lg mb-6 flex items-center justify-center gap-2 text-gray-600 active:bg-gray-50"
+          className="w-full bg-white border-2 border-dashed border-[#d4a574] p-4 rounded-2xl mb-6 flex items-center justify-center gap-2 text-[#5a7a4d] active:bg-[#faf8f5] shadow-[0_2px_8px_rgba(61,47,31,0.08)] transition-colors"
         >
           <UserPlus size={20} />
-          <span className="font-medium">Add New Customer</span>
+          <span className="font-semibold">Add New Customer</span>
         </button>
 
         {/* Recent Customers */}
         <div className="mb-6">
-          <h2 className="text-sm font-medium text-gray-700 mb-3">Recent Customers</h2>
+          <h2 className="text-sm font-semibold text-[#8b7a6f] mb-3">Recent Customers</h2>
           <div className="space-y-2">
             {isLoading && (
-              <div className="bg-white border border-gray-200 rounded-lg p-4 text-sm text-gray-700">
+              <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 text-sm text-[#8b7a6f] shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
                 Loading customers...
               </div>
             )}
 
             {!isLoading && errorMessage && (
-              <div className="bg-white border border-gray-300 rounded-lg p-4 text-sm text-gray-900">
+              <div className="bg-white border border-[#b7791f] rounded-2xl p-4 text-sm text-[#3d2f1f] shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
                 {errorMessage}
               </div>
             )}
 
             {!isLoading && !errorMessage && filteredCustomers.length === 0 && (
-              <div className="bg-white border border-gray-200 rounded-lg p-4 text-sm text-gray-700">
+              <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 text-sm text-[#8b7a6f] shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
                 No customers found.
               </div>
             )}
@@ -117,12 +117,12 @@ export default function ChooseCustomer() {
               <button
                 key={customer.id}
                 onClick={() => handleSelectCustomer(customer.id, customer.name)}
-                className="w-full bg-white border border-gray-200 p-4 rounded-lg flex items-center gap-3 active:bg-gray-50"
+                className="w-full bg-white border border-[#ded2c0] p-4 rounded-2xl flex items-center gap-3 active:bg-[#faf8f5] shadow-[0_2px_8px_rgba(61,47,31,0.08)] transition-colors"
               >
-                <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
-                  <User size={20} className="text-gray-600" />
+                <div className="w-10 h-10 bg-[#e9f0e5] border border-[#cbd8c4] rounded-full flex items-center justify-center">
+                  <User size={20} className="text-[#5a7a4d]" />
                 </div>
-                <span className="font-medium text-gray-900">{customer.name}</span>
+                <span className="font-semibold text-[#3d2f1f]">{customer.name}</span>
               </button>
             ))}
           </div>
@@ -131,7 +131,7 @@ export default function ChooseCustomer() {
         {/* Skip Option */}
         <button
           onClick={() => handleSelectCustomer('unassigned', 'Unassigned')}
-          className="w-full text-gray-600 py-3 text-center active:text-gray-900"
+          className="w-full text-[#8b7a6f] py-3 text-center font-semibold active:text-[#3d2f1f]"
         >
           Skip for Now / Unassigned Sale
         </button>
