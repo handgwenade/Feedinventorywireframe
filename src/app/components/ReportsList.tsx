@@ -10,6 +10,7 @@ import { calculateInventoryValue, formatCurrency, isLowStock } from '../utils/ca
 import type { InvoiceListItem } from '../services/invoicesService';
 import type { PaymentReceivedItem } from '../services/paymentsService';
 import type { Product } from '../types';
+import useRefreshOnFocus from '../hooks/useRefreshOnFocus';
 
 interface ReportCard {
   id: string;
