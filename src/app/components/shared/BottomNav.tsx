@@ -15,7 +15,7 @@ export default function BottomNav() {
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-300 max-w-md mx-auto">
+    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#e8dfd1] max-w-md mx-auto">
       <div className="grid grid-cols-5 h-16">
         <NavItem
           icon={<Home size={20} />}
@@ -69,15 +69,15 @@ function NavItem({
   return (
     <button
       onClick={onClick}
-      className={`flex flex-col items-center justify-center gap-1 ${
+      className={`flex flex-col items-center justify-center gap-1 transition-colors ${
         active
-          ? 'text-gray-900'
-          : 'text-gray-500'
-      } active:bg-gray-50`}
+          ? 'text-[#5a7a4d]'
+          : 'text-[#8b7a6f]'
+      } active:bg-[#f7f4ed]`}
     >
       {primary ? (
-        <div className={`w-12 h-12 rounded-full flex items-center justify-center -mt-2 ${
-          active ? 'bg-gray-900 text-white' : 'bg-gray-700 text-white'
+        <div className={`w-12 h-12 rounded-full flex items-center justify-center -mt-2 transition-colors ${
+          active ? 'bg-[#5a7a4d] text-white' : 'bg-[#d4a574] text-white'
         }`}>
           {icon}
         </div>

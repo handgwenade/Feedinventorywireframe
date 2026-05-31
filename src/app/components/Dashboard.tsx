@@ -95,19 +95,19 @@ export default function Dashboard() {
   const greetingName = profile?.displayName ?? profile?.email ?? 'there';
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24">
+    <div className="min-h-screen bg-[#f7f4ed] pb-24">
       {/* Header */}
-      <div className="p-4 mb-2">
+      <div className="p-4 mb-2 bg-white border-b border-[#e8dfd1]">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-1">C&C Feed Inventory</h1>
-            <p className="text-gray-600">Welcome back, {isLoading ? '...' : greetingName}</p>
+            <h1 className="text-2xl font-bold text-[#3d2f1f] mb-1">C&C Feed Inventory</h1>
+            <p className="text-[#8b7a6f]">Welcome back, {isLoading ? '...' : greetingName}</p>
           </div>
           <div className="flex items-center gap-3">
             <button
               onClick={loadDashboardData}
               disabled={isLoading}
-              className="px-4 py-2 bg-white border border-gray-300 text-gray-900 rounded-lg text-sm font-medium active:bg-gray-50 disabled:opacity-50"
+              className="px-4 py-2 bg-[#d4a574] text-[#3d2f1f] rounded-lg text-sm font-medium active:bg-[#c9956f] disabled:opacity-50 transition-colors"
             >
               {isLoading ? 'Refreshing...' : 'Refresh'}
             </button>
@@ -119,7 +119,7 @@ export default function Dashboard() {
       <div className="px-4">{/* Rest of content */}
 
       {errorMessage && (
-        <div className="bg-white border border-gray-300 rounded-lg p-4 text-sm text-gray-900 mb-4">
+        <div className="card-warm border-2 border-[#d4183d] p-4 text-sm text-[#3d2f1f] mb-4">
           {errorMessage}
         </div>
       )}
@@ -147,15 +147,15 @@ export default function Dashboard() {
       {/* Primary Action */}
       <button
         onClick={() => navigate('/choose-sale-type')}
-        className="w-full bg-gray-900 text-white p-5 rounded-lg shadow-sm mb-6 flex items-center justify-center gap-3 active:bg-gray-800"
+        className="w-full bg-[#5a7a4d] text-white p-5 rounded-lg shadow-sm mb-6 flex items-center justify-center gap-3 active:bg-[#4a6a3d] transition-colors font-semibold"
       >
         <ShoppingCart size={24} />
-        <span className="text-lg font-semibold">Take Feed</span>
+        <span className="text-lg">Take Feed</span>
       </button>
 
       {/* Main Navigation Cards */}
       <div className="mb-6">
-        <h2 className="text-sm font-medium text-gray-700 mb-3">Main Actions</h2>
+        <h2 className="text-sm font-medium text-[#8b7a6f] mb-3">Main Actions</h2>
         <div className="grid grid-cols-2 gap-3">
           <NavCard
             icon={<Package size={24} />}
@@ -191,15 +191,15 @@ export default function Dashboard() {
       </div>
 
       {/* Recent Activity */}
-      <div className="bg-white border border-gray-200 rounded-lg p-4">
-        <h3 className="font-semibold text-gray-900 mb-3">Recent Activity</h3>
+      <div className="card-warm-shadow p-4 mb-6">
+        <h3 className="font-semibold text-[#3d2f1f] mb-3">Recent Activity</h3>
         <div className="space-y-3">
           {isLoading && (
-            <div className="text-sm text-gray-700">Loading recent activity...</div>
+            <div className="text-sm text-[#8b7a6f]">Loading recent activity...</div>
           )}
 
           {!isLoading && !errorMessage && recentActivities.length === 0 && (
-            <div className="text-sm text-gray-700">No recent activity.</div>
+            <div className="text-sm text-[#8b7a6f]">No recent activity.</div>
           )}
 
           {!isLoading && recentActivities.map((activity) => (
@@ -212,8 +212,8 @@ export default function Dashboard() {
       </div>
 
       {/* Workflow Annotation */}
-      <div className="mt-6 p-3 bg-gray-50 border border-gray-300 rounded text-xs text-gray-600 leading-relaxed">
-        <strong>Navigation:</strong><br />
+      <div className="mt-6 p-4 bg-white border border-[#e8dfd1] rounded-lg text-xs text-[#8b7a6f] leading-relaxed">
+        <strong className="text-[#3d2f1f] block mb-2">Navigation:</strong>
         Home is the main command center. All sale/use activity starts from Take Feed. The user first chooses whether the feed is for a Customer or K2. Inventory, Invoices, Accounts, Reports, Add Stock, and Activity History remain accessible directly from Home.<br /><br />
         Bottom navigation provides persistent access to Home, Inventory, Take Feed, Invoices, and Accounts. Reports remain accessible from Home or role-based menus.
       </div>
@@ -237,13 +237,13 @@ function SummaryCard({
   detail?: string;
 }) {
   return (
-    <div className="bg-white border border-gray-200 p-3 rounded-lg">
-      <div className="flex items-center gap-1 mb-1 text-gray-600">
+    <div className="card-warm p-3">
+      <div className="flex items-center gap-1 mb-1 text-[#8b7a6f]">
         {icon}
       </div>
-      <div className="text-xs text-gray-600 mb-1">{label}</div>
-      <div className="text-lg font-bold text-gray-900">{value}</div>
-      {detail && <div className="text-xs text-gray-600 mt-1">{detail}</div>}
+      <div className="text-xs text-[#8b7a6f] mb-1">{label}</div>
+      <div className="text-lg font-bold text-[#3d2f1f]">{value}</div>
+      {detail && <div className="text-xs text-[#8b7a6f] mt-1">{detail}</div>}
     </div>
   );
 }
@@ -260,10 +260,10 @@ function NavCard({
   return (
     <button
       onClick={onClick}
-      className="bg-white border border-gray-200 p-4 rounded-lg shadow-sm flex flex-col items-center gap-2 active:bg-gray-50"
+      className="card-warm-shadow p-4 flex flex-col items-center gap-2 active:bg-[#faf8f5] transition-colors"
     >
-      <div className="text-gray-700">{icon}</div>
-      <span className="text-sm font-medium text-gray-900 text-center">{label}</span>
+      <div className="text-[#5a7a4d]">{icon}</div>
+      <span className="text-sm font-medium text-[#3d2f1f] text-center">{label}</span>
     </button>
   );
 }
@@ -271,8 +271,8 @@ function NavCard({
 function ActivityItem({ text }: { text: string }) {
   return (
     <div className="flex items-start gap-2">
-      <div className="w-1.5 h-1.5 rounded-full bg-gray-400 mt-2 flex-shrink-0" />
-      <p className="text-sm text-gray-700">{text}</p>
+      <div className="w-1.5 h-1.5 rounded-full bg-[#d4a574] mt-2 flex-shrink-0" />
+      <p className="text-sm text-[#3d2f1f]">{text}</p>
     </div>
   );
 }
