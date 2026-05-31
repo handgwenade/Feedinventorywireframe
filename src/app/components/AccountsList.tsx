@@ -6,14 +6,13 @@ import UserIcon from './shared/UserIcon';
 import { accountsService } from '../services/accountsService';
 import { activityService } from '../services/activityService';
 import { invoicesService } from '../services/invoicesService';
-import { peopleService } from '../services/peopleService';
 import { formatCurrency } from '../utils/calculations';
 import type { ActivityItem } from '../services/activityService';
 import type { InvoiceListItem } from '../services/invoicesService';
-import type { Account, Person } from '../types';
+import type { Account } from '../types';
 
-type AccountFilter = 'all' | 'customers' | 'k2' | 'family' | 'unpaid';
-type AccountListType = 'customer' | 'k2' | 'family';
+type AccountFilter = 'all' | 'customers' | 'k2' | 'unpaid';
+type AccountListType = 'customer' | 'k2';
 
 interface AccountListItem {
   id: string;
@@ -23,14 +22,10 @@ interface AccountListItem {
   lastActivity: string;
   phone?: string;
   email?: string;
-  source: Account | Person;
+  source: Account;
 }
 
 function getRelatedInvoices(entityId: string, type: AccountListType, invoices: InvoiceListItem[]): InvoiceListItem[] {
-  if (type === 'family') {
-    return invoices.filter((record) => record.personId === entityId);
-  }
-
   return invoices.filter((record) => record.accountId === entityId);
 }
 
@@ -44,7 +39,6 @@ function getLastActivity(entityId: string, type: AccountListType, invoices: Invo
   const relatedInvoiceIds = new Set(relatedInvoices.map((record) => record.id));
   const activity = activities.find((item) => (
     item.accountId === entityId ||
-    item.personId === entityId ||
     Boolean(item.invoiceRecordId && relatedInvoiceIds.has(item.invoiceRecordId))
   ));
 
@@ -59,7 +53,6 @@ function getLastActivity(entityId: string, type: AccountListType, invoices: Invo
 
 function buildAccountListItems(
   accounts: Account[],
-  people: Person[],
   invoices: InvoiceListItem[],
   activities: ActivityItem[],
 ): AccountListItem[] {
@@ -74,17 +67,7 @@ function buildAccountListItems(
     source: account,
   }));
 
-  const personItems: AccountListItem[] = people.map((person) => ({
-    id: person.id,
-    name: person.officialDisplayName,
-    type: 'family',
-    balance: getBalance(person.id, 'family', invoices),
-    lastActivity: getLastActivity(person.id, 'family', invoices, activities),
-    phone: person.phone,
-    source: person,
-  }));
-
-  return [...accountItems, ...personItems];
+  return accountItems;
 }
 
 export default function AccountsList() {
@@ -92,7 +75,6 @@ export default function AccountsList() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<AccountFilter>('all');
   const [accounts, setAccounts] = useState<Account[]>([]);
-  const [people, setPeople] = useState<Person[]>([]);
   const [invoices, setInvoices] = useState<InvoiceListItem[]>([]);
   const [activities, setActivities] = useState<ActivityItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -106,9 +88,8 @@ export default function AccountsList() {
       setErrorMessage(null);
 
       try {
-        const [liveAccounts, livePeople, liveInvoices, liveActivities] = await Promise.all([
+        const [liveAccounts, liveInvoices, liveActivities] = await Promise.all([
           accountsService.listActive(),
-          peopleService.list(),
           invoicesService.list(),
           activityService.list(),
         ]);
@@ -116,14 +97,12 @@ export default function AccountsList() {
         if (!isMounted) return;
 
         setAccounts(liveAccounts);
-        setPeople(livePeople);
         setInvoices(liveInvoices);
         setActivities(liveActivities);
       } catch (error) {
         if (!isMounted) return;
 
         setAccounts([]);
-        setPeople([]);
         setInvoices([]);
         setActivities([]);
         setErrorMessage(error instanceof Error ? error.message : 'Unable to load accounts.');
@@ -141,7 +120,7 @@ export default function AccountsList() {
     };
   }, []);
 
-  const listItems = buildAccountListItems(accounts, people, invoices, activities);
+  const listItems = buildAccountListItems(accounts, invoices, activities);
 
   const filteredAccounts = listItems.filter((account) => {
     const matchesSearch = account.name.toLowerCase().includes(searchQuery.toLowerCase());
@@ -149,7 +128,6 @@ export default function AccountsList() {
     if (activeFilter === 'all') return matchesSearch;
     if (activeFilter === 'customers') return matchesSearch && account.type === 'customer';
     if (activeFilter === 'k2') return matchesSearch && account.type === 'k2';
-    if (activeFilter === 'family') return matchesSearch && account.type === 'family';
     if (activeFilter === 'unpaid') return matchesSearch && account.balance > 0;
 
     return matchesSearch;
@@ -164,14 +142,14 @@ export default function AccountsList() {
 
       <div className="p-4 space-y-4">
         <p className="text-sm text-[#8b7a6f]">
-          View customers, K2, and people records.
+          View customer and K2 account records.
         </p>
 
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8b7a6f]" size={20} />
           <input
             type="text"
-            placeholder="Search accounts or people..."
+            placeholder="Search accounts..."
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
             className="w-full pl-10 pr-4 py-3 bg-white border border-[#ded2c0] rounded-2xl text-[#3d2f1f] placeholder:text-[#8b7a6f] focus:outline-none focus:ring-2 focus:ring-[#5a7a4d] shadow-[0_2px_8px_rgba(61,47,31,0.08)]"
@@ -182,7 +160,6 @@ export default function AccountsList() {
           <FilterChip label="All" active={activeFilter === 'all'} onClick={() => setActiveFilter('all')} />
           <FilterChip label="Customers" active={activeFilter === 'customers'} onClick={() => setActiveFilter('customers')} />
           <FilterChip label="K2" active={activeFilter === 'k2'} onClick={() => setActiveFilter('k2')} />
-          <FilterChip label="People" active={activeFilter === 'family'} onClick={() => setActiveFilter('family')} />
           <FilterChip label="Unpaid" active={activeFilter === 'unpaid'} onClick={() => setActiveFilter('unpaid')} />
         </div>
 
@@ -191,7 +168,7 @@ export default function AccountsList() {
           className="w-full bg-[#5a7a4d] text-white py-3 rounded-2xl font-semibold flex items-center justify-center gap-2 active:bg-[#4a6a3d] shadow-[0_3px_10px_rgba(61,47,31,0.18)]"
         >
           <Plus size={20} />
-          Add Account / Person
+          Add Account
         </button>
 
         <div className="space-y-3">
@@ -253,14 +230,12 @@ function AccountCard({ account, onClick }: { account: AccountListItem; onClick: 
   const getTypeLabel = (type: AccountListType) => {
     if (type === 'customer') return 'Customer';
     if (type === 'k2') return 'K2';
-    if (type === 'family') return 'Person';
     return type;
   };
 
   const getStatusLabel = (accountItem: AccountListItem) => {
     if (accountItem.type === 'customer') return `Balance Due ${formatCurrency(accountItem.balance)}`;
     if (accountItem.type === 'k2') return accountItem.balance > 0 ? `Balance ${formatCurrency(accountItem.balance)}` : 'Internal Transfer';
-    if (accountItem.type === 'family') return accountItem.balance > 0 ? `Balance ${formatCurrency(accountItem.balance)}` : 'Track Only';
     return '';
   };
 
