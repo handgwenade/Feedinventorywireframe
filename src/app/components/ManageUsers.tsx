@@ -12,7 +12,7 @@ interface User {
   lastActive: string;
 }
 
-const users: User[] = [
+const initialUsers: User[] = [
   {
     id: '1',
     name: 'Admin User',
@@ -46,10 +46,37 @@ const users: User[] = [
 export default function ManageUsers() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
+  const [users, setUsers] = useState<User[]>(initialUsers);
+  const [showAddUserPanel, setShowAddUserPanel] = useState(false);
+  const [newUserName, setNewUserName] = useState('');
+  const [newUserRole, setNewUserRole] = useState<User['role']>('Operator');
+  const [addUserError, setAddUserError] = useState<string | null>(null);
 
   const filteredUsers = users.filter(user =>
     user.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const handleAddUser = () => {
+    setAddUserError(null);
+
+    if (!newUserName.trim()) {
+      setAddUserError('User name is required.');
+      return;
+    }
+
+    const user: User = {
+      id: `local-${Date.now()}`,
+      name: newUserName.trim(),
+      role: newUserRole,
+      status: 'Invited',
+      lastActive: 'Not active yet',
+    };
+
+    setUsers((currentUsers) => [user, ...currentUsers]);
+    setNewUserName('');
+    setNewUserRole('Operator');
+    setShowAddUserPanel(false);
+  };
 
   return (
     <div className="min-h-screen bg-[#f7f4ed] pb-24">
@@ -69,7 +96,7 @@ export default function ManageUsers() {
 
       <div className="p-4 space-y-4">
         <div className="p-3 bg-white border border-[#ded2c0] rounded-2xl text-xs text-[#8b7a6f] leading-relaxed shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
-          <strong>Static wireframe:</strong> User invites, edits, and role changes are not connected to Supabase yet.
+          <strong>Local wireframe:</strong> Added users appear in this session only. Invites, edits, and role changes are not connected to Supabase yet.
         </div>
 
         {/* Search */}
@@ -86,12 +113,75 @@ export default function ManageUsers() {
 
         {/* Add User Button */}
         <button
-          disabled
-          className="w-full bg-[#f7f4ed] border border-[#ded2c0] text-[#8b7a6f] py-3 rounded-2xl font-semibold flex items-center justify-center gap-2 shadow-[0_2px_8px_rgba(61,47,31,0.08)]"
+          onClick={() => {
+            setShowAddUserPanel((current) => !current);
+            setAddUserError(null);
+          }}
+          className="w-full bg-[#5a7a4d] text-white py-3 rounded-2xl font-semibold flex items-center justify-center gap-2 active:bg-[#4a6a3d] shadow-[0_3px_10px_rgba(61,47,31,0.18)]"
         >
           <Plus size={20} />
-          Add User (Not Ready)
+          Add User
         </button>
+
+        {showAddUserPanel && (
+          <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 space-y-4 shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
+            <div>
+              <h2 className="font-bold text-[#3d2f1f] mb-1">Invite User</h2>
+              <p className="text-sm text-[#8b7a6f]">
+                This creates a local invited user for the wireframe. Supabase invite email is still future work.
+              </p>
+            </div>
+
+            {addUserError && (
+              <div className="p-3 bg-[#fff4f0] border border-[#d8a59a] rounded-2xl text-sm text-[#8b3f2f]">
+                {addUserError}
+              </div>
+            )}
+
+            <div>
+              <label className="block text-sm font-semibold text-[#3d2f1f] mb-2">Name</label>
+              <input
+                type="text"
+                value={newUserName}
+                onChange={(event) => setNewUserName(event.target.value)}
+                placeholder="Enter user name..."
+                className="w-full px-4 py-3 bg-white border border-[#ded2c0] rounded-2xl text-[#3d2f1f] placeholder:text-[#8b7a6f] focus:outline-none focus:ring-2 focus:ring-[#5a7a4d]"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-[#3d2f1f] mb-2">Role</label>
+              <select
+                value={newUserRole}
+                onChange={(event) => setNewUserRole(event.target.value as User['role'])}
+                className="w-full px-4 py-3 bg-white border border-[#ded2c0] rounded-2xl text-[#3d2f1f] focus:outline-none focus:ring-2 focus:ring-[#5a7a4d]"
+              >
+                <option value="Admin">Admin</option>
+                <option value="Manager">Manager</option>
+                <option value="Operator">Operator</option>
+                <option value="View Only">View Only</option>
+              </select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={() => {
+                  setShowAddUserPanel(false);
+                  setAddUserError(null);
+                }}
+                className="bg-white border border-[#ded2c0] text-[#3d2f1f] py-3 rounded-2xl font-semibold active:bg-[#faf8f5] shadow-[0_2px_8px_rgba(61,47,31,0.08)]"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleAddUser}
+                className="bg-[#5a7a4d] text-white py-3 rounded-2xl font-semibold active:bg-[#4a6a3d] shadow-[0_3px_10px_rgba(61,47,31,0.18)]"
+              >
+                Add User
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* User List */}
         <div className="space-y-3">
