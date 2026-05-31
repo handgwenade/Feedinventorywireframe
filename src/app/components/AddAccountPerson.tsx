@@ -111,31 +111,31 @@ export default function AddAccountPerson() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-32">
+    <div className="min-h-screen bg-[#f7f4ed] pb-32">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 p-4 flex items-center justify-between">
+      <div className="bg-white border-b border-[#e8dfd1] p-4 flex items-center justify-between shadow-[0_1px_4px_rgba(61,47,31,0.06)]">
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate('/accounts')}
-            className="text-gray-600 active:text-gray-900"
+            className="text-[#8b7a6f] active:text-[#3d2f1f]"
           >
             <ArrowLeft size={24} />
           </button>
-          <h1 className="text-xl font-semibold text-gray-900">Add Account / Person</h1>
+          <h1 className="text-xl font-bold text-[#3d2f1f]">Add Account / Person</h1>
         </div>
         <UserIcon />
       </div>
 
       <div className="p-4 space-y-4">
         {errorMessage && (
-          <div className="bg-white border border-gray-300 rounded-lg p-4 text-sm text-gray-900">
+          <div className="bg-white border border-[#b7791f] rounded-2xl p-4 text-sm text-[#3d2f1f] shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
             {errorMessage}
           </div>
         )}
 
         {/* Account Type Selector */}
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <label className="block text-sm font-medium text-gray-700 mb-3">
+        <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
+          <label className="block text-sm font-semibold text-[#3d2f1f] mb-3">
             Account type
           </label>
           <div className="space-y-2">
@@ -217,7 +217,7 @@ export default function AddAccountPerson() {
               placeholder="Add notes..."
               multiline
             />
-            <div className="p-3 bg-gray-50 border border-gray-300 rounded text-xs text-gray-600 leading-relaxed">
+            <div className="p-3 bg-white border border-[#ded2c0] rounded-2xl text-xs text-[#8b7a6f] leading-relaxed shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
               <strong>Tip:</strong> Use one official name per person to avoid duplicate records.
             </div>
           </>
@@ -225,12 +225,12 @@ export default function AddAccountPerson() {
       </div>
 
       {/* Fixed Bottom Buttons */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 max-w-md mx-auto space-y-2">
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#e8dfd1] p-4 max-w-md mx-auto space-y-2 shadow-[0_-4px_18px_rgba(61,47,31,0.14)]">
         {accountType === 'customer' ? (
           <button
             onClick={handleSaveCustomer}
             disabled={isSaving}
-            className="w-full bg-gray-900 text-white py-4 rounded-lg font-semibold active:bg-gray-800 disabled:bg-gray-400"
+            className="w-full bg-[#5a7a4d] text-white py-4 rounded-2xl font-semibold active:bg-[#4a6a3d] disabled:bg-[#c7bdb0] shadow-[0_3px_10px_rgba(61,47,31,0.18)]"
           >
             {isSaving ? 'Saving Customer...' : 'Save Customer'}
           </button>
@@ -238,7 +238,7 @@ export default function AddAccountPerson() {
           <button
             onClick={handleSavePerson}
             disabled={isSaving}
-            className="w-full bg-gray-900 text-white py-4 rounded-lg font-semibold active:bg-gray-800 disabled:bg-gray-400"
+            className="w-full bg-[#5a7a4d] text-white py-4 rounded-2xl font-semibold active:bg-[#4a6a3d] disabled:bg-[#c7bdb0] shadow-[0_3px_10px_rgba(61,47,31,0.18)]"
           >
             {isSaving ? 'Saving Person...' : 'Save Person'}
           </button>
@@ -246,13 +246,13 @@ export default function AddAccountPerson() {
         <button
           onClick={() => navigate('/accounts')}
           disabled={isSaving}
-          className="w-full bg-white border border-gray-300 text-gray-900 py-3 rounded-lg font-semibold active:bg-gray-50"
+          className="w-full bg-white border border-[#ded2c0] text-[#3d2f1f] py-3 rounded-2xl font-semibold active:bg-[#faf8f5] shadow-[0_2px_8px_rgba(61,47,31,0.08)]"
         >
           Cancel
         </button>
 
         {/* Annotation */}
-        <div className="mt-3 p-3 bg-gray-50 border border-gray-300 rounded text-xs text-gray-600 leading-relaxed">
+        <div className="mt-3 p-3 bg-[#f7f4ed] border border-[#ded2c0] rounded-2xl text-xs text-[#8b7a6f] leading-relaxed">
           <strong>Role-based access:</strong><br />
           Only Admin/Manager should add or merge people/accounts by default. Operators may request or add new records if allowed, but new records should be reviewed.
         </div>
@@ -277,16 +277,16 @@ function TypeOption({
   return (
     <button
       onClick={onSelect}
-      className={`w-full p-3 border rounded-lg flex items-center gap-3 active:bg-gray-50 ${
-        selected ? 'border-gray-900 bg-gray-50' : 'border-gray-300 bg-white'
+      className={`w-full p-3 border rounded-2xl flex items-center gap-3 active:bg-[#faf8f5] transition-colors ${
+        selected ? 'border-[#5a7a4d] bg-[#e9f0e5] shadow-[0_2px_8px_rgba(61,47,31,0.08)]' : 'border-[#ded2c0] bg-white'
       }`}
     >
       <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-        selected ? 'border-gray-900' : 'border-gray-300'
+        selected ? 'border-[#5a7a4d]' : 'border-[#ded2c0]'
       }`}>
-        {selected && <div className="w-3 h-3 rounded-full bg-gray-900" />}
+        {selected && <div className="w-3 h-3 rounded-full bg-[#5a7a4d]" />}
       </div>
-      <span className="font-medium text-gray-900">{label}</span>
+      <span className="font-semibold text-[#3d2f1f]">{label}</span>
     </button>
   );
 }
@@ -307,8 +307,8 @@ function FormField({
   multiline?: boolean;
 }) {
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-4">
-      <label className="block text-sm font-medium text-gray-700 mb-2">
+    <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
+      <label className="block text-sm font-semibold text-[#3d2f1f] mb-2">
         {label}
       </label>
       {multiline ? (
@@ -317,7 +317,7 @@ function FormField({
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
           rows={3}
-          className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-gray-900 text-gray-900"
+          className="w-full bg-white border border-[#ded2c0] rounded-2xl p-3 focus:outline-none focus:ring-2 focus:ring-[#5a7a4d] text-[#3d2f1f] placeholder:text-[#8b7a6f]"
         />
       ) : (
         <input
@@ -325,7 +325,7 @@ function FormField({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900"
+          className="w-full px-4 py-3 bg-white border border-[#ded2c0] rounded-2xl text-[#3d2f1f] placeholder:text-[#8b7a6f] focus:outline-none focus:ring-2 focus:ring-[#5a7a4d]"
         />
       )}
     </div>
