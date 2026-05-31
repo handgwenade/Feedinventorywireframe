@@ -243,7 +243,7 @@ export default function ProductDetail() {
             </div>
 
             {archiveError && (
-              <div className="bg-white border border-[#ded2c0] rounded-lg p-3 text-sm text-[#3d2f1f]">
+              <div className="bg-white border border-[#ded2c0] rounded-2xl p-3 text-sm text-[#3d2f1f] shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
                 {archiveError}
               </div>
             )}
@@ -285,7 +285,7 @@ export default function ProductDetail() {
             {isLoadingTransactions ? (
               <p className="text-sm text-[#8b7a6f]">Loading recent movements...</p>
             ) : transactionError ? (
-              <div className="bg-white border border-[#ded2c0] rounded-lg p-3 text-sm text-[#3d2f1f]">
+              <div className="bg-white border border-[#ded2c0] rounded-2xl p-3 text-sm text-[#3d2f1f] shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
                 {transactionError}
               </div>
             ) : transactions.length > 0 ? (
