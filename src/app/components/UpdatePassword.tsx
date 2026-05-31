@@ -1,5 +1,3 @@
-
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Package } from 'lucide-react';
@@ -48,33 +46,33 @@ export default function UpdatePassword() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen bg-[#f7f4ed] flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-md space-y-6">
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
-            <div className="w-20 h-20 bg-gray-900 rounded-lg flex items-center justify-center">
+            <div className="w-20 h-20 bg-[#5a7a4d] rounded-3xl flex items-center justify-center shadow-[0_4px_14px_rgba(61,47,31,0.18)]">
               <Package size={40} className="text-white" />
             </div>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Update Password</h1>
-          <p className="text-gray-600 mt-1">Choose a new password for StockLog.</p>
+          <h1 className="text-2xl font-bold text-[#3d2f1f]">Update Password</h1>
+          <p className="text-[#8b7a6f] mt-1">Choose a new password for StockLog.</p>
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-lg p-6 space-y-4">
+        <div className="bg-white border border-[#ded2c0] rounded-2xl p-6 space-y-4 shadow-[0_4px_18px_rgba(61,47,31,0.10)]">
           {error && (
-            <div className="p-3 bg-gray-50 border border-gray-300 rounded text-sm text-gray-900">
+            <div className="p-3 bg-[#fff4f0] border border-[#d8a59a] rounded-2xl text-sm text-[#8b3f2f]">
               {error}
             </div>
           )}
 
           {message && (
-            <div className="p-3 bg-gray-50 border border-gray-300 rounded text-sm text-gray-900">
+            <div className="p-3 bg-[#e9f0e5] border border-[#cbd8c4] rounded-2xl text-sm text-[#5a7a4d]">
               {message}
             </div>
           )}
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-semibold text-[#3d2f1f] mb-2">
               New Password
             </label>
             <input
@@ -82,12 +80,12 @@ export default function UpdatePassword() {
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               placeholder="Enter new password..."
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900"
+              className="w-full px-4 py-3 bg-white border border-[#ded2c0] rounded-2xl text-[#3d2f1f] placeholder:text-[#8b7a6f] focus:outline-none focus:ring-2 focus:ring-[#5a7a4d]"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-semibold text-[#3d2f1f] mb-2">
               Confirm Password
             </label>
             <input
@@ -95,21 +93,21 @@ export default function UpdatePassword() {
               value={confirmPassword}
               onChange={(event) => setConfirmPassword(event.target.value)}
               placeholder="Confirm new password..."
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900"
+              className="w-full px-4 py-3 bg-white border border-[#ded2c0] rounded-2xl text-[#3d2f1f] placeholder:text-[#8b7a6f] focus:outline-none focus:ring-2 focus:ring-[#5a7a4d]"
             />
           </div>
 
           <button
             onClick={handleUpdatePassword}
             disabled={isLoading}
-            className="w-full bg-gray-900 text-white py-4 rounded-lg font-semibold active:bg-gray-800 disabled:bg-gray-400"
+            className="w-full bg-[#5a7a4d] text-white py-4 rounded-2xl font-semibold active:bg-[#4a6a3d] disabled:bg-[#c7bdb0] shadow-[0_3px_10px_rgba(61,47,31,0.18)]"
           >
             {isLoading ? 'Updating...' : 'Update Password'}
           </button>
 
           <button
             onClick={() => navigate('/login')}
-            className="w-full bg-white border border-gray-300 text-gray-900 py-3 rounded-lg font-medium active:bg-gray-50"
+            className="w-full bg-white border border-[#ded2c0] text-[#3d2f1f] py-3 rounded-2xl font-semibold active:bg-[#faf8f5] shadow-[0_2px_8px_rgba(61,47,31,0.08)]"
           >
             Back to Sign In
           </button>
