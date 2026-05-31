@@ -133,13 +133,15 @@ export default function ProfileMenu() {
               />
               <MenuOption
                 icon={<Lock size={20} />}
-                label="Manage Permissions"
+                label="Manage Permissions (Coming Soon)"
                 onClick={() => {}}
+                disabled
               />
               <MenuOption
                 icon={<Building size={20} />}
-                label="Business Settings"
+                label="Business Settings (Coming Soon)"
                 onClick={() => {}}
+                disabled
               />
             </>
           )}
@@ -177,23 +179,28 @@ function MenuOption({
   icon,
   label,
   onClick,
-  danger = false
+  danger = false,
+  disabled = false
 }: {
   icon: React.ReactNode;
   label: string;
   onClick: () => void;
   danger?: boolean;
+  disabled?: boolean;
 }) {
   return (
     <button
-      onClick={onClick}
+      onClick={disabled ? undefined : onClick}
+      disabled={disabled}
       className={`w-full p-4 rounded-2xl flex items-center gap-3 font-semibold shadow-[0_2px_8px_rgba(61,47,31,0.08)] transition-colors ${
-        danger
-          ? 'bg-white border border-[#ded2c0] text-[#8b3f2f] active:bg-[#fff4f0]'
-          : 'bg-white border border-[#ded2c0] text-[#3d2f1f] active:bg-[#faf8f5]'
+        disabled
+          ? 'bg-[#f7f4ed] border border-[#ded2c0] text-[#8b7a6f] cursor-not-allowed opacity-75'
+          : danger
+            ? 'bg-white border border-[#ded2c0] text-[#8b3f2f] active:bg-[#fff4f0]'
+            : 'bg-white border border-[#ded2c0] text-[#3d2f1f] active:bg-[#faf8f5]'
       }`}
     >
-      <div className={danger ? 'text-[#8b3f2f]' : 'text-[#5a7a4d]'}>{icon}</div>
+      <div className={disabled ? 'text-[#8b7a6f]' : danger ? 'text-[#8b3f2f]' : 'text-[#5a7a4d]'}>{icon}</div>
       <span>{label}</span>
     </button>
   );
