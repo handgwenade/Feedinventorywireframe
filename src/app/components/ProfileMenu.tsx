@@ -55,45 +55,45 @@ export default function ProfileMenu() {
   const userRole = profile?.role;
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24">
+    <div className="min-h-screen bg-[#f7f4ed] pb-24">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 p-4 flex items-center justify-between">
+      <div className="bg-white border-b border-[#e8dfd1] p-4 flex items-center justify-between shadow-[0_1px_4px_rgba(61,47,31,0.06)]">
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate('/')}
-            className="text-gray-600 active:text-gray-900"
+            className="text-[#8b7a6f] active:text-[#3d2f1f]"
           >
             <ArrowLeft size={24} />
           </button>
-          <h1 className="text-xl font-semibold text-gray-900">Profile</h1>
+          <h1 className="text-xl font-bold text-[#3d2f1f]">Profile</h1>
         </div>
         <UserIcon />
       </div>
 
       <div className="p-4 space-y-4">
         {errorMessage && (
-          <div className="bg-white border border-gray-300 rounded-lg p-4 text-sm text-gray-900">
+          <div className="bg-white border border-[#b7791f] rounded-2xl p-4 text-sm text-[#3d2f1f] shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
             {errorMessage}
           </div>
         )}
 
         {/* Current User Info */}
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
+        <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center border-2 border-gray-300">
-              <User size={32} className="text-gray-600" />
+            <div className="w-16 h-16 bg-[#e9f0e5] rounded-full flex items-center justify-center border-2 border-[#cbd8c4] shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
+              <User size={32} className="text-[#5a7a4d]" />
             </div>
             <div>
-              <div className="font-bold text-gray-900 text-lg">{isLoading ? 'Loading...' : displayName}</div>
-              <div className="text-sm text-gray-600">{isLoading ? '—' : roleLabel}</div>
+              <div className="font-bold text-[#3d2f1f] text-lg">{isLoading ? 'Loading...' : displayName}</div>
+              <div className="text-sm text-[#8b7a6f]">{isLoading ? '—' : roleLabel}</div>
               {!isLoading && profile?.email && (
-                <div className="text-sm text-gray-600">{profile.email}</div>
+                <div className="text-sm text-[#8b7a6f]">{profile.email}</div>
               )}
             </div>
           </div>
-          <div className="border-t border-gray-200 pt-3">
-            <div className="text-sm text-gray-600 mb-1">Business</div>
-            <div className="font-medium text-gray-900">{isLoading ? 'Loading...' : businessName}</div>
+          <div className="border-t border-[#e8dfd1] pt-3">
+            <div className="text-sm text-[#8b7a6f] mb-1">Business</div>
+            <div className="font-semibold text-[#3d2f1f]">{isLoading ? 'Loading...' : businessName}</div>
           </div>
         </div>
 
@@ -124,7 +124,7 @@ export default function ProfileMenu() {
           {userRole === 'admin' && (
             <>
               <div className="pt-4 pb-2">
-                <div className="text-xs font-medium text-gray-600 uppercase tracking-wide">Admin Tools</div>
+                <div className="text-xs font-semibold text-[#8b7a6f] uppercase tracking-wide">Admin Tools</div>
               </div>
               <MenuOption
                 icon={<Users size={20} />}
@@ -156,13 +156,13 @@ export default function ProfileMenu() {
 
         {/* Annotations */}
         <div className="mt-6 space-y-3">
-          <div className="p-3 bg-gray-50 border border-gray-300 rounded text-xs text-gray-600 leading-relaxed">
+          <div className="p-3 bg-white border border-[#ded2c0] rounded-2xl text-xs text-[#8b7a6f] leading-relaxed shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
             <strong>Role-based menu:</strong> User/profile area is role-based. Admin sees management tools. Operators see personal settings and permissions only.
           </div>
-          <div className="p-3 bg-gray-50 border border-gray-300 rounded text-xs text-gray-600 leading-relaxed">
+          <div className="p-3 bg-white border border-[#ded2c0] rounded-2xl text-xs text-[#8b7a6f] leading-relaxed shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
             <strong>Cost visibility:</strong> Cost per unit visibility is permission-based and should only be available to Admin/Manager unless explicitly overridden.
           </div>
-          <div className="p-3 bg-gray-50 border border-gray-300 rounded text-xs text-gray-600 leading-relaxed">
+          <div className="p-3 bg-white border border-[#ded2c0] rounded-2xl text-xs text-[#8b7a6f] leading-relaxed shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
             <strong>View Only users:</strong> View Only users can view allowed screens but cannot create, edit, record payments, or adjust inventory.
           </div>
         </div>
@@ -187,13 +187,13 @@ function MenuOption({
   return (
     <button
       onClick={onClick}
-      className={`w-full p-4 rounded-lg flex items-center gap-3 font-medium ${
+      className={`w-full p-4 rounded-2xl flex items-center gap-3 font-semibold shadow-[0_2px_8px_rgba(61,47,31,0.08)] transition-colors ${
         danger
-          ? 'bg-white border border-gray-300 text-gray-900 active:bg-gray-50'
-          : 'bg-white border border-gray-300 text-gray-900 active:bg-gray-50'
+          ? 'bg-white border border-[#ded2c0] text-[#8b3f2f] active:bg-[#fff4f0]'
+          : 'bg-white border border-[#ded2c0] text-[#3d2f1f] active:bg-[#faf8f5]'
       }`}
     >
-      <div className={danger ? 'text-gray-700' : 'text-gray-700'}>{icon}</div>
+      <div className={danger ? 'text-[#8b3f2f]' : 'text-[#5a7a4d]'}>{icon}</div>
       <span>{label}</span>
     </button>
   );
