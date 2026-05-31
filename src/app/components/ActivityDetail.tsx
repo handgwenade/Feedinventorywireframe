@@ -54,28 +54,28 @@ export default function ActivityDetail() {
 
   if (!activity) {
     return (
-      <div className="min-h-screen bg-gray-50 pb-24">
-        <div className="bg-white border-b border-gray-200 p-4 flex items-center justify-between">
+      <div className="min-h-screen bg-[#f7f4ed] pb-24">
+        <div className="bg-white border-b border-[#e8dfd1] p-4 flex items-center justify-between shadow-[0_1px_4px_rgba(61,47,31,0.06)]">
           <div className="flex items-center gap-3">
             <button
               onClick={() => navigate('/activity-history')}
-              className="text-gray-600 active:text-gray-900"
+              className="text-[#8b7a6f] active:text-[#3d2f1f]"
             >
               <ArrowLeft size={24} />
             </button>
-            <h1 className="text-xl font-semibold text-gray-900">Activity Detail</h1>
+            <h1 className="text-xl font-bold text-[#3d2f1f]">Activity Detail</h1>
           </div>
           <UserIcon />
         </div>
 
         <div className="p-4">
-          <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
-            <div className="text-sm text-gray-700">
+          <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 space-y-3 shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
+            <div className="text-sm text-[#8b7a6f]">
               Select an activity from Activity History to view details.
             </div>
             <button
               onClick={() => navigate('/activity-history')}
-              className="w-full bg-white border border-gray-300 text-gray-900 py-3 rounded-lg font-semibold active:bg-gray-50"
+              className="w-full bg-white border border-[#ded2c0] text-[#3d2f1f] py-3 rounded-2xl font-semibold active:bg-[#faf8f5] shadow-[0_2px_8px_rgba(61,47,31,0.08)]"
             >
               Back to Activity History
             </button>
@@ -93,11 +93,11 @@ export default function ActivityDetail() {
   const totalValue = quantityForValue * unitPrice;
 
   const renderActivityInfo = () => (
-    <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
+    <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 space-y-3 shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
       <div className="flex justify-between items-start gap-3">
         <div>
-          <div className="text-sm text-gray-600 mb-1">Activity type</div>
-          <div className="text-xl font-bold text-gray-900">{getActivityTypeLabel(activity.activityType)}</div>
+          <div className="text-sm text-[#8b7a6f] mb-1">Activity type</div>
+          <div className="text-xl font-bold text-[#3d2f1f]">{getActivityTypeLabel(activity.activityType)}</div>
         </div>
         {activity.recordBadge && <RecordTypeBadge recordBadge={activity.recordBadge} />}
       </div>
@@ -126,24 +126,24 @@ export default function ActivityDetail() {
     if (!transaction) return null;
 
     return (
-      <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
-        <h2 className="font-semibold text-gray-900">Quantity Changes</h2>
+      <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 space-y-3 shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
+        <h2 className="font-semibold text-[#3d2f1f]">Quantity Changes</h2>
 
         <div className="flex justify-between gap-4">
-          <span className="text-gray-700">Quantity change</span>
-          <span className="font-semibold text-gray-900">
+          <span className="text-[#8b7a6f]">Quantity change</span>
+          <span className="font-semibold text-[#3d2f1f]">
             {transaction.quantityChange > 0 ? '+' : ''}{transaction.quantityChange} units
           </span>
         </div>
 
         <div className="flex justify-between gap-4">
-          <span className="text-gray-700">Quantity before</span>
-          <span className="font-medium text-gray-900">{transaction.quantityBefore}</span>
+          <span className="text-[#8b7a6f]">Quantity before</span>
+          <span className="font-medium text-[#3d2f1f]">{transaction.quantityBefore}</span>
         </div>
 
         <div className="flex justify-between gap-4">
-          <span className="text-gray-700">Quantity after</span>
-          <span className="font-medium text-gray-900">{transaction.quantityAfter}</span>
+          <span className="text-[#8b7a6f]">Quantity after</span>
+          <span className="font-medium text-[#3d2f1f]">{transaction.quantityAfter}</span>
         </div>
       </div>
     );
@@ -153,17 +153,17 @@ export default function ActivityDetail() {
     if (!unitPrice || quantityForValue === 0) return null;
 
     return (
-      <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
-        <h2 className="font-semibold text-gray-900">Value</h2>
+      <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 space-y-3 shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
+        <h2 className="font-semibold text-[#3d2f1f]">Value</h2>
 
         <div className="flex justify-between gap-4">
-          <span className="text-gray-700">Unit price</span>
-          <span className="font-medium text-gray-900">{formatCurrency(unitPrice)}</span>
+          <span className="text-[#8b7a6f]">Unit price</span>
+          <span className="font-medium text-[#3d2f1f]">{formatCurrency(unitPrice)}</span>
         </div>
 
         <div className="flex justify-between gap-4">
-          <span className="text-gray-700">Total value</span>
-          <span className="font-semibold text-gray-900">{formatCurrency(totalValue)}</span>
+          <span className="text-[#8b7a6f]">Total value</span>
+          <span className="font-semibold text-[#3d2f1f]">{formatCurrency(totalValue)}</span>
         </div>
       </div>
     );
@@ -175,8 +175,8 @@ export default function ActivityDetail() {
     if (entries.length === 0) return null;
 
     return (
-      <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
-        <h2 className="font-semibold text-gray-900">Metadata</h2>
+      <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 space-y-3 shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
+        <h2 className="font-semibold text-[#3d2f1f]">Metadata</h2>
         {entries.map(([key, value]) => (
           <InfoRow key={key} label={key} value={formatMetadataValue(value)} />
         ))}
@@ -185,16 +185,16 @@ export default function ActivityDetail() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24">
-      <div className="bg-white border-b border-gray-200 p-4 flex items-center justify-between">
+    <div className="min-h-screen bg-[#f7f4ed] pb-24">
+      <div className="bg-white border-b border-[#e8dfd1] p-4 flex items-center justify-between shadow-[0_1px_4px_rgba(61,47,31,0.06)]">
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate('/activity-history')}
-            className="text-gray-600 active:text-gray-900"
+            className="text-[#8b7a6f] active:text-[#3d2f1f]"
           >
             <ArrowLeft size={24} />
           </button>
-          <h1 className="text-xl font-semibold text-gray-900">Activity Detail</h1>
+          <h1 className="text-xl font-bold text-[#3d2f1f]">Activity Detail</h1>
         </div>
         <UserIcon />
       </div>
@@ -205,22 +205,22 @@ export default function ActivityDetail() {
         {renderValue()}
 
         {activity.paymentAmount !== undefined && (
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="text-sm text-gray-600 mb-1">Payment amount</div>
-            <div className="font-medium text-gray-900">{formatCurrency(activity.paymentAmount)}</div>
+          <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
+            <div className="text-sm text-[#8b7a6f] mb-1">Payment amount</div>
+            <div className="font-medium text-[#3d2f1f]">{formatCurrency(activity.paymentAmount)}</div>
           </div>
         )}
 
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <div className="text-sm text-gray-600 mb-1">Related invoice/record</div>
-          <div className="font-medium text-gray-900">
+        <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
+          <div className="text-sm text-[#8b7a6f] mb-1">Related invoice/record</div>
+          <div className="font-medium text-[#3d2f1f]">
             {activity.invoiceDisplayNumber ?? activity.invoiceRecordId ?? '—'}
           </div>
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <div className="text-sm text-gray-600 mb-1">Notes</div>
-          <div className="text-gray-900">{transaction?.notes ?? activity.summary ?? '—'}</div>
+        <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
+          <div className="text-sm text-[#8b7a6f] mb-1">Notes</div>
+          <div className="text-[#3d2f1f]">{transaction?.notes ?? activity.summary ?? '—'}</div>
         </div>
 
         {renderMetadata()}
@@ -251,9 +251,9 @@ export default function ActivityDetail() {
 
 function InfoRow({ label, value }: { label: string; value?: string }) {
   return (
-    <div className="border-t border-gray-200 pt-3">
-      <div className="text-sm text-gray-600 mb-1">{label}</div>
-      <div className="font-medium text-gray-900">{value ?? '—'}</div>
+    <div className="border-t border-[#e8dfd1] pt-3">
+      <div className="text-sm text-[#8b7a6f] mb-1">{label}</div>
+      <div className="font-medium text-[#3d2f1f]">{value ?? '—'}</div>
     </div>
   );
 }
@@ -266,7 +266,7 @@ function RecordTypeBadge({ recordBadge }: { recordBadge: ActivityRecordBadge }) 
   };
 
   return (
-    <span className="inline-block px-2 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded border border-gray-300">
+    <span className="inline-block px-3 py-1 bg-[#e9f0e5] text-[#5a7a4d] text-xs font-semibold rounded-full border border-[#cbd8c4]">
       {labels[recordBadge]}
     </span>
   );
@@ -284,7 +284,7 @@ function ActionButton({
   return (
     <button
       onClick={onClick}
-      className="w-full p-3 rounded-lg flex items-center gap-3 font-medium bg-white border border-gray-300 text-gray-900 active:bg-gray-50"
+      className="w-full p-3 rounded-2xl flex items-center gap-3 font-semibold bg-white border border-[#ded2c0] text-[#3d2f1f] active:bg-[#faf8f5] shadow-[0_2px_8px_rgba(61,47,31,0.08)] transition-colors"
     >
       {icon}
       <span>{label}</span>
