@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from 'react-router-dom';
-import { CheckCircle2, Download, Printer, Send, DollarSign, Home, ShoppingCart, FileText } from 'lucide-react';
+import { CheckCircle2, DollarSign, Home, ShoppingCart, FileText } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
 import { calculateLineTotal, formatCurrency } from '../utils/calculations';
 
@@ -144,9 +144,9 @@ export default function InvoiceCreated() {
 
         {/* Action Buttons */}
         <div className="space-y-2">
-          <ActionButton icon={<Download size={20} />} label="Download PDF (Not Ready)" onClick={() => {}} disabled />
-          <ActionButton icon={<Printer size={20} />} label="Print (Not Ready)" onClick={() => {}} disabled />
-          <ActionButton icon={<Send size={20} />} label="Send (Not Ready)" onClick={() => {}} disabled />
+          <div className="bg-white border border-[#ded2c0] rounded-2xl p-3 text-sm text-[#8b7a6f] shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
+            Open the invoice to print, save as PDF, or prepare an email.
+          </div>
           <ActionButton
             icon={<FileText size={20} />}
             label="View Invoice"
