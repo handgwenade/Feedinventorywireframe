@@ -68,24 +68,24 @@ export default function ReportCustomerSales() {
   });
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24">
+    <div className="min-h-screen bg-[#f7f4ed] pb-24">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 p-4 flex items-center justify-between">
+      <div className="bg-white border-b border-[#e8dfd1] p-4 flex items-center justify-between shadow-[0_1px_4px_rgba(61,47,31,0.06)]">
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate('/reports')}
-            className="text-gray-600 active:text-gray-900"
+            className="text-[#8b7a6f] active:text-[#3d2f1f]"
           >
             <ArrowLeft size={24} />
           </button>
-          <h1 className="text-xl font-semibold text-gray-900">Customer Sales</h1>
+          <h1 className="text-xl font-bold text-[#3d2f1f]">Customer Sales</h1>
         </div>
         <UserIcon />
       </div>
 
       <div className="p-4 space-y-4">
         {/* Helper Text */}
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-[#8b7a6f]">
           Outside customer sales only. K2/internal activity is excluded by default.
         </p>
 
@@ -98,7 +98,7 @@ export default function ReportCustomerSales() {
 
         {/* Date Filter */}
         <div>
-          <div className="text-xs font-medium text-gray-600 mb-2">Date Range</div>
+          <div className="text-xs font-semibold text-[#8b7a6f] mb-2">Date Range</div>
           <div className="flex gap-2">
             <DateFilterChip label="This Month" active={dateFilter === 'this-month'} onClick={() => setDateFilter('this-month')} />
             <DateFilterChip label="Last Month" active={dateFilter === 'last-month'} onClick={() => setDateFilter('last-month')} />
@@ -108,7 +108,7 @@ export default function ReportCustomerSales() {
 
         {/* Status Filter */}
         <div>
-          <div className="text-xs font-medium text-gray-600 mb-2">Status</div>
+          <div className="text-xs font-semibold text-[#8b7a6f] mb-2">Status</div>
           <div className="flex gap-2 overflow-x-auto pb-2">
             <FilterChip label="All Customers" active={statusFilter === 'all'} onClick={() => setStatusFilter('all')} />
             <FilterChip label="Paid" active={statusFilter === 'paid'} onClick={() => setStatusFilter('paid')} />
@@ -120,19 +120,19 @@ export default function ReportCustomerSales() {
         {/* Sales List */}
         <div className="space-y-3">
           {isLoading && (
-            <div className="bg-white border border-gray-200 rounded-lg p-4 text-sm text-gray-700">
+            <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 text-sm text-[#8b7a6f] shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
               Loading customer sales...
             </div>
           )}
 
           {errorMessage && (
-            <div className="bg-white border border-gray-300 rounded-lg p-4 text-sm text-gray-900">
+            <div className="bg-white border border-[#b7791f] rounded-2xl p-4 text-sm text-[#3d2f1f] shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
               {errorMessage}
             </div>
           )}
 
           {!isLoading && !errorMessage && filteredData.length === 0 && (
-            <div className="bg-white border border-gray-200 rounded-lg p-4 text-sm text-gray-700">
+            <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 text-sm text-[#8b7a6f] shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
               No customer invoices found.
             </div>
           )}
@@ -156,9 +156,9 @@ export default function ReportCustomerSales() {
 
 function SummaryCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-3">
-      <div className="text-xs text-gray-600 mb-1">{label}</div>
-      <div className="font-semibold text-gray-900 text-sm">{value}</div>
+    <div className="bg-white border border-[#ded2c0] rounded-2xl p-3 shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
+      <div className="text-xs text-[#8b7a6f] mb-1">{label}</div>
+      <div className="font-bold text-[#3d2f1f] text-sm">{value}</div>
     </div>
   );
 }
@@ -167,8 +167,8 @@ function DateFilterChip({ label, active, onClick }: { label: string; active: boo
   return (
     <button
       onClick={onClick}
-      className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium ${
-        active ? 'bg-gray-900 text-white' : 'bg-white border border-gray-300 text-gray-700 active:bg-gray-50'
+      className={`flex-1 px-3 py-2 rounded-2xl text-sm font-semibold transition-colors ${
+        active ? 'bg-[#5a7a4d] text-white shadow-[0_2px_8px_rgba(61,47,31,0.12)]' : 'bg-white border border-[#ded2c0] text-[#3d2f1f] active:bg-[#faf8f5]'
       }`}
     >
       {label}
@@ -180,8 +180,8 @@ function FilterChip({ label, active, onClick }: { label: string; active: boolean
   return (
     <button
       onClick={onClick}
-      className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap ${
-        active ? 'bg-gray-900 text-white' : 'bg-white border border-gray-300 text-gray-700 active:bg-gray-50'
+      className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${
+        active ? 'bg-[#5a7a4d] text-white shadow-[0_2px_8px_rgba(61,47,31,0.12)]' : 'bg-white border border-[#ded2c0] text-[#3d2f1f] active:bg-[#faf8f5]'
       }`}
     >
       {label}
@@ -206,30 +206,30 @@ function SaleRow({
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-4">
+    <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
       <div className="flex justify-between items-start mb-2 gap-3">
         <div>
-          <div className="font-semibold text-gray-900 mb-1">{sale.accountName}</div>
-          <div className="text-sm text-gray-600">{new Date(sale.issueDate).toLocaleDateString()}</div>
+          <div className="font-semibold text-[#3d2f1f] mb-1">{sale.accountName}</div>
+          <div className="text-sm text-[#8b7a6f]">{new Date(sale.issueDate).toLocaleDateString()}</div>
         </div>
-        <span className="text-xs px-2 py-1 rounded border bg-gray-100 border-gray-300 text-gray-700 capitalize">
+        <span className="text-xs px-3 py-1 rounded-full border bg-[#e9f0e5] border-[#cbd8c4] text-[#5a7a4d] capitalize font-semibold">
           {getStatusLabel()}
         </span>
       </div>
-      <div className="text-sm text-gray-700 mb-2">{sale.productsSummary}</div>
-      <div className="flex justify-between items-center pt-2 border-t border-gray-200 mb-3">
-        <span className="text-gray-600 text-sm">Total</span>
-        <span className="font-semibold text-gray-900">{formatCurrency(sale.total)}</span>
+      <div className="text-sm text-[#8b7a6f] mb-2">{sale.productsSummary}</div>
+      <div className="flex justify-between items-center pt-2 border-t border-[#e8dfd1] mb-3">
+        <span className="text-[#8b7a6f] text-sm">Total</span>
+        <span className="font-semibold text-[#3d2f1f]">{formatCurrency(sale.total)}</span>
       </div>
       {sale.balanceDue > 0 && (
         <div className="flex justify-between items-center mb-3 text-sm">
-          <span className="text-gray-600">Balance Due</span>
-          <span className="font-semibold text-gray-900">{formatCurrency(sale.balanceDue)}</span>
+          <span className="text-[#8b7a6f]">Balance Due</span>
+          <span className="font-semibold text-[#3d2f1f]">{formatCurrency(sale.balanceDue)}</span>
         </div>
       )}
       <button
         onClick={() => navigate('/invoice-detail', { state: { invoice: sale } })}
-        className="w-full bg-white border border-gray-300 text-gray-900 py-2 rounded-lg font-medium text-sm flex items-center justify-center gap-2 active:bg-gray-50"
+        className="w-full bg-white border border-[#ded2c0] text-[#3d2f1f] py-2 rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 active:bg-[#faf8f5] shadow-[0_2px_8px_rgba(61,47,31,0.08)]"
       >
         <FileText size={16} />
         View Invoice
@@ -243,7 +243,7 @@ function ActionButton({ icon, label, onClick, disabled = false }: { icon: React.
     <button
       onClick={disabled ? undefined : onClick}
       disabled={disabled}
-      className={`w-full p-3 rounded-lg flex items-center gap-3 font-medium bg-white border border-gray-300 text-gray-900 active:bg-gray-50 ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+      className={`w-full p-3 rounded-2xl flex items-center gap-3 font-semibold bg-white border border-[#ded2c0] text-[#3d2f1f] active:bg-[#faf8f5] shadow-[0_2px_8px_rgba(61,47,31,0.08)] transition-colors ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
     >
       {icon}
       <span>{label}</span>
