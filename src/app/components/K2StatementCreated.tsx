@@ -34,17 +34,17 @@ export default function K2StatementCreated() {
 
   if (!state) {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col">
-        <div className="bg-white border-b border-gray-200 p-6">
-          <h1 className="text-2xl font-bold text-gray-900">K2 Statement Confirmation</h1>
+      <div className="min-h-screen bg-[#f7f4ed] flex flex-col">
+        <div className="bg-white border-b border-[#e8dfd1] p-6 shadow-[0_1px_4px_rgba(61,47,31,0.06)]">
+          <h1 className="text-2xl font-bold text-[#3d2f1f]">K2 Statement Confirmation</h1>
         </div>
 
         <div className="flex-1 p-4">
-          <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
-            <div className="text-sm text-gray-700">Create a K2 statement before viewing this confirmation.</div>
+          <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 space-y-3 shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
+            <div className="text-sm text-[#8b7a6f]">Create a K2 statement before viewing this confirmation.</div>
             <button
               onClick={() => navigate('/k2-add-products')}
-              className="w-full bg-gray-900 text-white py-3 rounded-lg font-semibold active:bg-gray-800"
+              className="w-full bg-[#5a7a4d] text-white py-3 rounded-2xl font-semibold active:bg-[#4a6a3d] shadow-[0_3px_10px_rgba(61,47,31,0.18)]"
             >
               Back to K2 Use
             </button>
@@ -64,71 +64,71 @@ export default function K2StatementCreated() {
   const cart = state.cart ?? [];
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-[#f7f4ed] flex flex-col">
       {/* Success Header */}
-      <div className="bg-white border-b border-gray-200 p-6">
+      <div className="bg-white border-b border-[#e8dfd1] p-6 shadow-[0_1px_4px_rgba(61,47,31,0.06)]">
         <div className="flex flex-col items-center text-center">
-          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4 border-2 border-gray-900">
-            <CheckCircle2 size={32} className="text-gray-900" />
+          <div className="w-16 h-16 bg-[#e9f0e5] rounded-full flex items-center justify-center mb-4 border-2 border-[#5a7a4d] shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
+            <CheckCircle2 size={32} className="text-[#5a7a4d]" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">K2 Statement Created!</h1>
-          <p className="text-gray-600">K2 use recorded and inventory adjusted</p>
+          <h1 className="text-2xl font-bold text-[#3d2f1f] mb-2">K2 Statement Created!</h1>
+          <p className="text-[#8b7a6f]">K2 use recorded and inventory adjusted</p>
         </div>
       </div>
 
       <div className="flex-1 p-4 space-y-4">
         {/* Statement Details */}
-        <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
+        <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 space-y-3 shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
           <div>
-            <div className="text-sm text-gray-600 mb-1">Statement Number</div>
-            <div className="text-xl font-bold text-gray-900">{statementNumber}</div>
+            <div className="text-sm text-[#8b7a6f] mb-1">Statement Number</div>
+            <div className="text-xl font-bold text-[#3d2f1f]">{statementNumber}</div>
           </div>
 
-          <div className="border-t border-gray-200 pt-3">
-            <div className="text-sm text-gray-600 mb-1">Account</div>
-            <div className="font-semibold text-gray-900">{accountName}</div>
+          <div className="border-t border-[#e8dfd1] pt-3">
+            <div className="text-sm text-[#8b7a6f] mb-1">Account</div>
+            <div className="font-semibold text-[#3d2f1f]">{accountName}</div>
           </div>
 
-          <div className="border-t border-gray-200 pt-3">
-            <div className="text-sm text-gray-600 mb-2">Badge</div>
-            <span className="inline-block px-2 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded border border-gray-300">
+          <div className="border-t border-[#e8dfd1] pt-3">
+            <div className="text-sm text-[#8b7a6f] mb-2">Badge</div>
+            <span className="inline-block px-3 py-1 bg-[#e9f0e5] text-[#5a7a4d] text-xs font-semibold rounded-full border border-[#cbd8c4]">
               K2 Account
             </span>
           </div>
 
-          <div className="border-t border-gray-200 pt-3">
-            <div className="text-sm text-gray-600 mb-1">Subtotal</div>
-            <div className="font-semibold text-gray-900">
+          <div className="border-t border-[#e8dfd1] pt-3">
+            <div className="text-sm text-[#8b7a6f] mb-1">Subtotal</div>
+            <div className="font-semibold text-[#3d2f1f]">
               {formatCurrency(subtotal)}
             </div>
           </div>
 
-          <div className="border-t border-gray-200 pt-3">
-            <div className="text-sm text-gray-600 mb-1">Total</div>
-            <div className="text-2xl font-bold text-gray-900">
+          <div className="border-t border-[#e8dfd1] pt-3">
+            <div className="text-sm text-[#8b7a6f] mb-1">Total</div>
+            <div className="text-2xl font-bold text-[#3d2f1f]">
               {formatCurrency(total)}
             </div>
           </div>
 
-          <div className="border-t border-gray-200 pt-3">
-            <div className="text-sm text-gray-600 mb-1">Status</div>
-            <div className="font-semibold text-gray-900 capitalize">{getStatusLabel(status)}</div>
+          <div className="border-t border-[#e8dfd1] pt-3">
+            <div className="text-sm text-[#8b7a6f] mb-1">Status</div>
+            <div className="font-semibold text-[#3d2f1f] capitalize">{getStatusLabel(status)}</div>
           </div>
         </div>
 
         {cart.length > 0 && (
-          <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-            <div className="p-4 border-b border-gray-200 bg-gray-50">
-              <h2 className="font-semibold text-gray-900">Line Items</h2>
+          <div className="bg-white border border-[#ded2c0] rounded-2xl overflow-hidden shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
+            <div className="p-4 border-b border-[#e8dfd1] bg-[#f7f4ed]">
+              <h2 className="font-semibold text-[#3d2f1f]">Line Items</h2>
             </div>
-            <div className="divide-y divide-gray-200">
+            <div className="divide-y divide-[#e8dfd1]">
               {cart.map((item) => (
                 <div key={item.productId} className="p-4 flex justify-between gap-3 text-sm">
                   <div>
-                    <div className="font-medium text-gray-900">{item.name}</div>
-                    <div className="text-gray-600">{item.quantity} {item.unitLabel ?? 'units'} @ {formatCurrency(item.price)}</div>
+                    <div className="font-medium text-[#3d2f1f]">{item.name}</div>
+                    <div className="text-[#8b7a6f]">{item.quantity} {item.unitLabel ?? 'units'} @ {formatCurrency(item.price)}</div>
                   </div>
-                  <div className="font-semibold text-gray-900">{formatCurrency(calculateLineTotal(item.quantity, item.price))}</div>
+                  <div className="font-semibold text-[#3d2f1f]">{formatCurrency(calculateLineTotal(item.quantity, item.price))}</div>
                 </div>
               ))}
             </div>
@@ -148,14 +148,14 @@ export default function K2StatementCreated() {
       <div className="p-4 space-y-2">
         <button
           onClick={() => navigate('/k2-add-products')}
-          className="w-full bg-gray-900 text-white py-3 rounded-lg font-semibold flex items-center justify-center gap-2 active:bg-gray-800"
+          className="w-full bg-[#5a7a4d] text-white py-3 rounded-2xl font-semibold flex items-center justify-center gap-2 active:bg-[#4a6a3d] shadow-[0_3px_10px_rgba(61,47,31,0.18)]"
         >
           <FileText size={20} />
           New K2 Use
         </button>
         <button
           onClick={() => navigate('/')}
-          className="w-full bg-white border border-gray-300 text-gray-900 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 active:bg-gray-50"
+          className="w-full bg-white border border-[#ded2c0] text-[#3d2f1f] py-3 rounded-2xl font-semibold flex items-center justify-center gap-2 active:bg-[#faf8f5] shadow-[0_2px_8px_rgba(61,47,31,0.08)]"
         >
           <Home size={20} />
           Back to Dashboard
@@ -179,7 +179,7 @@ function ActionButton({
   return (
     <button
       onClick={onClick}
-      className="w-full p-3 rounded-lg flex items-center gap-3 font-medium bg-white border border-gray-300 text-gray-900 active:bg-gray-50"
+      className="w-full p-3 rounded-2xl flex items-center gap-3 font-semibold bg-white border border-[#ded2c0] text-[#3d2f1f] active:bg-[#faf8f5] shadow-[0_2px_8px_rgba(61,47,31,0.08)] transition-colors"
     >
       {icon}
       <span>{label}</span>
@@ -191,7 +191,7 @@ function DisabledActionButton({ icon, label }: { icon: React.ReactNode; label: s
   return (
     <button
       disabled
-      className="w-full p-3 rounded-lg flex items-center gap-3 font-medium bg-gray-100 border border-gray-300 text-gray-500"
+      className="w-full p-3 rounded-2xl flex items-center gap-3 font-semibold bg-[#f7f4ed] border border-[#ded2c0] text-[#8b7a6f]"
     >
       {icon}
       <span>{label}</span>
