@@ -176,24 +176,24 @@ export default function ReportsList() {
 
   const reports = buildReports(products, invoices, payments);
 
-  return (
-    <div className="min-h-screen bg-gray-50 pb-24">
+return (
+    <div className="min-h-screen bg-[#f7f4ed] pb-24">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="bg-white border-b border-[#e8dfd1] p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between shadow-[0_1px_4px_rgba(61,47,31,0.06)]">
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate('/')}
-            className="text-gray-600 active:text-gray-900"
+            className="text-[#8b7a6f] active:text-[#3d2f1f]"
           >
             <ArrowLeft size={24} />
           </button>
-          <h1 className="text-xl font-semibold text-gray-900">Reports</h1>
+          <h1 className="text-xl font-bold text-[#3d2f1f]">Reports</h1>
         </div>
         <div className="flex items-center gap-3">
           <button
             onClick={loadReports}
             disabled={isLoadingReports}
-            className="px-4 py-2 bg-white border border-gray-300 text-gray-900 rounded-lg text-sm font-medium active:bg-gray-50 disabled:opacity-50"
+            className="px-4 py-2 bg-white border border-[#ded2c0] text-[#3d2f1f] rounded-2xl text-sm font-semibold active:bg-[#faf8f5] disabled:opacity-50 shadow-[0_2px_8px_rgba(61,47,31,0.08)]"
           >
             {isLoadingReports ? 'Refreshing...' : 'Refresh'}
           </button>
@@ -203,26 +203,26 @@ export default function ReportsList() {
 
       <div className="p-4 space-y-4">
         {/* Helper Text */}
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-[#8b7a6f]">
           Review inventory, sales, payments, and account activity.
         </p>
 
         {/* Report Cards */}
         <div className="space-y-3">
           {isLoadingReports && (
-            <div className="bg-white border border-gray-200 rounded-lg p-4 text-sm text-gray-700">
+            <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 text-sm text-[#8b7a6f] shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
               Loading report data...
             </div>
           )}
 
           {!isLoadingReports && reportErrorMessage && (
-            <div className="bg-white border border-gray-300 rounded-lg p-4 text-sm text-gray-900">
+            <div className="bg-white border border-[#b7791f] rounded-2xl p-4 text-sm text-[#3d2f1f] shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
               {reportErrorMessage}
             </div>
           )}
 
           {!isLoadingReports && !reportErrorMessage && products.length === 0 && invoices.length === 0 && payments.length === 0 && (
-            <div className="bg-white border border-gray-200 rounded-lg p-4 text-sm text-gray-700">
+            <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 text-sm text-[#8b7a6f] shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
               No report data found yet.
             </div>
           )}
@@ -238,13 +238,13 @@ export default function ReportsList() {
 
         {/* Annotations */}
         <div className="mt-6 space-y-3">
-          <div className="p-3 bg-gray-50 border border-gray-300 rounded text-xs text-gray-600 leading-relaxed">
+          <div className="p-3 bg-white border border-[#ded2c0] rounded-2xl text-xs text-[#8b7a6f] leading-relaxed shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
             <strong>Separation:</strong> Reports should separate Customer and K2 activity so customer sales are not mixed with related-entity or legacy person use.
           </div>
-          <div className="p-3 bg-gray-50 border border-gray-300 rounded text-xs text-gray-600 leading-relaxed">
+          <div className="p-3 bg-white border border-[#ded2c0] rounded-2xl text-xs text-[#8b7a6f] leading-relaxed shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
             <strong>Role-based access:</strong> Admin/Manager can see full reports. Operator/View Only access can be limited.
           </div>
-          <div className="p-3 bg-gray-50 border border-gray-300 rounded text-xs text-gray-600 leading-relaxed">
+          <div className="p-3 bg-white border border-[#ded2c0] rounded-2xl text-xs text-[#8b7a6f] leading-relaxed shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
             <strong>Read-only:</strong> Reports are for viewing, exporting, and printing. Editing should happen through the source record, not inside the report.
           </div>
         </div>
@@ -265,23 +265,23 @@ function ReportCardComponent({
   return (
     <div
       onClick={onClick}
-      className="bg-white border border-gray-200 rounded-lg p-4 active:bg-gray-50 cursor-pointer"
+      className="bg-white border border-[#ded2c0] rounded-2xl p-4 active:bg-[#faf8f5] cursor-pointer shadow-[0_2px_8px_rgba(61,47,31,0.08)] transition-colors"
     >
       <div className="flex items-start gap-3 mb-2">
-        <div className="text-gray-700 mt-1">{report.icon}</div>
+        <div className="text-[#5a7a4d] mt-1">{report.icon}</div>
         <div className="flex-1">
           <div className="flex items-start justify-between gap-3 mb-1">
-            <div className="font-semibold text-gray-900">{report.name}</div>
+            <div className="font-semibold text-[#3d2f1f]">{report.name}</div>
             {report.metric && (
-              <div className="text-sm font-semibold text-gray-900 whitespace-nowrap">
+              <div className="text-sm font-bold text-[#3d2f1f] whitespace-nowrap">
                 {report.metric}
               </div>
             )}
           </div>
-          <div className="text-sm text-gray-600">{report.helperText}</div>
+          <div className="text-sm text-[#8b7a6f]">{report.helperText}</div>
         </div>
       </div>
-      <button className="mt-3 w-full bg-white border border-gray-300 text-gray-900 py-2 rounded-lg font-medium text-sm active:bg-gray-50">
+      <button className="mt-3 w-full bg-white border border-[#ded2c0] text-[#3d2f1f] py-2 rounded-2xl font-semibold text-sm active:bg-[#faf8f5] shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
         View
       </button>
     </div>
