@@ -134,42 +134,42 @@ export default function RolePermissions() {
   const { canDo, cannotDo } = getPermissions(role);
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24">
+    <div className="min-h-screen bg-[#f7f4ed] pb-24">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 p-4 flex items-center justify-between">
+      <div className="bg-white border-b border-[#e8dfd1] p-4 flex items-center justify-between shadow-[0_1px_4px_rgba(61,47,31,0.06)]">
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate('/profile-menu')}
-            className="text-gray-600 active:text-gray-900"
+            className="text-[#8b7a6f] active:text-[#3d2f1f]"
           >
             <ArrowLeft size={24} />
           </button>
-          <h1 className="text-xl font-semibold text-gray-900">Role & Permissions</h1>
+          <h1 className="text-xl font-bold text-[#3d2f1f]">Role & Permissions</h1>
         </div>
         <UserIcon />
       </div>
 
       <div className="p-4 space-y-4">
         {errorMessage && (
-          <div className="bg-white border border-gray-300 rounded-lg p-4 text-sm text-gray-900">
+          <div className="bg-white border border-[#b7791f] rounded-2xl p-4 text-sm text-[#3d2f1f] shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
             {errorMessage}
           </div>
         )}
 
-        <div className="p-3 bg-gray-50 border border-gray-300 rounded text-xs text-gray-600 leading-relaxed">
+        <div className="p-3 bg-white border border-[#ded2c0] rounded-2xl text-xs text-[#8b7a6f] leading-relaxed shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
           <strong>Read-only:</strong> This page displays the live profile role with static permission descriptions. Role changes are not implemented here.
         </div>
 
         {/* Current Role */}
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <div className="text-sm text-gray-600 mb-1">Current role</div>
-          <div className="text-2xl font-bold text-gray-900">{isLoading ? 'Loading...' : roleLabel}</div>
+        <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
+          <div className="text-sm text-[#8b7a6f] mb-1">Current role</div>
+          <div className="text-2xl font-bold text-[#3d2f1f]">{isLoading ? 'Loading...' : roleLabel}</div>
         </div>
 
         {/* Operator Can */}
-        <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-          <div className="p-4 border-b border-gray-200 bg-gray-50">
-            <h2 className="font-semibold text-gray-900">{isLoading ? 'Role' : roleLabel} can:</h2>
+        <div className="bg-white border border-[#ded2c0] rounded-2xl overflow-hidden shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
+          <div className="p-4 border-b border-[#e8dfd1] bg-[#f7f4ed]">
+            <h2 className="font-semibold text-[#3d2f1f]">{isLoading ? 'Role' : roleLabel} can:</h2>
           </div>
           <div className="p-4 space-y-2">
             {canDo.map((permission, index) => (
@@ -179,9 +179,9 @@ export default function RolePermissions() {
         </div>
 
         {/* Operator Cannot */}
-        <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-          <div className="p-4 border-b border-gray-200 bg-gray-50">
-            <h2 className="font-semibold text-gray-900">{isLoading ? 'Role' : roleLabel} cannot:</h2>
+        <div className="bg-white border border-[#ded2c0] rounded-2xl overflow-hidden shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
+          <div className="p-4 border-b border-[#e8dfd1] bg-[#f7f4ed]">
+            <h2 className="font-semibold text-[#3d2f1f]">{isLoading ? 'Role' : roleLabel} cannot:</h2>
           </div>
           <div className="p-4 space-y-2">
             {cannotDo.map((permission, index) => (
@@ -191,9 +191,9 @@ export default function RolePermissions() {
         </div>
 
         {/* Role Comparison */}
-        <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-          <div className="p-4 border-b border-gray-200 bg-gray-50">
-            <h2 className="font-semibold text-gray-900">Role Comparison</h2>
+        <div className="bg-white border border-[#ded2c0] rounded-2xl overflow-hidden shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
+          <div className="p-4 border-b border-[#e8dfd1] bg-[#f7f4ed]">
+            <h2 className="font-semibold text-[#3d2f1f]">Role Comparison</h2>
           </div>
           <div className="p-4 space-y-3">
             <RoleCard
@@ -229,11 +229,11 @@ function PermissionItem({ label, allowed }: { label: string; allowed: boolean })
   return (
     <div className="flex items-center gap-2">
       {allowed ? (
-        <Check size={18} className="text-gray-900 flex-shrink-0" />
+        <Check size={18} className="text-[#5a7a4d] flex-shrink-0" />
       ) : (
-        <X size={18} className="text-gray-400 flex-shrink-0" />
+        <X size={18} className="text-[#8b3f2f] flex-shrink-0" />
       )}
-      <span className={`text-sm ${allowed ? 'text-gray-900' : 'text-gray-500'}`}>{label}</span>
+      <span className={`text-sm ${allowed ? 'text-[#3d2f1f]' : 'text-[#8b7a6f]'}`}>{label}</span>
     </div>
   );
 }
@@ -248,16 +248,16 @@ function RoleCard({
   current?: boolean;
 }) {
   return (
-    <div className={`p-3 rounded-lg border ${
-      current ? 'bg-gray-50 border-gray-900' : 'bg-white border-gray-200'
+    <div className={`p-3 rounded-2xl border shadow-[0_2px_8px_rgba(61,47,31,0.08)] ${
+      current ? 'bg-[#e9f0e5] border-[#5a7a4d]' : 'bg-white border-[#ded2c0]'
     }`}>
       <div className="flex items-center gap-2 mb-1">
-        <div className="font-semibold text-gray-900">{role}</div>
+        <div className="font-semibold text-[#3d2f1f]">{role}</div>
         {current && (
-          <span className="text-xs px-2 py-1 bg-gray-900 text-white rounded">Current</span>
+          <span className="text-xs px-3 py-1 bg-[#5a7a4d] text-white rounded-full font-semibold">Current</span>
         )}
       </div>
-      <div className="text-sm text-gray-600">{description}</div>
+      <div className="text-sm text-[#8b7a6f]">{description}</div>
     </div>
   );
 }
