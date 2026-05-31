@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Search, ChevronDown, DollarSign, AlertCircle, TrendingUp } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
 import UserIcon from './shared/UserIcon';
@@ -11,10 +11,20 @@ import type { InvoiceListItem, InvoiceListType } from '../services/invoicesServi
 type FilterType = 'all' | 'unpaid' | 'paid' | 'customer' | 'k2';
 type SortType = 'date' | 'balance' | 'account';
 
+type InvoicesLocationState = {
+  filterType?: FilterType;
+  accountName?: string;
+};
+
 export default function InvoicesList() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const locationState = location.state as InvoicesLocationState | null;
+  const initialFilter = locationState?.filterType ?? 'all';
+  const initialAccountName = locationState?.accountName ?? null;
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeFilter, setActiveFilter] = useState<FilterType>('all');
+  const [activeFilter, setActiveFilter] = useState<FilterType>(initialFilter);
+  const [accountNameFilter, setAccountNameFilter] = useState<string | null>(initialAccountName);
   const [sortBy, setSortBy] = useState<SortType>('date');
   const [showSortMenu, setShowSortMenu] = useState(false);
   const [invoices, setInvoices] = useState<InvoiceListItem[]>([]);
@@ -76,6 +86,12 @@ export default function InvoicesList() {
         invoice.accountName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         invoice.displayNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
         invoice.productsSummary.toLowerCase().includes(searchQuery.toLowerCase());
+
+      const matchesAccountFilter = accountNameFilter
+        ? invoice.accountName.toLowerCase() === accountNameFilter.toLowerCase()
+        : true;
+
+      if (!matchesAccountFilter) return false;
 
       if (activeFilter === 'all') return matchesSearch;
       if (activeFilter === 'unpaid') {
@@ -151,11 +167,11 @@ export default function InvoicesList() {
       <div className="px-4 pb-3 bg-[#f7f4ed]">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex gap-2 overflow-x-auto pb-2">
-            <FilterChip label="All" active={activeFilter === 'all'} onClick={() => setActiveFilter('all')} />
-            <FilterChip label="Unpaid" active={activeFilter === 'unpaid'} onClick={() => setActiveFilter('unpaid')} />
-            <FilterChip label="Paid" active={activeFilter === 'paid'} onClick={() => setActiveFilter('paid')} />
-            <FilterChip label="Customer" active={activeFilter === 'customer'} onClick={() => setActiveFilter('customer')} />
-            <FilterChip label="K2" active={activeFilter === 'k2'} onClick={() => setActiveFilter('k2')} />
+            <FilterChip label="All" active={activeFilter === 'all'} onClick={() => { setActiveFilter('all'); setAccountNameFilter(null); }} />
+            <FilterChip label="Unpaid" active={activeFilter === 'unpaid'} onClick={() => { setActiveFilter('unpaid'); setAccountNameFilter(null); }} />
+            <FilterChip label="Paid" active={activeFilter === 'paid'} onClick={() => { setActiveFilter('paid'); setAccountNameFilter(null); }} />
+            <FilterChip label="Customer" active={activeFilter === 'customer'} onClick={() => { setActiveFilter('customer'); setAccountNameFilter(null); }} />
+            <FilterChip label="K2" active={activeFilter === 'k2'} onClick={() => { setActiveFilter('k2'); setAccountNameFilter(null); }} />
           </div>
           <button
             onClick={loadInvoices}
@@ -166,6 +182,22 @@ export default function InvoicesList() {
           </button>
         </div>
       </div>
+
+      {accountNameFilter && (
+        <div className="px-4 pb-3 bg-[#f7f4ed]">
+          <div className="bg-white border border-[#ded2c0] rounded-2xl p-3 text-sm text-[#8b7a6f] shadow-[0_2px_8px_rgba(61,47,31,0.08)] flex items-center justify-between gap-3">
+            <span>
+              Showing {activeFilter === 'k2' ? 'K2 statements' : 'invoices'} for <strong className="text-[#3d2f1f]">{accountNameFilter}</strong>
+            </span>
+            <button
+              onClick={() => setAccountNameFilter(null)}
+              className="text-[#5a7a4d] font-semibold whitespace-nowrap"
+            >
+              Clear
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Sort Option */}
       <div className="px-4 pb-4 bg-[#f7f4ed]">
