@@ -7,35 +7,35 @@ body {
 
 /* Cards and containers */
 .card-warm {
-  @apply bg-white border border-[#e8dfd1] rounded-lg;
+  @apply bg-white border border-[#e8dfd1] rounded-2xl;
 }
 
 .card-warm-shadow {
-  @apply bg-white border border-[#e8ddf1] rounded-lg shadow-sm;
+  @apply bg-white border border-[#e8dfd1] rounded-2xl shadow-[0_2px_8px_rgba(61,47,31,0.08)];
 }
 
 /* Primary actions (earthy green) */
 .btn-primary-warm {
-  @apply bg-[#5a7a4d] text-white px-4 py-3 rounded-lg font-semibold active:bg-[#4a6a3d] disabled:opacity-50 transition-colors;
+  @apply bg-[#5a7a4d] text-white px-4 py-3 rounded-2xl font-semibold active:bg-[#4a6a3d] disabled:opacity-50 transition-colors shadow-[0_2px_8px_rgba(61,47,31,0.12)];
 }
 
 .btn-primary-warm-lg {
-  @apply w-full bg-[#5a7a4d] text-white p-5 rounded-lg shadow-sm flex items-center justify-center gap-3 active:bg-[#4a6a3d] font-semibold;
+  @apply w-full bg-[#5a7a4d] text-white p-5 rounded-2xl shadow-[0_3px_10px_rgba(61,47,31,0.18)] flex items-center justify-center gap-3 active:bg-[#4a6a3d] font-semibold;
 }
 
 /* Secondary actions (tan/wheat) */
 .btn-secondary-warm {
-  @apply bg-white border-2 border-[#d4a574] text-[#3d2f1f] px-4 py-3 rounded-lg font-semibold active:bg-[#faf8f5] disabled:opacity-50 transition-colors;
+  @apply bg-white border-2 border-[#d4a574] text-[#3d2f1f] px-4 py-3 rounded-2xl font-semibold active:bg-[#faf8f5] disabled:opacity-50 transition-colors;
 }
 
 /* Neutral actions */
 .btn-neutral-warm {
-  @apply bg-white border border-[#e8dfd1] text-[#3d2f1f] px-4 py-3 rounded-lg font-semibold active:bg-[#faf8f5] disabled:opacity-50 transition-colors;
+  @apply bg-white border border-[#e8dfd1] text-[#3d2f1f] px-4 py-3 rounded-2xl font-semibold active:bg-[#faf8f5] disabled:opacity-50 transition-colors;
 }
 
 /* Metric/summary cards */
 .metric-card-warm {
-  @apply bg-white border border-[#e8dfd1] p-4 rounded-lg;
+  @apply bg-white border border-[#e8dfd1] p-4 rounded-2xl shadow-[0_2px_8px_rgba(61,47,31,0.08)];
 }
 
 /* Accent text and highlights */
@@ -62,9 +62,9 @@ body {
 
 /* Status/badge chips */
 .chip-warm-active {
-  @apply bg-[#d4a574] text-[#3d2f1f] px-3 py-1 rounded text-xs font-medium;
+  @apply bg-[#d4a574] text-[#3d2f1f] px-3 py-1 rounded-full text-xs font-medium;
 }
 
 .chip-warm-neutral {
-  @apply bg-[#f7f4ed] text-[#3d2f1f] px-3 py-1 rounded text-xs font-medium border border-[#e8dfd1];
+  @apply bg-[#f7f4ed] text-[#3d2f1f] px-3 py-1 rounded-full text-xs font-medium border border-[#e8dfd1];
 }

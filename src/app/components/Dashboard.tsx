@@ -97,7 +97,7 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-[#f7f4ed] pb-24">
       {/* Header */}
-      <div className="p-4 mb-2 bg-white border-b border-[#e8dfd1]">
+      <div className="p-4 mb-4 bg-white border-b border-[#e8dfd1] shadow-[0_1px_4px_rgba(61,47,31,0.06)]">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <h1 className="text-2xl font-bold text-[#3d2f1f] mb-1">C&C Feed Inventory</h1>
@@ -147,7 +147,7 @@ export default function Dashboard() {
       {/* Primary Action */}
       <button
         onClick={() => navigate('/choose-sale-type')}
-        className="w-full bg-[#5a7a4d] text-white p-5 rounded-lg shadow-sm mb-6 flex items-center justify-center gap-3 active:bg-[#4a6a3d] transition-colors font-semibold"
+        className="w-full bg-[#5a7a4d] text-white p-5 rounded-2xl shadow-[0_3px_10px_rgba(61,47,31,0.18)] mb-6 flex items-center justify-center gap-3 active:bg-[#4a6a3d] transition-colors font-semibold"
       >
         <ShoppingCart size={24} />
         <span className="text-lg">Take Feed</span>
@@ -191,7 +191,7 @@ export default function Dashboard() {
       </div>
 
       {/* Recent Activity */}
-      <div className="card-warm-shadow p-4 mb-6">
+      <div className="bg-[#fffdf8] border border-[#ded2c0] rounded-2xl p-5 mb-6 shadow-[0_4px_14px_rgba(61,47,31,0.16)]">
         <h3 className="font-semibold text-[#3d2f1f] mb-3">Recent Activity</h3>
         <div className="space-y-3">
           {isLoading && (
@@ -212,7 +212,7 @@ export default function Dashboard() {
       </div>
 
       {/* Workflow Annotation */}
-      <div className="mt-6 p-4 bg-white border border-[#e8dfd1] rounded-lg text-xs text-[#8b7a6f] leading-relaxed">
+      <div className="mt-6 p-4 bg-[#fffdf8] border border-[#ded2c0] rounded-2xl text-xs text-[#8b7a6f] leading-relaxed shadow-[0_4px_14px_rgba(61,47,31,0.16)]">
         <strong className="text-[#3d2f1f] block mb-2">Navigation:</strong>
         Home is the main command center. All sale/use activity starts from Take Feed. The user first chooses whether the feed is for a Customer or K2. Inventory, Invoices, Accounts, Reports, Add Stock, and Activity History remain accessible directly from Home.<br /><br />
         Bottom navigation provides persistent access to Home, Inventory, Take Feed, Invoices, and Accounts. Reports remain accessible from Home or role-based menus.
@@ -237,7 +237,7 @@ function SummaryCard({
   detail?: string;
 }) {
   return (
-    <div className="card-warm p-3">
+    <div className="bg-[#fffdf8] border border-[#ded2c0] rounded-2xl p-4 shadow-[0_4px_14px_rgba(61,47,31,0.16)]">
       <div className="flex items-center gap-1 mb-1 text-[#8b7a6f]">
         {icon}
       </div>
@@ -260,7 +260,7 @@ function NavCard({
   return (
     <button
       onClick={onClick}
-      className="card-warm-shadow p-4 flex flex-col items-center gap-2 active:bg-[#faf8f5] transition-colors"
+      className="bg-[#fffdf8] border border-[#ded2c0] rounded-2xl p-5 min-h-[108px] flex flex-col items-center justify-center gap-3 shadow-[0_4px_14px_rgba(61,47,31,0.16)] active:bg-[#faf8f5] transition-colors"
     >
       <div className="text-[#5a7a4d]">{icon}</div>
       <span className="text-sm font-medium text-[#3d2f1f] text-center">{label}</span>
