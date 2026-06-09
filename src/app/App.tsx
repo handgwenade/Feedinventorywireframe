@@ -154,9 +154,53 @@ function AdminAccessDenied({ errorMessage }: { errorMessage?: string | null }) {
   );
 }
 
+function AccountAccessScreen({
+  title,
+  message,
+  errorMessage,
+}: {
+  title: string;
+  message: string;
+  errorMessage?: string | null;
+}) {
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    navigate('/login');
+  };
+
+  return (
+    <div className="min-h-screen bg-[#f7f4ed] p-4 flex items-center justify-center">
+      <div className="w-full max-w-sm bg-white border border-[#ded2c0] rounded-2xl p-5 space-y-4 shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
+        <div>
+          <h1 className="text-xl font-bold text-[#3d2f1f]">{title}</h1>
+          <p className="mt-2 text-sm text-[#8b7a6f] leading-relaxed">{message}</p>
+        </div>
+
+        {errorMessage && (
+          <div className="rounded-2xl border border-[#d8a59a] bg-[#fff4f0] p-3 text-sm text-[#8b3f2f]">
+            {errorMessage}
+          </div>
+        )}
+
+        <button
+          onClick={handleSignOut}
+          className="w-full bg-[#5a7a4d] text-white py-3 rounded-2xl font-semibold active:bg-[#4a6a3d] shadow-[0_3px_10px_rgba(61,47,31,0.18)]"
+        >
+          Sign Out
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function AppRoutes() {
   const location = useLocation();
   const [authStatus, setAuthStatus] = useState<'checking' | 'authenticated' | 'anonymous'>('checking');
+  const [profile, setProfile] = useState<CurrentUserProfile | null>(null);
+  const [profileStatus, setProfileStatus] = useState<'idle' | 'checking' | 'ready' | 'error'>('idle');
+  const [profileErrorMessage, setProfileErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -183,10 +227,47 @@ function AppRoutes() {
 
   const isPublicRoute = PUBLIC_ROUTES.includes(location.pathname);
 
+  useEffect(() => {
+    if (authStatus !== 'authenticated' || isPublicRoute) {
+      setProfile(null);
+      setProfileStatus('idle');
+      setProfileErrorMessage(null);
+      return;
+    }
+
+    let isMounted = true;
+
+    async function loadProfile() {
+      setProfileStatus('checking');
+      setProfileErrorMessage(null);
+
+      try {
+        const liveProfile = await userProfileService.getCurrentProfile();
+
+        if (isMounted) {
+          setProfile(liveProfile);
+          setProfileStatus('ready');
+        }
+      } catch (error) {
+        if (isMounted) {
+          setProfile(null);
+          setProfileErrorMessage(error instanceof Error ? error.message : 'Unable to verify profile.');
+          setProfileStatus('error');
+        }
+      }
+    }
+
+    loadProfile();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [authStatus, isPublicRoute]);
+
   if (authStatus === 'checking') {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="bg-white border border-gray-200 rounded-lg p-4 text-sm text-gray-700">
+      <div className="min-h-screen bg-[#f7f4ed] flex items-center justify-center p-4">
+        <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 text-sm text-[#8b7a6f] shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
           Checking session...
         </div>
       </div>
@@ -195,6 +276,46 @@ function AppRoutes() {
 
   if (authStatus === 'anonymous' && !isPublicRoute) {
     return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+  }
+
+  if (authStatus === 'authenticated' && !isPublicRoute) {
+    if (profileStatus === 'checking' || profileStatus === 'idle') {
+      return (
+        <div className="min-h-screen bg-[#f7f4ed] flex items-center justify-center p-4">
+          <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 text-sm text-[#8b7a6f] shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
+            Checking account...
+          </div>
+        </div>
+      );
+    }
+
+    if (profileStatus === 'error') {
+      return (
+        <AccountAccessScreen
+          title="Profile Check Failed"
+          message="We could not verify your app profile. Sign out, then try again or contact an admin."
+          errorMessage={profileErrorMessage}
+        />
+      );
+    }
+
+    if (!profile || !profile.profileExists) {
+      return (
+        <AccountAccessScreen
+          title="Profile Not Found"
+          message="Your login exists, but no app profile is connected. Contact an admin."
+        />
+      );
+    }
+
+    if (!profile.isActive) {
+      return (
+        <AccountAccessScreen
+          title="Account Not Active"
+          message="Your account is not active. Contact an admin to restore access."
+        />
+      );
+    }
   }
 
   return (

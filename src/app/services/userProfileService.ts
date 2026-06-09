@@ -10,6 +10,7 @@ export interface CurrentUserProfile {
   organizationId?: string;
   organizationName?: string;
   isActive: boolean;
+  profileExists: boolean;
 }
 
 interface UserProfileRow {
@@ -60,6 +61,7 @@ async function getCurrentProfileFromSupabase(): Promise<CurrentUserProfile | nul
       displayName: authUser.email ?? 'Current User',
       role: 'viewer',
       isActive: false,
+      profileExists: false,
     };
   }
 
@@ -88,6 +90,7 @@ async function getCurrentProfileFromSupabase(): Promise<CurrentUserProfile | nul
     organizationId: profile.organization_id ?? undefined,
     organizationName,
     isActive: profile.is_active,
+    profileExists: true,
   };
 }
 
