@@ -157,8 +157,15 @@ export default function ProfileMenu() {
           </div>
         </div>
 
+        {/* App Version */}
+        <div className="mt-6 bg-white border border-[#ded2c0] rounded-2xl p-3 shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
+          <div className="text-sm font-semibold text-[#3d2f1f]">C&amp;C Feed Inventory</div>
+          <div className="mt-1 text-xs text-[#8b7a6f]">Beta 0.1.0</div>
+          <div className="text-xs text-[#8b7a6f]">Build 2026.05.31</div>
+        </div>
+
         {/* Annotations */}
-        <div className="mt-6 space-y-3">
+        <div className="space-y-3">
           <div className="p-3 bg-white border border-[#ded2c0] rounded-2xl text-xs text-[#8b7a6f] leading-relaxed shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
             <strong>Role-based menu:</strong> User/profile area is role-based. Admin sees management tools. Operators see personal settings and permissions only.
           </div>
