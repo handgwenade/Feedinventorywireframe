@@ -7,37 +7,42 @@ import UserIcon from './shared/UserIcon';
 interface User {
   id: string;
   name: string;
-  role: 'Admin' | 'Manager' | 'Operator' | 'View Only';
+  role: 'admin' | 'manager' | 'operator' | 'viewer';
   status: 'Active' | 'Invited' | 'Disabled';
   lastActive: string;
+}
+
+function formatRoleLabel(role: User['role']): string {
+  if (role === 'viewer') return 'View Only';
+  return role.charAt(0).toUpperCase() + role.slice(1);
 }
 
 const initialUsers: User[] = [
   {
     id: '1',
     name: 'Admin User',
-    role: 'Admin',
+    role: 'admin',
     status: 'Active',
     lastActive: '5/25/2026'
   },
   {
     id: '2',
     name: 'Manager User',
-    role: 'Manager',
+    role: 'manager',
     status: 'Active',
     lastActive: '5/24/2026'
   },
   {
     id: '3',
     name: 'Operator User',
-    role: 'Operator',
+    role: 'operator',
     status: 'Active',
     lastActive: '5/25/2026'
   },
   {
     id: '4',
     name: 'View Only User',
-    role: 'View Only',
+    role: 'viewer',
     status: 'Active',
     lastActive: '5/20/2026'
   }
@@ -49,7 +54,7 @@ export default function ManageUsers() {
   const [users, setUsers] = useState<User[]>(initialUsers);
   const [showAddUserPanel, setShowAddUserPanel] = useState(false);
   const [newUserName, setNewUserName] = useState('');
-  const [newUserRole, setNewUserRole] = useState<User['role']>('Operator');
+  const [newUserRole, setNewUserRole] = useState<User['role']>('operator');
   const [addUserError, setAddUserError] = useState<string | null>(null);
 
   const filteredUsers = users.filter(user =>
@@ -74,7 +79,7 @@ export default function ManageUsers() {
 
     setUsers((currentUsers) => [user, ...currentUsers]);
     setNewUserName('');
-    setNewUserRole('Operator');
+    setNewUserRole('operator');
     setShowAddUserPanel(false);
   };
 
@@ -156,10 +161,10 @@ export default function ManageUsers() {
                 onChange={(event) => setNewUserRole(event.target.value as User['role'])}
                 className="w-full px-4 py-3 bg-white border border-[#ded2c0] rounded-2xl text-[#3d2f1f] focus:outline-none focus:ring-2 focus:ring-[#5a7a4d]"
               >
-                <option value="Admin">Admin</option>
-                <option value="Manager">Manager</option>
-                <option value="Operator">Operator</option>
-                <option value="View Only">View Only</option>
+                <option value="admin">Admin</option>
+                <option value="manager">Manager</option>
+                <option value="operator">Operator</option>
+                <option value="viewer">View Only</option>
               </select>
             </div>
 
@@ -216,7 +221,7 @@ function UserCard({ user }: { user: User; navigate: any }) {
           <div className="font-semibold text-[#3d2f1f] mb-1">{user.name}</div>
           <div className="flex gap-2">
             <span className="text-xs px-3 py-1 bg-[#e9f0e5] border border-[#cbd8c4] text-[#5a7a4d] rounded-full font-semibold">
-              {user.role}
+              {formatRoleLabel(user.role)}
             </span>
             <span className={`text-xs px-3 py-1 rounded-full border font-semibold ${getStatusColor()}`}>
               {user.status}

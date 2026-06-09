@@ -1,4 +1,4 @@
-export type UserRole = 'admin' | 'manager' | 'operator' | 'view_only';
+export type UserRole = 'admin' | 'manager' | 'operator' | 'viewer';
 
 export type ProductStatus = 'active' | 'archived';
 

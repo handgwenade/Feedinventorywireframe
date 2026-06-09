@@ -4,6 +4,11 @@ import { ArrowLeft, ChevronDown } from 'lucide-react';
 import UserIcon from './shared/UserIcon';
 import BottomNav from './shared/BottomNav';
 
+function formatRoleLabel(role: string): string {
+  if (role === 'viewer') return 'View Only';
+  return role.charAt(0).toUpperCase() + role.slice(1);
+}
+
 export default function EditUser() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -12,7 +17,7 @@ export default function EditUser() {
       id: '3',
       name: 'Operator User',
       email: 'operator@ccfeed.com',
-      role: 'Operator',
+      role: 'operator',
       status: 'Active'
     }
   };
@@ -64,7 +69,7 @@ export default function EditUser() {
         <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
           <div className="text-sm font-medium text-[#8b7a6f] mb-2">Role</div>
           <button className="w-full bg-white border border-[#ded2c0] rounded-2xl p-3 flex items-center justify-between text-[#3d2f1f] active:bg-[#faf8f5] shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
-            <span className="font-semibold">{selectedRole}</span>
+            <span className="font-semibold">{formatRoleLabel(selectedRole)}</span>
             <ChevronDown size={20} className="text-[#8b7a6f]" />
           </button>
         </div>
