@@ -19,6 +19,29 @@ function getInitialInvoice(locationState: unknown): InvoiceDetailRecord | null {
   };
 }
 
+function safeText(value: unknown, fallback = '—'): string {
+  if (typeof value !== 'string') return fallback;
+
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : fallback;
+}
+
+function safeNumber(value: unknown, fallback = 0): number {
+  const numberValue = Number(value);
+  return Number.isFinite(numberValue) ? numberValue : fallback;
+}
+
+function safeCurrency(value: unknown): string {
+  return formatCurrency(safeNumber(value));
+}
+
+function safeDate(value: unknown): string {
+  if (typeof value !== 'string' || !value.trim()) return '—';
+
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? '—' : date.toLocaleDateString();
+}
+
 export default function InvoiceDetail() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -120,9 +143,21 @@ export default function InvoiceDetail() {
     balance: balanceDue,
   };
 
-  const invoiceDate = new Date(invoice.issueDate).toLocaleDateString();
+  const invoiceDate = safeDate(invoice.issueDate);
   const dueDate = 'Due on receipt';
   const amountPaid = invoice.amountPaid;
+  const printDisplayNumber = safeText(displayNumber, 'Pending invoice number');
+  const printStatus = safeText(invoice.status, 'pending').replace(/-/g, ' ');
+  const printAccountName = safeText(accountName, 'Unknown account');
+  const printInvoiceType = invoiceType === 'k2' ? 'K2 account use' : 'Customer invoice';
+  const printLineItems = Array.isArray(lineItems) ? lineItems : [];
+  const printSubtotal = safeCurrency(invoice.subtotal);
+  const printTaxAmount = safeNumber(invoice.taxAmount);
+  const printTax = printTaxAmount > 0 ? formatCurrency(printTaxAmount) : '$0.00';
+  const printTotal = safeCurrency(invoice.total);
+  const printAmountPaid = safeCurrency(amountPaid);
+  const printBalanceDue = safeCurrency(balanceDue);
+  const printNotes = safeText(invoice.notes);
   const isWrittenOff = invoice.status === 'written_off' || invoice.status === 'written-off';
   const isVoid = invoice.status === 'void';
   const [accountEmail, setAccountEmail] = useState<string | null>(null);
@@ -292,8 +327,17 @@ export default function InvoiceDetail() {
           body,
           #root {
             background: #ffffff !important;
+            color: #000000 !important;
             width: 100% !important;
             min-height: auto !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+
+          body {
+            overflow: visible !important;
           }
 
           body * {
@@ -311,15 +355,17 @@ export default function InvoiceDetail() {
 
           .invoice-print-document {
             display: block !important;
-            position: absolute !important;
+            position: static !important;
             left: 0 !important;
             top: 0 !important;
             width: 100% !important;
-            color: #111111 !important;
+            max-width: none !important;
+            color: #000000 !important;
             background: #ffffff !important;
             font-family: Arial, sans-serif !important;
             font-size: 11pt !important;
             line-height: 1.35 !important;
+            box-shadow: none !important;
           }
 
           .invoice-print-header {
@@ -345,7 +391,7 @@ export default function InvoiceDetail() {
           }
 
           .invoice-print-muted {
-            color: #444444 !important;
+            color: #333333 !important;
           }
 
           .invoice-print-section {
@@ -374,6 +420,12 @@ export default function InvoiceDetail() {
             width: 100% !important;
             border-collapse: collapse !important;
             margin-top: 8px !important;
+            page-break-inside: auto !important;
+          }
+
+          .invoice-print-table tr {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
           }
 
           .invoice-print-table th {
@@ -400,6 +452,8 @@ export default function InvoiceDetail() {
             width: 260px !important;
             margin-left: auto !important;
             margin-top: 16px !important;
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
           }
 
           .invoice-print-total-row {
@@ -430,6 +484,8 @@ export default function InvoiceDetail() {
             border-top: 1px solid #dddddd !important;
             padding-top: 12px !important;
             margin-top: 20px !important;
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
           }
         }
       `}</style>
@@ -443,10 +499,10 @@ export default function InvoiceDetail() {
           </div>
           <div className="invoice-print-number">
             <div className="invoice-print-label">Invoice Number</div>
-            <div className="invoice-print-value">{displayNumber}</div>
+            <div className="invoice-print-value">{printDisplayNumber}</div>
             <div style={{ marginTop: '10px' }}>
               <div className="invoice-print-label">Status</div>
-              <div className="invoice-print-value">{invoice.status.replace('-', ' ')}</div>
+              <div className="invoice-print-value">{printStatus}</div>
             </div>
           </div>
         </div>
@@ -454,8 +510,8 @@ export default function InvoiceDetail() {
         <div className="invoice-print-section invoice-print-grid">
           <div>
             <div className="invoice-print-label">Bill To</div>
-            <div className="invoice-print-value">{accountName}</div>
-            <div className="invoice-print-muted">{invoiceType === 'k2' ? 'K2 account use' : 'Customer invoice'}</div>
+            <div className="invoice-print-value">{printAccountName}</div>
+            <div className="invoice-print-muted">{printInvoiceType}</div>
           </div>
           <div>
             <div className="invoice-print-label">Invoice Date</div>
@@ -478,13 +534,13 @@ export default function InvoiceDetail() {
               </tr>
             </thead>
             <tbody>
-              {lineItems.length > 0 ? (
-                lineItems.map((item) => (
-                  <tr key={item.id}>
-                    <td>{item.description}</td>
-                    <td className="invoice-print-number">{item.quantity} {item.unitLabel}</td>
-                    <td className="invoice-print-number">{formatCurrency(item.unitPrice)}</td>
-                    <td className="invoice-print-number">{formatCurrency(item.lineTotal)}</td>
+              {printLineItems.length > 0 ? (
+                printLineItems.map((item, index) => (
+                  <tr key={item.id || `print-line-item-${index}`}>
+                    <td>{safeText(item.description, 'Line item')}</td>
+                    <td className="invoice-print-number">{safeNumber(item.quantity)} {safeText(item.unitLabel, 'units')}</td>
+                    <td className="invoice-print-number">{safeCurrency(item.unitPrice)}</td>
+                    <td className="invoice-print-number">{safeCurrency(item.lineTotal)}</td>
                   </tr>
                 ))
               ) : (
@@ -498,30 +554,30 @@ export default function InvoiceDetail() {
           <div className="invoice-print-totals">
             <div className="invoice-print-total-row">
               <span>Subtotal</span>
-              <span>{formatCurrency(invoice.subtotal)}</span>
+              <span>{printSubtotal}</span>
             </div>
             <div className="invoice-print-total-row">
               <span>Tax</span>
-              <span>{invoice.taxAmount > 0 ? formatCurrency(invoice.taxAmount) : 'Off'}</span>
+              <span>{printTax}</span>
             </div>
             <div className="invoice-print-total-row invoice-print-grand-total">
               <span>Total</span>
-              <span>{formatCurrency(invoice.total)}</span>
+              <span>{printTotal}</span>
             </div>
             <div className="invoice-print-total-row">
               <span>Amount Paid</span>
-              <span>{formatCurrency(amountPaid)}</span>
+              <span>{printAmountPaid}</span>
             </div>
             <div className="invoice-print-total-row invoice-print-balance">
               <span>Balance Due</span>
-              <span>{formatCurrency(balanceDue)}</span>
+              <span>{printBalanceDue}</span>
             </div>
           </div>
         </div>
 
         <div className="invoice-print-notes">
           <div className="invoice-print-label">Notes</div>
-          <div>{invoice.notes ?? '—'}</div>
+          <div>{printNotes}</div>
         </div>
       </div>
 
@@ -663,6 +719,9 @@ export default function InvoiceDetail() {
             label="Print"
             onClick={printInvoice}
           />
+          <div className="bg-white border border-[#ded2c0] rounded-2xl p-3 text-xs text-[#8b7a6f] leading-relaxed shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
+            Print preview should show a clean invoice. If it shows the app screen, refresh the app and try again.
+          </div>
           {invoiceType === 'k2' ? (
             <div className="space-y-3">
               <ActionButton
