@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
+import { useEffect, useState, type ReactNode } from 'react';
+import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import Dashboard from './components/Dashboard';
 import ChooseSaleType from './components/ChooseSaleType';
 import ChooseCustomer from './components/ChooseCustomer';
@@ -58,8 +58,101 @@ import CannotEditActivityWarning from './components/CannotEditActivityWarning';
 import UtilityScreensReference from './components/UtilityScreensReference';
 
 import { supabase } from './services/supabaseClient';
+import { userProfileService } from './services/userProfileService';
+import type { CurrentUserProfile } from './services/userProfileService';
 
 const PUBLIC_ROUTES = ['/login', '/update-password', '/session-expired'];
+
+function AdminOnlyRoute({ children }: { children: ReactNode }) {
+  const [profile, setProfile] = useState<CurrentUserProfile | null>(null);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadProfile() {
+      setIsLoadingProfile(true);
+      setErrorMessage(null);
+
+      try {
+        const liveProfile = await userProfileService.getCurrentProfile();
+
+        if (isMounted) {
+          setProfile(liveProfile);
+        }
+      } catch (error) {
+        if (isMounted) {
+          setErrorMessage(error instanceof Error ? error.message : 'Unable to verify access.');
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoadingProfile(false);
+        }
+      }
+    }
+
+    loadProfile();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  if (isLoadingProfile) {
+    return (
+      <div className="min-h-screen bg-[#f7f4ed] flex items-center justify-center p-4">
+        <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 text-sm text-[#8b7a6f] shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
+          Checking access...
+        </div>
+      </div>
+    );
+  }
+
+  if (profile?.role !== 'admin' || !profile.isActive) {
+    return <AdminAccessDenied errorMessage={errorMessage} />;
+  }
+
+  return <>{children}</>;
+}
+
+function AdminAccessDenied({ errorMessage }: { errorMessage?: string | null }) {
+  const navigate = useNavigate();
+
+  return (
+    <div className="min-h-screen bg-[#f7f4ed] p-4 flex items-center justify-center">
+      <div className="w-full max-w-sm bg-white border border-[#ded2c0] rounded-2xl p-5 space-y-4 shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
+        <div>
+          <h1 className="text-xl font-bold text-[#3d2f1f]">Admin Access Required</h1>
+          <p className="mt-2 text-sm text-[#8b7a6f] leading-relaxed">
+            Your current role does not allow access to user management.
+          </p>
+        </div>
+
+        {errorMessage && (
+          <div className="rounded-2xl border border-[#d8a59a] bg-[#fff4f0] p-3 text-sm text-[#8b3f2f]">
+            {errorMessage}
+          </div>
+        )}
+
+        <div className="grid gap-2">
+          <button
+            onClick={() => navigate('/profile-menu')}
+            className="w-full bg-[#5a7a4d] text-white py-3 rounded-2xl font-semibold active:bg-[#4a6a3d] shadow-[0_3px_10px_rgba(61,47,31,0.18)]"
+          >
+            Return to Profile Menu
+          </button>
+          <button
+            onClick={() => navigate('/')}
+            className="w-full bg-white border border-[#ded2c0] text-[#3d2f1f] py-3 rounded-2xl font-semibold active:bg-[#faf8f5] shadow-[0_2px_8px_rgba(61,47,31,0.08)]"
+          >
+            Go to Dashboard
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function AppRoutes() {
   const location = useLocation();
@@ -151,8 +244,8 @@ function AppRoutes() {
           <Route path="/my-profile" element={<MyProfile />} />
           <Route path="/role-permissions" element={<RolePermissions />} />
           <Route path="/settings" element={<Settings />} />
-          <Route path="/manage-users" element={<ManageUsers />} />
-          <Route path="/edit-user" element={<EditUser />} />
+          <Route path="/manage-users" element={<AdminOnlyRoute><ManageUsers /></AdminOnlyRoute>} />
+          <Route path="/edit-user" element={<AdminOnlyRoute><EditUser /></AdminOnlyRoute>} />
           <Route path="/login" element={<Login />} />
           <Route path="/update-password" element={<UpdatePassword />} />
           <Route path="/session-expired" element={<SessionExpired />} />
