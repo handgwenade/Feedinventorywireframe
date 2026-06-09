@@ -96,7 +96,7 @@ export default function ManageUsers() {
 
       <div className="p-4 space-y-4">
         <div className="p-3 bg-white border border-[#ded2c0] rounded-2xl text-xs text-[#8b7a6f] leading-relaxed shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
-          <strong>Local wireframe:</strong> Added users appear in this session only. Invites, edits, and role changes are not connected to Supabase yet.
+          <strong>Beta wireframe:</strong> Added users appear in this session only. Real invites, edits, and role changes are not connected to Supabase yet.
         </div>
 
         {/* Search */}
@@ -192,7 +192,7 @@ export default function ManageUsers() {
 
         {/* Annotation */}
         <div className="mt-6 p-3 bg-white border border-[#ded2c0] rounded-2xl text-xs text-[#8b7a6f] leading-relaxed shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
-          <strong>Admin Access:</strong> Manage Users is visible only to Admin, or Manager if allowed.
+          <strong>Admin Access:</strong> Manage Users is available to active admins only.
         </div>
       </div>
 
@@ -201,7 +201,7 @@ export default function ManageUsers() {
   );
 }
 
-function UserCard({ user, navigate }: { user: User; navigate: any }) {
+function UserCard({ user }: { user: User; navigate: any }) {
   const getStatusColor = () => {
     if (user.status === 'Active') return 'bg-[#e9f0e5] border-[#cbd8c4] text-[#5a7a4d]';
     if (user.status === 'Invited') return 'bg-[#fff4d8] border-[#d4a574] text-[#8b5a1f]';
@@ -226,11 +226,11 @@ function UserCard({ user, navigate }: { user: User; navigate: any }) {
       </div>
       <div className="text-sm text-[#8b7a6f] mb-3">Last active: {user.lastActive}</div>
       <button
-        onClick={() => navigate('/edit-user', { state: { user } })}
-        className="w-full bg-white border border-[#ded2c0] text-[#3d2f1f] py-2 rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 active:bg-[#faf8f5] shadow-[0_2px_8px_rgba(61,47,31,0.08)]"
+        disabled
+        className="w-full bg-[#f7f4ed] border border-[#ded2c0] text-[#8b7a6f] py-2 rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 cursor-not-allowed opacity-75 shadow-[0_2px_8px_rgba(61,47,31,0.08)]"
       >
         <Edit size={16} />
-        Edit (placeholder)
+        Edit Coming Soon
       </button>
     </div>
   );
