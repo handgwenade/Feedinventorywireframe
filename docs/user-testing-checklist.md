@@ -1,4 +1,4 @@
-# C&C Feed Inventory User Testing Checklist
+# StockLog User Testing Checklist
 
 ## Testing Goal
 

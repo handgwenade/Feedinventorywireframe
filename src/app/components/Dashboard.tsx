@@ -100,7 +100,7 @@ export default function Dashboard() {
       <div className="p-4 mb-4 bg-white border-b border-[#e8dfd1] shadow-[0_1px_4px_rgba(61,47,31,0.06)]">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-[#3d2f1f] mb-1">C&C Feed Inventory</h1>
+            <h1 className="text-2xl font-bold text-[#3d2f1f] mb-1">StockLog</h1>
             <p className="text-[#8b7a6f]">Welcome back, {isLoading ? '...' : greetingName}</p>
           </div>
           <div className="flex items-center gap-3">

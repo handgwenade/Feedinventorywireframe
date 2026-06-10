@@ -1,12 +1,12 @@
-# C&C Feed Inventory Wireframe
+# StockLog Wireframe
 
-A mobile-first feed inventory and invoicing app prototype for C&C Feed Inventory.
+A mobile-first feed inventory and invoicing app prototype for C&C Feed.
 
-This repo contains the Figma Make code export plus project documentation for the C&C Feed Inventory app concept.
+This repo contains the Figma Make code export plus project documentation for the StockLog app concept.
 
 ## Project Purpose
 
-C&C Feed Inventory is designed to help a small feed-side business track feed/mineral inventory, record who takes feed, create invoices/statements/use records, and track payments.
+StockLog is designed to help a small feed-side business track feed/mineral inventory, record who takes feed, create invoices/statements/use records, and track payments.
 
 The main goal is low-friction recording. The app should make it faster to record feed movement than to ignore it.
 

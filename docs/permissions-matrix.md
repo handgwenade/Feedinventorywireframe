@@ -1,6 +1,6 @@
 # Permissions Matrix
 
-This document defines default role permissions for C&C Feed Inventory.
+This document defines default role permissions for StockLog.
 
 Roles:
 

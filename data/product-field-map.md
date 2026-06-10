@@ -1,6 +1,6 @@
 # Product Field Map
 
-This document maps existing Sortly/exported inventory fields to the C&C Feed Inventory app data model.
+This document maps existing Sortly/exported inventory fields to the StockLog app data model.
 
 The goal is to preserve useful product/inventory data while cleaning it into fields the MVP can actually use.
 

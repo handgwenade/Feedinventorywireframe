@@ -1,6 +1,6 @@
 # Open Questions
 
-This document tracks decisions that still need confirmation for the C&C Feed Inventory app.
+This document tracks decisions that still need confirmation for the StockLog app.
 
 ## Business / Operations
 
@@ -8,7 +8,7 @@ This document tracks decisions that still need confirmation for the C&C Feed Inv
 
 Current working name:
 
-C&C Feed Inventory
+StockLog
 
 Open question:
 

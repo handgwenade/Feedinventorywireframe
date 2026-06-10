@@ -51,7 +51,7 @@ export default function ProfileMenu() {
 
   const displayName = profile?.displayName ?? profile?.email ?? 'Current User';
   const roleLabel = profile ? userProfileService.formatRole(profile.role) : '—';
-  const businessName = profile?.organizationName ?? 'C&C Feed Inventory';
+  const businessName = profile?.organizationName ?? 'C&C Feed';
   const userRole = profile?.role;
 
   return (

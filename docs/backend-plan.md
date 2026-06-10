@@ -2,7 +2,7 @@
 
 # StockLog Backend Plan
 
-StockLog is the working name for the C&C Feed Inventory app. This document defines the first backend plan before creating Supabase tables or wiring the React app to live data.
+StockLog is the app for C&C Feed inventory workflows. This document defines the first backend plan before creating Supabase tables or wiring the React app to live data.
 
 ### Naming
 

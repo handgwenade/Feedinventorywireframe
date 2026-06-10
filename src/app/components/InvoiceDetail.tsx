@@ -215,7 +215,7 @@ export default function InvoiceDetail() {
       'Line items:',
       ...lineItems.map((li) => `- ${li.description} — ${li.quantity} ${li.unitLabel} — ${formatCurrency(li.lineTotal)}`),
       '',
-      'This invoice was generated from StockLog (C&C Feed Inventory).',
+      'This invoice was generated from StockLog for C&C Feed.',
     ];
 
     return lines.join('\n');

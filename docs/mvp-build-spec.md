@@ -1,6 +1,6 @@
 # MVP Build Spec
 
-This document defines the first usable version of C&C Feed Inventory.
+This document defines the first usable version of StockLog.
 
 The MVP should prove the core workflow:
 

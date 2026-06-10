@@ -1,4 +1,4 @@
-# C&C Feed Inventory Beta Testing Checklist
+# StockLog Beta Testing Checklist
 
 Use this checklist while testing the app. If something does not work, write down what you clicked, what you expected, and what actually happened.
 
@@ -12,7 +12,7 @@ Use this checklist while testing the app. If something does not work, write down
 
 Expected build marker:
 
-- App name: C&C Feed Inventory
+- App name: StockLog
 - Version: Beta 0.1.0
 - Build: 2026.05.31
 

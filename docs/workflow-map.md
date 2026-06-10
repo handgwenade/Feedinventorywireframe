@@ -1,4 +1,4 @@
-# C&C Feed Inventory Workflow Map
+# StockLog Workflow Map
 
 ## Navigation
 

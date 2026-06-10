@@ -1,8 +1,8 @@
-# C&C Feed Inventory Project Context
+# StockLog Project Context
 
 ## Project Purpose
 
-C&C Feed Inventory is a mobile-first feed inventory and invoicing app prototype for ranch/feed use.
+StockLog is a mobile-first feed inventory and invoicing app prototype for ranch/feed use.
 
 The goal is to make it faster and easier to record feed movement than to ignore it.
 

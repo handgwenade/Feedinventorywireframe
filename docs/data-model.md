@@ -1,6 +1,6 @@
 # Data Model
 
-This document defines the core data entities for C&C Feed Inventory.
+This document defines the core data entities for StockLog.
 
 The MVP data model should support:
 

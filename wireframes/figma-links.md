@@ -12,7 +12,7 @@ https://www.figma.com/design/7zFLuQwCXdcpTX1aWuTnBq/Sell-Feed-Workflow-Wireframe
 
 ## Notes
 
-This Figma file contains the low-fidelity mobile wireframes and clickable prototype for the C&C Feed Inventory app.
+This Figma file contains the low-fidelity mobile wireframes and clickable prototype for the StockLog app.
 
 The prototype includes:
 
