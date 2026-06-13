@@ -134,6 +134,16 @@ export default function Login() {
               Forgot password?
             </button>
           </div>
+
+          <div className="border-t border-[#eadfce] pt-4 text-center">
+            <button
+              type="button"
+              onClick={() => navigate('/signup')}
+              className="text-sm font-semibold text-[#5a7a4d] hover:text-[#3d2f1f] active:text-[#3d2f1f]"
+            >
+              Create account
+            </button>
+          </div>
         </div>
       </div>
     </div>

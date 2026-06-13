@@ -44,6 +44,7 @@ import Settings from './components/Settings';
 import ManageUsers from './components/ManageUsers';
 import EditUser from './components/EditUser';
 import Login from './components/Login';
+import SignUpFlow from './components/SignUpFlow';
 import UpdatePassword from './components/UpdatePassword';
 import SessionExpired from './components/SessionExpired';
 import EmptyInventory from './components/EmptyInventory';
@@ -61,7 +62,7 @@ import { supabase } from './services/supabaseClient';
 import { userProfileService } from './services/userProfileService';
 import type { CurrentUserProfile } from './services/userProfileService';
 
-const PUBLIC_ROUTES = ['/login', '/update-password', '/session-expired'];
+const PUBLIC_ROUTES = ['/login', '/signup', '/update-password', '/session-expired'];
 
 function AdminOnlyRoute({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<CurrentUserProfile | null>(null);
@@ -368,6 +369,7 @@ function AppRoutes() {
           <Route path="/manage-users" element={<AdminOnlyRoute><ManageUsers /></AdminOnlyRoute>} />
           <Route path="/edit-user" element={<AdminOnlyRoute><EditUser /></AdminOnlyRoute>} />
           <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<SignUpFlow />} />
           <Route path="/update-password" element={<UpdatePassword />} />
           <Route path="/session-expired" element={<SessionExpired />} />
           <Route path="/empty-inventory" element={<EmptyInventory />} />
