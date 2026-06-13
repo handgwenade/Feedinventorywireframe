@@ -9,3 +9,4 @@ dist/
 
 # Local CSV imports
 /data/*.csv
+supabase/.temp/
