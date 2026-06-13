@@ -60,7 +60,7 @@ Success response shape:
 - SignUpFlow does not call `accept-invite` yet.
 - No auth users are created by invite creation.
 - No invite emails are sent yet.
-- New-ranch setup does not exist yet.
+- New-ranch setup has a backend foundation in `create-ranch`, but the signup UI is not wired to it yet.
 
 ## `accept-invite`
 
