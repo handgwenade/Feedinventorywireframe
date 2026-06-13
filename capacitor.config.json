@@ -1,5 +1,5 @@
 {
-  "appId": "com.ccfeed.inventory",
+  "appId": "com.handgwenade.stocklog",
   "appName": "StockLog",
   "webDir": "dist"
 }
