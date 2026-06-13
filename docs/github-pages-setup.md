@@ -13,41 +13,49 @@ These pages are intended for App Store Connect/TestFlight:
 
 ## Recommended Setup
 
-If the repository supports GitHub Pages with a custom source folder or GitHub Actions, use one of these approaches:
-
-1. Configure GitHub Pages to publish the static files in `public-site/`.
-2. Use GitHub Actions to upload `public-site/` as the Pages artifact.
-
-GitHub Pages settings are usually found under:
+This repo includes a GitHub Actions workflow at:
 
 ```text
-Repository Settings > Pages
+.github/workflows/pages.yml
 ```
 
-Recommended URLs after publishing:
+The workflow publishes `public-site/` as the GitHub Pages artifact when files under `public-site/**` change on `main`.
+
+In GitHub, enable Pages with:
 
 ```text
-https://[owner].github.io/[repo]/privacy-policy/
-https://[owner].github.io/[repo]/support/
+Settings -> Pages -> Source: GitHub Actions
 ```
 
-Replace `[owner]` and `[repo]` with the real GitHub owner and repository name.
+Expected URLs after deployment:
 
-## Fallback if `/public-site` Cannot Be Served Directly
+```text
+https://handgwenade.github.io/Feedinventorywireframe/
+https://handgwenade.github.io/Feedinventorywireframe/privacy-policy/
+https://handgwenade.github.io/Feedinventorywireframe/support/
+```
+
+Use these App Store Connect fields:
+
+```text
+Privacy Policy URL: https://handgwenade.github.io/Feedinventorywireframe/privacy-policy/
+Support URL: https://handgwenade.github.io/Feedinventorywireframe/support/
+```
+
+## Fallback if GitHub Actions Pages Is Not Available
 
 Some GitHub Pages configurations only support:
 
 - repository root
 - `/docs`
-- GitHub Actions artifact
+- GitHub Actions artifact, if enabled
 
-If `/public-site` cannot be selected directly, use one of these fallback paths:
+If GitHub Actions Pages cannot be enabled, use one of these fallback paths:
 
 1. Move or copy the public HTML files into `/docs` and serve GitHub Pages from `/docs`.
-2. Add a GitHub Actions workflow later that publishes `public-site/` as the Pages artifact.
-3. Serve from repository root only if it does not conflict with the app project.
+2. Serve from repository root only if it does not conflict with the app project.
 
-GitHub Actions is the cleanest long-term option because it keeps public App Store pages separate from internal project docs.
+GitHub Actions remains the preferred option because it keeps public App Store pages separate from internal project docs.
 
 ## Values to Finalize Before Publishing
 
