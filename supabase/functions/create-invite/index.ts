@@ -79,11 +79,28 @@ function generateInviteCode(): string {
     .join('');
 }
 
-async function sha256Hex(value: string): Promise<string> {
-  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value));
-  return Array.from(new Uint8Array(digest))
+function normalizeInviteCode(code: string): string {
+  return code.trim().toUpperCase().replace(/[\s-]+/g, '');
+}
+
+function bytesToHex(bytes: Uint8Array): string {
+  return Array.from(bytes)
     .map((byte) => byte.toString(16).padStart(2, '0'))
     .join('');
+}
+
+async function hmacSha256Hex(value: string, pepper: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(pepper),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign'],
+  );
+  const signature = await crypto.subtle.sign('HMAC', key, encoder.encode(value));
+
+  return bytesToHex(new Uint8Array(signature));
 }
 
 Deno.serve(async (request) => {
@@ -97,8 +114,9 @@ Deno.serve(async (request) => {
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL');
   const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+  const inviteCodePepper = Deno.env.get('INVITE_CODE_PEPPER');
 
-  if (!supabaseUrl || !serviceRoleKey) {
+  if (!supabaseUrl || !serviceRoleKey || !inviteCodePepper) {
     return jsonResponse({ error: 'Server is not configured for invite creation.' }, 500);
   }
 
@@ -188,7 +206,8 @@ Deno.serve(async (request) => {
   }
 
   const code = generateInviteCode();
-  const codeHash = await sha256Hex(code);
+  const normalizedCode = normalizeInviteCode(code);
+  const codeHash = await hmacSha256Hex(normalizedCode, inviteCodePepper);
   const expiresAt = new Date(Date.now() + expiresInDays * 24 * 60 * 60 * 1000).toISOString();
 
   const { data: invitation, error: insertError } = await supabase

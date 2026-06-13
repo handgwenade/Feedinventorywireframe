@@ -10,7 +10,7 @@ Path:
 supabase/functions/create-invite/index.ts
 ```
 
-The function lets an active admin or manager create a pending invitation for their own organization. It requires a valid authenticated user JWT in the `Authorization` header and uses `SUPABASE_URL` plus `SUPABASE_SERVICE_ROLE_KEY` only inside the Edge Function runtime.
+The function lets an active admin or manager create a pending invitation for their own organization. It requires a valid authenticated user JWT in the `Authorization` header and uses `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, and `INVITE_CODE_PEPPER` only inside the Edge Function runtime.
 
 Input:
 
@@ -31,7 +31,9 @@ Rules:
 - Managers may not invite admins.
 - The caller's `organization_id` and `created_by` are derived from the authenticated profile, not request input.
 - Plain invite codes are generated once and returned once.
-- Only a SHA-256 hash of the invite code is stored in `public.user_invitations.code_hash`.
+- Invite codes are normalized by trimming, uppercasing, and removing spaces/hyphens before hashing.
+- Codes are HMAC-hashed with `INVITE_CODE_PEPPER` before being stored in `public.user_invitations.code_hash`.
+- Future `accept-invite` must use the same normalization and HMAC-SHA-256 process.
 - The plain invite code is not logged.
 - A pending invitation conflict returns a clear error instead of replacing the existing invite.
 
@@ -72,5 +74,5 @@ supabase functions deploy create-invite
 Set required function secrets in the Supabase project:
 
 ```sh
-supabase secrets set SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=...
+supabase secrets set SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... INVITE_CODE_PEPPER=...
 ```
