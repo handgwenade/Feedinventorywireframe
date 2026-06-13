@@ -1,0 +1,4 @@
+name,category,current_quantity,minimum_quantity,unit_label,sale_price,cost_per_unit,sku,vendor,source_notes
+Garlic Salt Blocks,Blocks,247,50,units,17.15,,,"","Opening launch count from C&C"
+Minex Pro G Mineral W/ Garlic,Mineral,64,50,bags,45.70,,,"","Opening launch count from C&C"
+Salt Blocks,Blocks,69,50,units,0,,,"","Confirm sale price before live import"

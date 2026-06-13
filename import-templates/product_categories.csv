@@ -1,0 +1,6 @@
+name,slug,sort_order,is_active
+Blocks,blocks,10,true
+Mineral,mineral,20,true
+Tubs,tubs,30,true
+Salt,salt,40,true
+Supplement,supplement,50,true
