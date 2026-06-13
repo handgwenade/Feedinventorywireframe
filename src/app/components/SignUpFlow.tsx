@@ -1,11 +1,11 @@
 import { useMemo, useState } from 'react';
 import type { InputHTMLAttributes, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Check, CheckCircle2, ChevronLeft, Eye, Package, ShieldCheck, X } from 'lucide-react';
+import { Building2, Check, CheckCircle2, ChevronLeft, Package, ShieldCheck, UserPlus, X } from 'lucide-react';
 
-type Step = 'welcome' | 'details' | 'password' | 'invite' | 'role' | 'complete';
+type Step = 'welcome' | 'joining' | 'details' | 'password' | 'invite' | 'role' | 'complete';
 
-const stepOrder: Step[] = ['welcome', 'details', 'password', 'invite', 'role', 'complete'];
+const stepOrder: Step[] = ['welcome', 'joining', 'details', 'password', 'invite', 'role', 'complete'];
 
 const operatorAllowed = [
   'Record feed taken & create invoices',
@@ -18,15 +18,6 @@ const operatorUnavailable = [
   'See cost & accounting fields',
 ];
 
-const viewOnlyAllowed = ['View inventory and activity'];
-
-const viewOnlyUnavailable = [
-  'Record feed taken & create invoices',
-  'Add incoming stock',
-  'Manage users or settings',
-  'See cost & accounting fields',
-];
-
 export default function SignUpFlow() {
   const navigate = useNavigate();
   const [step, setStep] = useState<Step>('welcome');
@@ -34,12 +25,10 @@ export default function SignUpFlow() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [inviteCode, setInviteCode] = useState('');
-  const [isViewOnly, setIsViewOnly] = useState(false);
 
   const currentStepIndex = stepOrder.indexOf(step);
-  const roleName = isViewOnly ? 'View-only access' : 'Operator';
-  const allowed = isViewOnly ? viewOnlyAllowed : operatorAllowed;
-  const unavailable = isViewOnly ? viewOnlyUnavailable : operatorUnavailable;
+  const roleName = 'Operator';
+  const ranchName = 'C&C Feed';
 
   const passwordChecks = useMemo(
     () => [
@@ -52,7 +41,6 @@ export default function SignUpFlow() {
 
   const isPasswordReady = passwordChecks.every((check) => check.met);
   const inviteCodeReady = inviteCode.length === 6;
-  const ranchName = inviteCodeReady && !isViewOnly ? 'C&C Feed' : 'C&C Feed';
 
   const goToStep = (nextStep: Step) => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -65,7 +53,6 @@ export default function SignUpFlow() {
   };
 
   const handleInviteChange = (value: string) => {
-    setIsViewOnly(false);
     setInviteCode(value.replace(/[^a-z0-9]/gi, '').slice(0, 6).toUpperCase());
   };
 
@@ -85,9 +72,13 @@ export default function SignUpFlow() {
 
         {step === 'welcome' && (
           <WelcomeScreen
-            onCreateAccount={() => goToStep('details')}
+            onCreateAccount={() => goToStep('joining')}
             onSignIn={() => navigate('/login')}
           />
+        )}
+
+        {step === 'joining' && (
+          <JoiningScreen onJoinExisting={() => goToStep('details')} />
         )}
 
         {step === 'details' && (
@@ -152,10 +143,10 @@ export default function SignUpFlow() {
               label="Invite code"
               value={inviteCode}
               onChange={handleInviteChange}
-              placeholder="ABC123"
+              placeholder="ENTER CODE"
               inputMode="text"
               maxLength={6}
-              className="text-center text-xl font-bold uppercase tracking-[0.28em]"
+              className="text-center text-xl font-bold uppercase tracking-[0.12em]"
             />
             <p className="text-sm leading-relaxed text-[#8b7a6f]">
               Your code connects you to the right ranch and sets what you’re allowed to do.
@@ -163,23 +154,15 @@ export default function SignUpFlow() {
             {inviteCodeReady && (
               <div className="flex items-center gap-2 rounded-2xl border border-[#cbd8c4] bg-[#e9f0e5] p-3 text-sm font-semibold text-[#5a7a4d]">
                 <ShieldCheck size={18} />
-                Code found. You’ll join as an Operator.
+                Code found. This invite assigns the Operator role.
               </div>
             )}
             <PrimaryButton disabled={!inviteCodeReady} onClick={() => goToStep('role')}>
               Continue
             </PrimaryButton>
-            <button
-              type="button"
-              onClick={() => {
-                setIsViewOnly(true);
-                setInviteCode('');
-                goToStep('role');
-              }}
-              className="w-full py-2 text-sm font-semibold text-[#8b7a6f] active:text-[#3d2f1f]"
-            >
-              No code? Join with view-only access
-            </button>
+            <p className="w-full py-2 text-center text-sm font-semibold text-[#8b7a6f]">
+              Need an invite? Ask your StockLog admin.
+            </p>
           </StepCard>
         )}
 
@@ -188,16 +171,19 @@ export default function SignUpFlow() {
             <div className="rounded-2xl border border-[#ded2c0] bg-[#fffdf8] p-4">
               <div className="mb-4 flex items-center gap-3">
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#e9f0e5] text-[#5a7a4d]">
-                  {isViewOnly ? <Eye size={24} /> : <ShieldCheck size={24} />}
+                  <ShieldCheck size={24} />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-[#8b7a6f]">Mocked role</p>
+                  <p className="text-sm font-semibold text-[#8b7a6f]">Assigned by invite</p>
                   <h2 className="text-xl font-bold text-[#3d2f1f]">{roleName}</h2>
                 </div>
               </div>
-              <PermissionList title="Allowed" items={allowed} tone="allowed" />
+              <p className="mb-4 rounded-2xl bg-[#f7f4ed] p-3 text-sm leading-relaxed text-[#6f5f54]">
+                Your role is set by your invite. An admin can change this later.
+              </p>
+              <PermissionList title="Allowed" items={operatorAllowed} tone="allowed" />
               <div className="mt-4">
-                <PermissionList title="Unavailable" items={unavailable} tone="unavailable" />
+                <PermissionList title="Unavailable" items={operatorUnavailable} tone="unavailable" />
               </div>
             </div>
             <PrimaryButton onClick={() => goToStep('complete')}>Create account</PrimaryButton>
@@ -261,6 +247,65 @@ function WelcomeScreen({
       >
         Already have an account? Sign in
       </button>
+    </div>
+  );
+}
+
+function JoiningScreen({ onJoinExisting }: { onJoinExisting: () => void }) {
+  return (
+    <div className="flex flex-1 flex-col justify-center py-4">
+      <div className="rounded-3xl border border-[#ded2c0] bg-white p-5 shadow-[0_4px_18px_rgba(61,47,31,0.10)]">
+        <p className="text-sm font-semibold text-[#8b7a6f]">Account setup</p>
+        <h1 className="mt-2 text-2xl font-bold text-[#3d2f1f]">
+          How are you joining StockLog?
+        </h1>
+        <p className="mt-2 text-sm leading-relaxed text-[#6f5f54]">
+          Choose the path that matches your operation. Roles are assigned by setup or invite, not chosen by users.
+        </p>
+
+        <div className="mt-5 space-y-3">
+          <button
+            type="button"
+            disabled
+            className="w-full rounded-2xl border border-[#ded2c0] bg-[#faf8f5] p-4 text-left opacity-75"
+          >
+            <div className="flex items-start gap-3">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#f0e8dc] text-[#8b7a6f]">
+                <Building2 size={23} />
+              </span>
+              <span>
+                <span className="flex flex-wrap items-center gap-2">
+                  <span className="font-bold text-[#3d2f1f]">Set up a new ranch</span>
+                  <span className="rounded-full bg-[#eadfce] px-2 py-1 text-xs font-bold text-[#6f5f54]">
+                    Coming soon
+                  </span>
+                </span>
+                <span className="mt-1 block text-sm leading-relaxed text-[#6f5f54]">
+                  Create the first admin account for your operation.
+                </span>
+              </span>
+            </div>
+          </button>
+
+          <button
+            type="button"
+            onClick={onJoinExisting}
+            className="w-full rounded-2xl border-2 border-[#5a7a4d] bg-[#fffdf8] p-4 text-left shadow-[0_3px_10px_rgba(61,47,31,0.10)] active:bg-[#f7f4ed]"
+          >
+            <div className="flex items-start gap-3">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#e9f0e5] text-[#5a7a4d]">
+                <UserPlus size={23} />
+              </span>
+              <span>
+                <span className="font-bold text-[#3d2f1f]">Join an existing ranch</span>
+                <span className="mt-1 block text-sm leading-relaxed text-[#6f5f54]">
+                  Use an invite code from your StockLog admin.
+                </span>
+              </span>
+            </div>
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
