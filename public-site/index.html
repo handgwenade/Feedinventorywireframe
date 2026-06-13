@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>StockLog</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #faf7f1;
+        --text: #25231f;
+        --muted: #6f675d;
+        --card: #ffffff;
+        --border: #e4ddd2;
+        --accent: #2f6f4f;
+      }
+
+      body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        line-height: 1.6;
+        color: var(--text);
+        background: var(--bg);
+      }
+
+      main {
+        width: min(720px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 56px 0;
+      }
+
+      .panel {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 28px;
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        font-size: clamp(2rem, 7vw, 3rem);
+        line-height: 1.1;
+      }
+
+      p {
+        margin: 0 0 18px;
+      }
+
+      .muted {
+        color: var(--muted);
+      }
+
+      nav {
+        display: grid;
+        gap: 12px;
+        margin-top: 24px;
+      }
+
+      a {
+        color: var(--accent);
+        font-weight: 700;
+      }
+
+      .nav-link {
+        display: block;
+        padding: 14px 16px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        text-decoration: none;
+        background: #fffdf9;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="panel">
+        <h1>StockLog</h1>
+        <p class="muted">Mobile-first inventory and invoicing for feed and ranch operations.</p>
+        <p>Use these public pages for StockLog support and privacy information.</p>
+        <nav aria-label="StockLog public pages">
+          <a class="nav-link" href="./privacy-policy/">Privacy Policy</a>
+          <a class="nav-link" href="./support/">Support</a>
+        </nav>
+      </section>
+    </main>
+  </body>
+</html>

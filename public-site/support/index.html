@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>StockLog Support</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #faf7f1;
+        --text: #25231f;
+        --muted: #6f675d;
+        --card: #ffffff;
+        --border: #e4ddd2;
+        --accent: #2f6f4f;
+      }
+
+      body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        line-height: 1.65;
+        color: var(--text);
+        background: var(--bg);
+      }
+
+      main {
+        width: min(860px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 40px 0 64px;
+      }
+
+      article {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: clamp(22px, 5vw, 42px);
+      }
+
+      h1, h2 {
+        line-height: 1.2;
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        font-size: clamp(2rem, 7vw, 3rem);
+      }
+
+      h2 {
+        margin-top: 32px;
+        font-size: 1.35rem;
+      }
+
+      a {
+        color: var(--accent);
+        font-weight: 700;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 16px 0;
+        font-size: 0.95rem;
+      }
+
+      th, td {
+        border: 1px solid var(--border);
+        padding: 10px;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        background: #fff8ec;
+      }
+
+      .placeholder, .muted {
+        color: var(--muted);
+      }
+
+      .placeholder {
+        font-weight: 700;
+      }
+
+      .back {
+        display: inline-block;
+        margin-bottom: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <a class="back" href="../">StockLog</a>
+      <article>
+        <h1>StockLog Support</h1>
+        <p class="muted">Help for StockLog, a mobile-first inventory and invoicing app for feed and ranch operations.</p>
+
+        <h2>Support Contact</h2>
+        <ul>
+          <li>Support email: <span class="placeholder">[Support Email]</span></li>
+          <li>Support hours: <span class="placeholder">[Support Hours and Time Zone]</span></li>
+          <li>Emergency/after-hours process: <span class="placeholder">[Emergency or After-Hours Process, if any]</span></li>
+        </ul>
+
+        <h2>What to Include When Requesting Support</h2>
+        <p>To help troubleshoot quickly, include:</p>
+        <ul>
+          <li>Account email used to sign in.</li>
+          <li>Ranch/organization name.</li>
+          <li>Screen or action where the issue happened.</li>
+          <li>What happened.</li>
+          <li>What you expected to happen.</li>
+          <li>Screenshot or screen recording, if possible.</li>
+          <li>Approximate date/time of the issue.</li>
+          <li>Device model and iOS version, if using the mobile app.</li>
+        </ul>
+        <p>Do not send passwords, one-time invite codes, service-role keys, private export files, or other secrets through normal support channels.</p>
+
+        <h2>Business Continuity Note</h2>
+        <p>StockLog is a recordkeeping tool. During beta or early release use, users should keep backup records for critical inventory, invoice, payment, and customer activity. If StockLog is unavailable or a record looks incorrect, continue business operations using backup records and contact support when practical.</p>
+
+        <h2>Useful Support Categories</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Category</th>
+              <th>Examples</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Login and access</td>
+              <td>Login failure, inactive profile, missing profile, invite acceptance</td>
+            </tr>
+            <tr>
+              <td>Users and roles</td>
+              <td>Manage Users, pending invites, role permissions</td>
+            </tr>
+            <tr>
+              <td>Inventory</td>
+              <td>Product quantity, add stock, adjust count, low stock</td>
+            </tr>
+            <tr>
+              <td>Customer and internal workflows</td>
+              <td>Customer sale, internal use, insufficient inventory, missing price</td>
+            </tr>
+            <tr>
+              <td>Invoices and payments</td>
+              <td>Invoice detail, PDF/print, record payment, unpaid balance</td>
+            </tr>
+            <tr>
+              <td>Reports</td>
+              <td>Inventory summary, low stock, customer sales, internal use, payments received</td>
+            </tr>
+            <tr>
+              <td>Mobile/iOS</td>
+              <td>Safe-area layout, keyboard behavior, bottom navigation, TestFlight install</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h2>Privacy Policy</h2>
+        <p>Read the <a href="../privacy-policy/">StockLog Privacy Policy</a>.</p>
+      </article>
+    </main>
+  </body>
+</html>
