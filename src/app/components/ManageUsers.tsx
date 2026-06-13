@@ -1,86 +1,115 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Search, Plus, Edit } from 'lucide-react';
+import { ArrowLeft, Check, Copy, Mail, Plus } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
 import UserIcon from './shared/UserIcon';
+import { userManagementService, type CreateInviteResult } from '../services/userManagementService';
+import { userProfileService, type CurrentUserProfile, type UserProfileRole } from '../services/userProfileService';
 
-interface User {
-  id: string;
-  name: string;
-  role: 'admin' | 'manager' | 'operator' | 'viewer';
-  status: 'Active' | 'Invited' | 'Disabled';
-  lastActive: string;
-}
-
-function formatRoleLabel(role: User['role']): string {
+function formatRoleLabel(role: UserProfileRole): string {
   if (role === 'viewer') return 'View Only';
   return role.charAt(0).toUpperCase() + role.slice(1);
 }
 
-const initialUsers: User[] = [
-  {
-    id: '1',
-    name: 'Admin User',
-    role: 'admin',
-    status: 'Active',
-    lastActive: '5/25/2026'
-  },
-  {
-    id: '2',
-    name: 'Manager User',
-    role: 'manager',
-    status: 'Active',
-    lastActive: '5/24/2026'
-  },
-  {
-    id: '3',
-    name: 'Operator User',
-    role: 'operator',
-    status: 'Active',
-    lastActive: '5/25/2026'
-  },
-  {
-    id: '4',
-    name: 'View Only User',
-    role: 'viewer',
-    status: 'Active',
-    lastActive: '5/20/2026'
-  }
-];
+const allInviteRoles: UserProfileRole[] = ['admin', 'manager', 'operator', 'viewer'];
+const managerInviteRoles: UserProfileRole[] = ['manager', 'operator', 'viewer'];
+const expirationOptions = [7, 14, 30];
 
 export default function ManageUsers() {
   const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [users, setUsers] = useState<User[]>(initialUsers);
-  const [showAddUserPanel, setShowAddUserPanel] = useState(false);
-  const [newUserName, setNewUserName] = useState('');
-  const [newUserRole, setNewUserRole] = useState<User['role']>('operator');
-  const [addUserError, setAddUserError] = useState<string | null>(null);
+  const [currentProfile, setCurrentProfile] = useState<CurrentUserProfile | null>(null);
+  const [showInvitePanel, setShowInvitePanel] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteRole, setInviteRole] = useState<UserProfileRole>('operator');
+  const [expiresInDays, setExpiresInDays] = useState(7);
+  const [createdInvites, setCreatedInvites] = useState<CreateInviteResult[]>([]);
+  const [latestInvite, setLatestInvite] = useState<CreateInviteResult | null>(null);
+  const [inviteError, setInviteError] = useState<string | null>(null);
+  const [copyMessage, setCopyMessage] = useState<string | null>(null);
+  const [isCreatingInvite, setIsCreatingInvite] = useState(false);
 
-  const filteredUsers = users.filter(user =>
-    user.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  useEffect(() => {
+    let isMounted = true;
 
-  const handleAddUser = () => {
-    setAddUserError(null);
+    async function loadCurrentProfile() {
+      try {
+        const profile = await userProfileService.getCurrentProfile();
+        if (isMounted) {
+          setCurrentProfile(profile);
+        }
+      } catch (_error) {
+        if (isMounted) {
+          setCurrentProfile(null);
+        }
+      }
+    }
 
-    if (!newUserName.trim()) {
-      setAddUserError('User name is required.');
+    loadCurrentProfile();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const roleOptions = useMemo(() => {
+    if (currentProfile?.role === 'manager') {
+      return managerInviteRoles;
+    }
+
+    return allInviteRoles;
+  }, [currentProfile?.role]);
+
+  useEffect(() => {
+    if (!roleOptions.includes(inviteRole)) {
+      setInviteRole('operator');
+    }
+  }, [inviteRole, roleOptions]);
+
+  const handleCreateInvite = async () => {
+    setInviteError(null);
+    setCopyMessage(null);
+
+    if (!inviteEmail.trim()) {
+      setInviteError('Email is required.');
       return;
     }
 
-    const user: User = {
-      id: `local-${Date.now()}`,
-      name: newUserName.trim(),
-      role: newUserRole,
-      status: 'Invited',
-      lastActive: 'Not active yet',
-    };
+    setIsCreatingInvite(true);
 
-    setUsers((currentUsers) => [user, ...currentUsers]);
-    setNewUserName('');
-    setNewUserRole('operator');
-    setShowAddUserPanel(false);
+    try {
+      const createdInvite = await userManagementService.createInvite({
+        email: inviteEmail,
+        role: inviteRole,
+        expiresInDays,
+      });
+
+      setLatestInvite(createdInvite);
+      setCreatedInvites((currentInvites) => [createdInvite, ...currentInvites]);
+      setInviteEmail('');
+      setInviteRole('operator');
+      setExpiresInDays(7);
+      setShowInvitePanel(false);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unable to create invite.';
+      setInviteError(
+        message.includes('pending invitation already exists')
+          ? 'A pending invitation already exists for this email.'
+          : message,
+      );
+    } finally {
+      setIsCreatingInvite(false);
+    }
+  };
+
+  const handleCopyCode = async (inviteCode: string) => {
+    setCopyMessage(null);
+
+    try {
+      await navigator.clipboard.writeText(inviteCode);
+      setCopyMessage('Invite code copied.');
+    } catch (_error) {
+      setCopyMessage('Copy failed. Press and hold the code to copy it.');
+    }
   };
 
   return (
@@ -101,55 +130,87 @@ export default function ManageUsers() {
 
       <div className="p-4 space-y-4">
         <div className="p-3 bg-white border border-[#ded2c0] rounded-2xl text-xs text-[#8b7a6f] leading-relaxed shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
-          <strong>Beta wireframe:</strong> Added users appear in this session only. Real invites, edits, and role changes are not connected to Supabase yet.
+          <strong>Beta:</strong> Invites create real pending invitation records. Account acceptance is not wired yet.
         </div>
 
-        {/* Search */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8b7a6f]" size={20} />
-          <input
-            type="text"
-            placeholder="Search users..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 bg-white border border-[#ded2c0] rounded-2xl text-[#3d2f1f] placeholder:text-[#8b7a6f] focus:outline-none focus:ring-2 focus:ring-[#5a7a4d] shadow-[0_2px_8px_rgba(61,47,31,0.08)]"
-          />
-        </div>
+        {latestInvite && (
+          <div className="bg-[#e9f0e5] border border-[#cbd8c4] rounded-2xl p-4 space-y-3 shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-[#5a7a4d] text-white flex items-center justify-center shrink-0">
+                <Check size={20} />
+              </div>
+              <div>
+                <h2 className="font-bold text-[#3d2f1f]">Invite created</h2>
+                <p className="text-sm text-[#5a7a4d] font-semibold">
+                  Copy this code now. It will only be shown once.
+                </p>
+              </div>
+            </div>
 
-        {/* Add User Button */}
+            <div className="bg-white border border-[#cbd8c4] rounded-2xl p-4">
+              <div className="text-xs font-bold text-[#8b7a6f] uppercase">Invite code</div>
+              <div className="mt-1 flex items-center justify-between gap-3">
+                <div className="text-3xl font-bold tracking-[0.18em] text-[#3d2f1f] break-all">
+                  {latestInvite.inviteCode}
+                </div>
+                <button
+                  onClick={() => handleCopyCode(latestInvite.inviteCode)}
+                  className="h-12 w-12 rounded-2xl bg-[#5a7a4d] text-white flex items-center justify-center active:bg-[#4a6a3d] shrink-0 shadow-[0_2px_8px_rgba(61,47,31,0.12)]"
+                  aria-label="Copy invite code"
+                >
+                  <Copy size={20} />
+                </button>
+              </div>
+              {copyMessage && (
+                <div className="mt-2 text-sm font-semibold text-[#5a7a4d]">{copyMessage}</div>
+              )}
+            </div>
+
+            <div className="grid gap-2 text-sm text-[#3d2f1f]">
+              <InviteSummaryRow label="Email" value={latestInvite.invitation.email} />
+              <InviteSummaryRow label="Role" value={formatRoleLabel(latestInvite.invitation.role)} />
+              <InviteSummaryRow
+                label="Expires"
+                value={new Date(latestInvite.invitation.expiresAt).toLocaleDateString()}
+              />
+            </div>
+          </div>
+        )}
+
         <button
           onClick={() => {
-            setShowAddUserPanel((current) => !current);
-            setAddUserError(null);
+            setShowInvitePanel((current) => !current);
+            setInviteError(null);
+            setCopyMessage(null);
           }}
           className="w-full bg-[#5a7a4d] text-white py-3 rounded-2xl font-semibold flex items-center justify-center gap-2 active:bg-[#4a6a3d] shadow-[0_3px_10px_rgba(61,47,31,0.18)]"
         >
           <Plus size={20} />
-          Add User
+          Create Invite
         </button>
 
-        {showAddUserPanel && (
+        {showInvitePanel && (
           <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 space-y-4 shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
             <div>
-              <h2 className="font-bold text-[#3d2f1f] mb-1">Invite User</h2>
+              <h2 className="font-bold text-[#3d2f1f] mb-1">Create Invite</h2>
               <p className="text-sm text-[#8b7a6f]">
-                This creates a local invited user for the wireframe. Supabase invite email is still future work.
+                This creates a pending invite code. You will need to share the code manually.
               </p>
             </div>
 
-            {addUserError && (
+            {inviteError && (
               <div className="p-3 bg-[#fff4f0] border border-[#d8a59a] rounded-2xl text-sm text-[#8b3f2f]">
-                {addUserError}
+                {inviteError}
               </div>
             )}
 
             <div>
-              <label className="block text-sm font-semibold text-[#3d2f1f] mb-2">Name</label>
+              <label className="block text-sm font-semibold text-[#3d2f1f] mb-2">Email</label>
               <input
-                type="text"
-                value={newUserName}
-                onChange={(event) => setNewUserName(event.target.value)}
-                placeholder="Enter user name..."
+                type="email"
+                value={inviteEmail}
+                onChange={(event) => setInviteEmail(event.target.value)}
+                placeholder="name@example.com"
                 className="w-full px-4 py-3 bg-white border border-[#ded2c0] rounded-2xl text-[#3d2f1f] placeholder:text-[#8b7a6f] focus:outline-none focus:ring-2 focus:ring-[#5a7a4d]"
               />
             </div>
@@ -157,47 +218,68 @@ export default function ManageUsers() {
             <div>
               <label className="block text-sm font-semibold text-[#3d2f1f] mb-2">Role</label>
               <select
-                value={newUserRole}
-                onChange={(event) => setNewUserRole(event.target.value as User['role'])}
+                value={inviteRole}
+                onChange={(event) => setInviteRole(event.target.value as UserProfileRole)}
                 className="w-full px-4 py-3 bg-white border border-[#ded2c0] rounded-2xl text-[#3d2f1f] focus:outline-none focus:ring-2 focus:ring-[#5a7a4d]"
               >
-                <option value="admin">Admin</option>
-                <option value="manager">Manager</option>
-                <option value="operator">Operator</option>
-                <option value="viewer">View Only</option>
+                {roleOptions.map((role) => (
+                  <option key={role} value={role}>
+                    {formatRoleLabel(role)}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-[#3d2f1f] mb-2">Expires</label>
+              <select
+                value={expiresInDays}
+                onChange={(event) => setExpiresInDays(Number(event.target.value))}
+                className="w-full px-4 py-3 bg-white border border-[#ded2c0] rounded-2xl text-[#3d2f1f] focus:outline-none focus:ring-2 focus:ring-[#5a7a4d]"
+              >
+                {expirationOptions.map((days) => (
+                  <option key={days} value={days}>
+                    {days} days
+                  </option>
+                ))}
               </select>
             </div>
 
             <div className="grid grid-cols-2 gap-2">
               <button
                 onClick={() => {
-                  setShowAddUserPanel(false);
-                  setAddUserError(null);
+                  setShowInvitePanel(false);
+                  setInviteError(null);
                 }}
                 className="bg-white border border-[#ded2c0] text-[#3d2f1f] py-3 rounded-2xl font-semibold active:bg-[#faf8f5] shadow-[0_2px_8px_rgba(61,47,31,0.08)]"
               >
                 Cancel
               </button>
               <button
-                onClick={handleAddUser}
-                className="bg-[#5a7a4d] text-white py-3 rounded-2xl font-semibold active:bg-[#4a6a3d] shadow-[0_3px_10px_rgba(61,47,31,0.18)]"
+                onClick={handleCreateInvite}
+                disabled={isCreatingInvite}
+                className="bg-[#5a7a4d] text-white py-3 rounded-2xl font-semibold active:bg-[#4a6a3d] disabled:bg-[#c7bdb0] shadow-[0_3px_10px_rgba(61,47,31,0.18)]"
               >
-                Add User
+                {isCreatingInvite ? 'Creating...' : 'Create Invite'}
               </button>
             </div>
           </div>
         )}
 
-        {/* User List */}
         <div className="space-y-3">
-          {filteredUsers.map(user => (
-            <UserCard key={user.id} user={user} navigate={navigate} />
-          ))}
+          {createdInvites.length === 0 ? (
+            <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 text-sm text-[#8b7a6f] leading-relaxed shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
+              Created invite codes will appear here for this session. Invite emails are not sent yet.
+            </div>
+          ) : (
+            createdInvites.map((invite) => (
+              <InviteCard key={invite.invitation.id} invite={invite} onCopyCode={handleCopyCode} />
+            ))
+          )}
         </div>
 
-        {/* Annotation */}
         <div className="mt-6 p-3 bg-white border border-[#ded2c0] rounded-2xl text-xs text-[#8b7a6f] leading-relaxed shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
-          <strong>Admin Access:</strong> Manage Users is available to active admins only.
+          <strong>Access:</strong> Create Invite requires an active admin or manager profile. Signup acceptance is still future work.
         </div>
       </div>
 
@@ -206,37 +288,62 @@ export default function ManageUsers() {
   );
 }
 
-function UserCard({ user }: { user: User; navigate: any }) {
-  const getStatusColor = () => {
-    if (user.status === 'Active') return 'bg-[#e9f0e5] border-[#cbd8c4] text-[#5a7a4d]';
-    if (user.status === 'Invited') return 'bg-[#fff4d8] border-[#d4a574] text-[#8b5a1f]';
-    if (user.status === 'Disabled') return 'bg-[#f7f4ed] border-[#ded2c0] text-[#8b7a6f]';
-    return 'bg-[#e9f0e5] border-[#cbd8c4] text-[#5a7a4d]';
-  };
-
+function InviteCard({
+  invite,
+  onCopyCode,
+}: {
+  invite: CreateInviteResult;
+  onCopyCode: (inviteCode: string) => void;
+}) {
   return (
     <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
-      <div className="flex justify-between items-start mb-2">
-        <div>
-          <div className="font-semibold text-[#3d2f1f] mb-1">{user.name}</div>
-          <div className="flex gap-2">
-            <span className="text-xs px-3 py-1 bg-[#e9f0e5] border border-[#cbd8c4] text-[#5a7a4d] rounded-full font-semibold">
-              {formatRoleLabel(user.role)}
-            </span>
-            <span className={`text-xs px-3 py-1 rounded-full border font-semibold ${getStatusColor()}`}>
-              {user.status}
-            </span>
+      <div className="flex items-start gap-3">
+        <div className="w-10 h-10 rounded-2xl bg-[#f7f4ed] text-[#5a7a4d] flex items-center justify-center shrink-0">
+          <Mail size={20} />
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="font-semibold text-[#3d2f1f] truncate">{invite.invitation.email}</div>
+          <div className="mt-2 flex flex-wrap gap-2">
+            <InviteChip label={formatRoleLabel(invite.invitation.role)} tone="green" />
+            <InviteChip label="Pending" tone="amber" />
+            <InviteChip
+              label={`Expires ${new Date(invite.invitation.expiresAt).toLocaleDateString()}`}
+              tone="neutral"
+            />
           </div>
         </div>
       </div>
-      <div className="text-sm text-[#8b7a6f] mb-3">Last active: {user.lastActive}</div>
       <button
-        disabled
-        className="w-full bg-[#f7f4ed] border border-[#ded2c0] text-[#8b7a6f] py-2 rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 cursor-not-allowed opacity-75 shadow-[0_2px_8px_rgba(61,47,31,0.08)]"
+        onClick={() => onCopyCode(invite.inviteCode)}
+        className="mt-3 w-full bg-white border border-[#ded2c0] text-[#3d2f1f] py-3 rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 active:bg-[#faf8f5] shadow-[0_2px_8px_rgba(61,47,31,0.08)]"
       >
-        <Edit size={16} />
-        Edit Coming Soon
+        <Copy size={16} />
+        Copy Invite Code
       </button>
+    </div>
+  );
+}
+
+function InviteChip({ label, tone }: { label: string; tone: 'green' | 'amber' | 'neutral' }) {
+  const colorClass =
+    tone === 'green'
+      ? 'bg-[#e9f0e5] border-[#cbd8c4] text-[#5a7a4d]'
+      : tone === 'amber'
+        ? 'bg-[#fff4d8] border-[#d4a574] text-[#8b5a1f]'
+        : 'bg-[#f7f4ed] border-[#ded2c0] text-[#8b7a6f]';
+
+  return (
+    <span className={`text-xs px-3 py-1 rounded-full border font-semibold ${colorClass}`}>
+      {label}
+    </span>
+  );
+}
+
+function InviteSummaryRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <span className="text-[#8b7a6f] font-semibold">{label}</span>
+      <span className="font-bold text-right break-all">{value}</span>
     </div>
   );
 }
