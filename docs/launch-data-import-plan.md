@@ -28,6 +28,25 @@ STOCKLOG_SUPABASE_URL=... STOCKLOG_SERVICE_ROLE_KEY=... STOCKLOG_TARGET_ORG_ID=.
 
 Use the service-role key only in the local import script. Never commit real CSV data, `.env` files, service-role keys, or production secrets.
 
+## Validated C&C Launch Snapshot
+
+A validated live organization export snapshot exists at:
+
+```text
+private-export/org-data-2026-06-13-1136
+```
+
+After removing duplicate test products, dry-run validation passed with no Supabase writes:
+
+- 19 products
+- 4 product categories
+- 3 customer accounts
+- 1 K2 account
+
+The duplicate cleanup was limited to removing test-product duplicates from the launch CSV preparation flow. Do not commit or quote private customer/product CSV contents from this snapshot. `private-export/` is gitignored and should remain local/private.
+
+Do not write this snapshot back into the same organization unless intentionally testing duplicate-skip behavior. Its intended use is as the launch snapshot and as source material for a future production organization import.
+
 ## Recommended Approach
 
 Use the simplest safe import first:

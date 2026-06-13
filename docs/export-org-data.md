@@ -34,6 +34,23 @@ private-export/org-data-YYYY-MM-DD-HHMM/
 
 `private-export/` is ignored by git. Treat everything in this folder as private operational data.
 
+## Validated C&C Launch Snapshot
+
+The current validated C&C export snapshot is:
+
+```text
+private-export/org-data-2026-06-13-1136
+```
+
+Dry-run validation passed after duplicate test products were removed from the launch CSV preparation flow:
+
+- 19 products
+- 4 product categories
+- 3 customer accounts
+- 1 K2 account
+
+This folder is covered by the `private-export/` gitignore rule. Do not commit or reference private CSV contents. Do not write this export back into the same organization unless intentionally testing duplicate-skip behavior. Use it as the launch snapshot and as source material for a future production organization import.
+
 ## Exported CSVs
 
 Always exported when the required tables exist:
