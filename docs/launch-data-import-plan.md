@@ -8,6 +8,26 @@ Load C&C Feed's real launch data into Supabase so the live StockLog app starts w
 
 This is a plan only. Do not run imports directly against production until the CSVs have been reviewed, a backup exists, and a dry run has passed.
 
+The launch CSV script now supports a guarded Supabase import path. Dry run remains the default:
+
+```bash
+node scripts/import-launch-data.mjs
+```
+
+Write preview requires local Supabase credentials and does not insert rows without `--confirm`:
+
+```bash
+STOCKLOG_SUPABASE_URL=... STOCKLOG_SERVICE_ROLE_KEY=... STOCKLOG_TARGET_ORG_ID=... node scripts/import-launch-data.mjs --write
+```
+
+Confirmed write:
+
+```bash
+STOCKLOG_SUPABASE_URL=... STOCKLOG_SERVICE_ROLE_KEY=... STOCKLOG_TARGET_ORG_ID=... node scripts/import-launch-data.mjs --write --confirm
+```
+
+Use the service-role key only in the local import script. Never commit real CSV data, `.env` files, service-role keys, or production secrets.
+
 ## Recommended Approach
 
 Use the simplest safe import first:
@@ -53,6 +73,8 @@ Skip for beta unless C&C explicitly needs it:
 9. Insert app settings if wired.
 10. Run validation queries.
 11. Have C&C verify in the app before inviting wider users.
+
+The current guarded script imports only steps 3, 4, and 6 from CSV data, with categories first when provided. It intentionally does not import invoices, payments, inventory history, or activity history yet.
 
 ## Area Plans
 
