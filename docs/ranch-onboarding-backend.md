@@ -60,7 +60,7 @@ Cleanup behavior:
 
 ## Still Unwired
 
-- The signup UI does not call `create-ranch` yet.
+- The signup UI can call `create-ranch` from the "Set up a new ranch" path.
 - No new-ranch rate limiting, CAPTCHA, allowlist, or abuse controls are wired yet.
 - No default `app_settings` rows are created yet.
 - Invite creation and invite acceptance are unchanged.

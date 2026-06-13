@@ -1,26 +1,32 @@
 import { useMemo, useState } from 'react';
 import type { InputHTMLAttributes, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Building2, Check, CheckCircle2, ChevronLeft, Package, ShieldCheck, UserPlus, X } from 'lucide-react';
-import { userManagementService, type AcceptInviteResult } from '../services/userManagementService';
+import { Building2, Check, CheckCircle2, ChevronLeft, Package, ShieldCheck, UserPlus } from 'lucide-react';
+import { userManagementService, type AcceptInviteResult, type CreateRanchResult } from '../services/userManagementService';
 
-type Step = 'welcome' | 'joining' | 'details' | 'password' | 'invite' | 'role' | 'complete';
+type JoinMode = 'new-ranch' | 'existing-ranch';
+type Step = 'welcome' | 'joining' | 'ranch' | 'details' | 'password' | 'invite' | 'role' | 'complete';
 
-const stepOrder: Step[] = ['welcome', 'joining', 'details', 'password', 'invite', 'role', 'complete'];
+const joinStepOrder: Step[] = ['welcome', 'joining', 'details', 'password', 'invite', 'role', 'complete'];
+const setupStepOrder: Step[] = ['welcome', 'joining', 'ranch', 'details', 'password', 'role', 'complete'];
 
 export default function SignUpFlow() {
   const navigate = useNavigate();
   const [step, setStep] = useState<Step>('welcome');
+  const [joinMode, setJoinMode] = useState<JoinMode>('existing-ranch');
+  const [ranchName, setRanchName] = useState('');
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [inviteCode, setInviteCode] = useState('');
   const [acceptedInvite, setAcceptedInvite] = useState<AcceptInviteResult | null>(null);
+  const [createdRanch, setCreatedRanch] = useState<CreateRanchResult | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const currentStepIndex = stepOrder.indexOf(step);
-  const roleName = acceptedInvite ? formatRoleLabel(acceptedInvite.role) : 'Assigned by invite';
+  const activeStepOrder = joinMode === 'new-ranch' ? setupStepOrder : joinStepOrder;
+  const activeStepIndex = activeStepOrder.indexOf(step);
+  const roleName = createdRanch ? 'Admin' : acceptedInvite ? formatRoleLabel(acceptedInvite.role) : 'Assigned by invite';
   const trimmedEmail = email.trim();
   const emailIsValid = isValidEmail(trimmedEmail);
   const showEmailError = trimmedEmail.length > 0 && !emailIsValid;
@@ -41,13 +47,29 @@ export default function SignUpFlow() {
   };
 
   const goBack = () => {
-    if (currentStepIndex <= 0) {
+    if (activeStepIndex <= 0) {
       navigate('/login');
       return;
     }
 
-    const previousStep = stepOrder[Math.max(currentStepIndex - 1, 0)];
+    const previousStep = activeStepOrder[Math.max(activeStepIndex - 1, 0)];
     goToStep(previousStep);
+  };
+
+  const startNewRanchSetup = () => {
+    setJoinMode('new-ranch');
+    setAcceptedInvite(null);
+    setCreatedRanch(null);
+    setSubmitError(null);
+    goToStep('ranch');
+  };
+
+  const startExistingRanchJoin = () => {
+    setJoinMode('existing-ranch');
+    setAcceptedInvite(null);
+    setCreatedRanch(null);
+    setSubmitError(null);
+    goToStep('details');
   };
 
   const handleInviteChange = (value: string) => {
@@ -94,10 +116,60 @@ export default function SignUpFlow() {
       });
 
       setAcceptedInvite(result);
+      setCreatedRanch(null);
       setPassword('');
       goToStep('complete');
     } catch (error) {
       setSubmitError(error instanceof Error ? error.message : 'Unable to create your account.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleCreateRanch = async () => {
+    setSubmitError(null);
+
+    if (!ranchName.trim()) {
+      setSubmitError('Ranch name is required.');
+      return;
+    }
+
+    if (!fullName.trim()) {
+      setSubmitError('Full name is required.');
+      return;
+    }
+
+    if (!trimmedEmail) {
+      setSubmitError('Email is required.');
+      return;
+    }
+
+    if (!emailIsValid) {
+      setSubmitError('Enter a valid email address.');
+      return;
+    }
+
+    if (password.length < 8) {
+      setSubmitError('Password must be at least 8 characters.');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const result = await userManagementService.createRanch({
+        ranchName,
+        fullName,
+        email: trimmedEmail,
+        password,
+      });
+
+      setCreatedRanch(result);
+      setAcceptedInvite(null);
+      setPassword('');
+      goToStep('complete');
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : 'Unable to set up your ranch.');
     } finally {
       setIsSubmitting(false);
     }
@@ -125,11 +197,38 @@ export default function SignUpFlow() {
         )}
 
         {step === 'joining' && (
-          <JoiningScreen onJoinExisting={() => goToStep('details')} />
+          <JoiningScreen
+            onSetupNewRanch={startNewRanchSetup}
+            onJoinExisting={startExistingRanchJoin}
+          />
+        )}
+
+        {step === 'ranch' && (
+          <StepCard stepLabel="Step 1 of 4" title="Set up your ranch">
+            <Field
+              label="Ranch / business name"
+              value={ranchName}
+              onChange={setRanchName}
+              placeholder="Ranch or business name"
+              autoComplete="organization"
+            />
+            <p className="text-sm leading-relaxed text-[#8b7a6f]">
+              This creates a new StockLog workspace for your operation.
+            </p>
+            <PrimaryButton
+              disabled={!ranchName.trim()}
+              onClick={() => goToStep('details')}
+            >
+              Continue
+            </PrimaryButton>
+          </StepCard>
         )}
 
         {step === 'details' && (
-          <StepCard stepLabel="Step 1 of 4" title="Tell us who you are">
+          <StepCard
+            stepLabel={joinMode === 'new-ranch' ? 'Step 2 of 4' : 'Step 1 of 4'}
+            title="Tell us who you are"
+          >
             <Field
               label="Full name"
               value={fullName}
@@ -160,7 +259,10 @@ export default function SignUpFlow() {
         )}
 
         {step === 'password' && (
-          <StepCard stepLabel="Step 2 of 4" title="Create a password">
+          <StepCard
+            stepLabel={joinMode === 'new-ranch' ? 'Step 3 of 4' : 'Step 2 of 4'}
+            title="Create a password"
+          >
             <Field
               label="Password"
               type="password"
@@ -183,7 +285,7 @@ export default function SignUpFlow() {
                 </div>
               ))}
             </div>
-            <PrimaryButton disabled={!isPasswordReady} onClick={() => goToStep('invite')}>
+            <PrimaryButton disabled={!isPasswordReady} onClick={() => goToStep(joinMode === 'new-ranch' ? 'role' : 'invite')}>
               Continue
             </PrimaryButton>
           </StepCard>
@@ -218,7 +320,7 @@ export default function SignUpFlow() {
           </StepCard>
         )}
 
-        {step === 'role' && (
+        {step === 'role' && joinMode === 'existing-ranch' && (
           <StepCard stepLabel="Step 4 of 4" title="Create your account">
             <div className="rounded-2xl border border-[#ded2c0] bg-[#fffdf8] p-4">
               <div className="mb-4 flex items-center gap-3">
@@ -250,10 +352,46 @@ export default function SignUpFlow() {
           </StepCard>
         )}
 
+        {step === 'role' && joinMode === 'new-ranch' && (
+          <StepCard stepLabel="Step 4 of 4" title="Create your ranch">
+            <div className="rounded-2xl border border-[#ded2c0] bg-[#fffdf8] p-4">
+              <div className="mb-4 flex items-center gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#e9f0e5] text-[#5a7a4d]">
+                  <Building2 size={24} />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-[#8b7a6f]">Ready to set up</p>
+                  <h2 className="text-xl font-bold text-[#3d2f1f]">{ranchName || 'New ranch'}</h2>
+                </div>
+              </div>
+              <p className="mb-4 rounded-2xl bg-[#f7f4ed] p-3 text-sm leading-relaxed text-[#6f5f54]">
+                You’ll be the first admin for this ranch.
+              </p>
+              <div className="space-y-3 text-sm">
+                <SummaryRow label="Ranch" value={ranchName || 'Not entered'} />
+                <SummaryRow label="Name" value={fullName || 'Not entered'} />
+                <SummaryRow label="Email" value={email || 'Not entered'} />
+                <SummaryRow label="Role" value="Admin" />
+              </div>
+            </div>
+            {submitError && (
+              <div className="rounded-2xl border border-[#d8a59a] bg-[#fff4f0] p-3 text-sm text-[#8b3f2f]">
+                {submitError}
+              </div>
+            )}
+            <PrimaryButton disabled={isSubmitting} onClick={handleCreateRanch}>
+              {isSubmitting ? 'Creating ranch...' : 'Create ranch'}
+            </PrimaryButton>
+          </StepCard>
+        )}
+
         {step === 'complete' && (
           <CompleteScreen
+            headline={createdRanch ? 'Your ranch is ready.' : 'Your StockLog account is ready.'}
+            copy="Sign in to start using StockLog."
             fullName={fullName}
-            email={acceptedInvite?.email ?? email}
+            email={createdRanch?.email ?? acceptedInvite?.email ?? email}
+            ranchName={createdRanch?.ranchName}
             roleName={roleName}
             onContinue={() => navigate('/login')}
           />
@@ -323,7 +461,13 @@ function WelcomeScreen({
   );
 }
 
-function JoiningScreen({ onJoinExisting }: { onJoinExisting: () => void }) {
+function JoiningScreen({
+  onSetupNewRanch,
+  onJoinExisting,
+}: {
+  onSetupNewRanch: () => void;
+  onJoinExisting: () => void;
+}) {
   return (
     <div className="flex flex-1 flex-col justify-center py-4">
       <div className="rounded-3xl border border-[#ded2c0] bg-white p-5 shadow-[0_4px_18px_rgba(61,47,31,0.10)]">
@@ -338,20 +482,15 @@ function JoiningScreen({ onJoinExisting }: { onJoinExisting: () => void }) {
         <div className="mt-5 space-y-3">
           <button
             type="button"
-            disabled
-            className="w-full rounded-2xl border border-[#ded2c0] bg-[#faf8f5] p-4 text-left opacity-75"
+            onClick={onSetupNewRanch}
+            className="w-full rounded-2xl border-2 border-[#5a7a4d] bg-[#fffdf8] p-4 text-left shadow-[0_3px_10px_rgba(61,47,31,0.10)] active:bg-[#f7f4ed]"
           >
             <div className="flex items-start gap-3">
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#f0e8dc] text-[#8b7a6f]">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#e9f0e5] text-[#5a7a4d]">
                 <Building2 size={23} />
               </span>
               <span>
-                <span className="flex flex-wrap items-center gap-2">
-                  <span className="font-bold text-[#3d2f1f]">Set up a new ranch</span>
-                  <span className="rounded-full bg-[#eadfce] px-2 py-1 text-xs font-bold text-[#6f5f54]">
-                    Coming soon
-                  </span>
-                </span>
+                <span className="font-bold text-[#3d2f1f]">Set up a new ranch</span>
                 <span className="mt-1 block text-sm leading-relaxed text-[#6f5f54]">
                   Create the first admin account for your operation.
                 </span>
@@ -473,46 +612,20 @@ function PrimaryButton({
   );
 }
 
-function PermissionList({
-  title,
-  items,
-  tone,
-}: {
-  title: string;
-  items: string[];
-  tone: 'allowed' | 'unavailable';
-}) {
-  const Icon = tone === 'allowed' ? Check : X;
-
-  return (
-    <div>
-      <h3 className="mb-2 text-sm font-bold text-[#3d2f1f]">{title}</h3>
-      <div className="space-y-2">
-        {items.map((item) => (
-          <div key={item} className="flex items-start gap-2 text-sm leading-relaxed text-[#6f5f54]">
-            <span
-              className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${
-                tone === 'allowed' ? 'bg-[#e9f0e5] text-[#5a7a4d]' : 'bg-[#fff4f0] text-[#8b3f2f]'
-              }`}
-            >
-              <Icon size={13} />
-            </span>
-            {item}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 function CompleteScreen({
+  headline,
+  copy,
   fullName,
   email,
+  ranchName,
   roleName,
   onContinue,
 }: {
+  headline: string;
+  copy: string;
   fullName: string;
   email: string;
+  ranchName?: string;
   roleName: string;
   onContinue: () => void;
 }) {
@@ -522,14 +635,15 @@ function CompleteScreen({
         <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-white/20">
           <CheckCircle2 size={36} />
         </div>
-        <h1 className="text-3xl font-bold">Your StockLog account is ready.</h1>
+        <h1 className="text-3xl font-bold">{headline}</h1>
         <p className="mt-3 text-base leading-relaxed text-white/90">
-          Sign in to start using StockLog.
+          {copy}
         </p>
       </div>
 
       <div className="my-5 rounded-3xl border border-[#ded2c0] bg-white p-5 shadow-[0_4px_18px_rgba(61,47,31,0.10)]">
         <h2 className="mb-4 text-lg font-bold text-[#3d2f1f]">Account summary</h2>
+        {ranchName && <SummaryRow label="Ranch" value={ranchName} />}
         <SummaryRow label="Name" value={fullName || 'Not entered'} />
         <SummaryRow label="Email" value={email || 'Not entered'} />
         <SummaryRow label="Role" value={roleName} />

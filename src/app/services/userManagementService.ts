@@ -36,6 +36,21 @@ export interface AcceptInviteResult {
   email: string;
 }
 
+export interface CreateRanchInput {
+  ranchName: string;
+  fullName: string;
+  email: string;
+  password: string;
+}
+
+export interface CreateRanchResult {
+  organizationId: string;
+  ranchName: string;
+  role: 'admin';
+  displayName: string;
+  email: string;
+}
+
 type FunctionErrorWithContext = Error & {
   context?: Response;
 };
@@ -56,7 +71,7 @@ async function getFunctionErrorMessage(error: FunctionErrorWithContext): Promise
     }
   }
 
-  return error.message || 'Unable to create invitation.';
+  return error.message || 'Unable to complete request.';
 }
 
 export const userManagementService = {
@@ -103,6 +118,22 @@ export const userManagementService = {
 
     if (!data?.organizationId || !data.role || !data.displayName || !data.email) {
       throw new Error('Invite acceptance returned an unexpected response.');
+    }
+
+    return data;
+  },
+
+  async createRanch(input: CreateRanchInput): Promise<CreateRanchResult> {
+    const { data, error } = await supabase.functions.invoke<CreateRanchResult>('create-ranch', {
+      body: input,
+    });
+
+    if (error) {
+      throw new Error(await getFunctionErrorMessage(error as FunctionErrorWithContext));
+    }
+
+    if (!data?.organizationId || !data.ranchName || data.role !== 'admin' || !data.displayName || !data.email) {
+      throw new Error('Ranch setup returned an unexpected response.');
     }
 
     return data;

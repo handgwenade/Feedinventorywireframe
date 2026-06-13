@@ -57,10 +57,10 @@ Success response shape:
 ## Still Unwired
 
 - Manage Users can call `create-invite`, but invite emails are not sent yet.
-- SignUpFlow does not call `accept-invite` yet.
+- SignUpFlow can call `accept-invite` from the "Join an existing ranch" path.
 - No auth users are created by invite creation.
 - No invite emails are sent yet.
-- New-ranch setup has a backend foundation in `create-ranch`, but the signup UI is not wired to it yet.
+- New-ranch setup has a backend foundation in `create-ranch`, and the signup UI can call it from the "Set up a new ranch" path.
 
 ## `accept-invite`
 
