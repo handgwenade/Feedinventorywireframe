@@ -12,8 +12,12 @@ export default function FamilyDisabled() {
 
   return (
     <div className="min-h-screen bg-[#f7f4ed] pb-24">
-      <div className="bg-white border-b border-[#e8dfd1] p-4 flex items-center gap-3 shadow-[0_1px_4px_rgba(61,47,31,0.06)]">
-        <button onClick={() => navigate(-1)} className="text-[#8b7a6f] active:text-[#3d2f1f]">
+      <div className="app-header-safe app-header-safe-start">
+        <button
+          type="button"
+          onClick={() => navigate(-1)}
+          className="app-header-action rounded-2xl text-[#8b7a6f] active:bg-[#faf8f5] active:text-[#3d2f1f]"
+        >
           <ArrowLeft size={24} />
         </button>
         <h1 className="text-xl font-bold text-[#3d2f1f]">Family Workflow Removed</h1>

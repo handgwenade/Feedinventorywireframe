@@ -59,12 +59,13 @@ export default function AddStockSelectProduct() {
   return (
     <div className="min-h-screen bg-[#f7f4ed] pb-24">
       {/* Header */}
-      <div className="bg-white border-b border-[#e8dfd1] p-4 shadow-[0_1px_4px_rgba(61,47,31,0.06)]">
+      <div className="app-header-safe-block">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-3">
             <button
+              type="button"
               onClick={() => navigate('/')}
-              className="text-[#8b7a6f] active:text-[#3d2f1f]"
+              className="app-header-action rounded-2xl text-[#8b7a6f] active:bg-[#faf8f5] active:text-[#3d2f1f]"
             >
               <ArrowLeft size={24} />
             </button>

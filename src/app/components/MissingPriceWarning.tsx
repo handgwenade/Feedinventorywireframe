@@ -13,7 +13,7 @@ export default function MissingPriceWarning() {
   return (
     <div className="min-h-screen bg-[#f7f4ed] pb-24">
       {/* Header */}
-      <div className="bg-white border-b border-[#e8dfd1] p-4 flex items-center justify-between shadow-[0_1px_4px_rgba(61,47,31,0.06)]">
+      <div className="app-header-safe">
         <h1 className="text-xl font-bold text-[#3d2f1f]">Add Products</h1>
         <UserIcon />
       </div>

@@ -97,7 +97,7 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-[#f7f4ed] pb-24">
       {/* Header */}
-      <div className="p-4 mb-4 bg-white border-b border-[#e8dfd1] shadow-[0_1px_4px_rgba(61,47,31,0.06)]">
+      <div className="app-header-safe-block mb-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <h1 className="text-2xl font-bold text-[#3d2f1f] mb-1">StockLog</h1>
