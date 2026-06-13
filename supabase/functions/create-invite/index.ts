@@ -41,6 +41,21 @@ function betaError(error: string, betaDetail: string, status: number): Response 
   return jsonResponse({ error, betaDetail }, status);
 }
 
+function formatProfileQueryDetail(error: {
+  code?: string;
+  message?: string;
+  details?: string | null;
+  hint?: string | null;
+}): string {
+  const fields = [
+    `profile_query_failed: ${error.code ?? 'unknown'} ${error.message ?? ''}`.trim(),
+    error.details ? `details: ${error.details}` : null,
+    error.hint ? `hint: ${error.hint}` : null,
+  ].filter(Boolean);
+
+  return fields.join(' | ');
+}
+
 function normalizeEmail(value: unknown): string | null {
   if (typeof value !== 'string') return null;
 
@@ -178,7 +193,16 @@ Deno.serve(async (request) => {
     .maybeSingle<CallerProfile>();
 
   if (profileError) {
-    return betaError('Unable to verify caller profile.', 'profile_query_failed', 500);
+    const betaDetail = formatProfileQueryDetail(profileError);
+
+    console.error('create-invite profile query failed', {
+      code: profileError.code,
+      message: profileError.message,
+      details: profileError.details,
+      hint: profileError.hint,
+    });
+
+    return betaError('Unable to verify caller profile.', betaDetail, 500);
   }
 
   if (!profile) {

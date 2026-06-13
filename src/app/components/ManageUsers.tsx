@@ -115,11 +115,12 @@ export default function ManageUsers() {
   return (
     <div className="min-h-screen bg-[#f7f4ed] pb-24">
       {/* Header */}
-      <div className="bg-white border-b border-[#e8dfd1] p-4 flex items-center justify-between shadow-[0_1px_4px_rgba(61,47,31,0.06)]">
+      <div className="app-header-safe">
         <div className="flex items-center gap-3">
           <button
+            type="button"
             onClick={() => navigate('/profile-menu')}
-            className="text-[#8b7a6f] active:text-[#3d2f1f]"
+            className="app-header-action rounded-2xl text-[#8b7a6f] active:bg-[#faf8f5] active:text-[#3d2f1f]"
           >
             <ArrowLeft size={24} />
           </button>
@@ -130,7 +131,7 @@ export default function ManageUsers() {
 
       <div className="p-4 space-y-4">
         <div className="p-3 bg-white border border-[#ded2c0] rounded-2xl text-xs text-[#8b7a6f] leading-relaxed shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
-          <strong>Beta:</strong> Invites create real pending invitation records. Account acceptance is not wired yet.
+          <strong>Beta:</strong> Invites create real pending invitation records. Invited users can now accept codes from the signup screen.
         </div>
 
         {latestInvite && (
@@ -279,7 +280,7 @@ export default function ManageUsers() {
         </div>
 
         <div className="mt-6 p-3 bg-white border border-[#ded2c0] rounded-2xl text-xs text-[#8b7a6f] leading-relaxed shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
-          <strong>Access:</strong> Create Invite requires an active admin or manager profile. Signup acceptance is still future work.
+          <strong>Access:</strong> Create Invite requires an active admin or manager profile. Invited users can accept codes from the signup screen.
         </div>
       </div>
 

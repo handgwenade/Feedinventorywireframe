@@ -22,6 +22,20 @@ export interface CreateInviteResult {
   inviteCode: string;
 }
 
+export interface AcceptInviteInput {
+  fullName: string;
+  email: string;
+  password: string;
+  inviteCode: string;
+}
+
+export interface AcceptInviteResult {
+  organizationId: string;
+  role: UserRole;
+  displayName: string;
+  email: string;
+}
+
 type FunctionErrorWithContext = Error & {
   context?: Response;
 };
@@ -31,6 +45,10 @@ async function getFunctionErrorMessage(error: FunctionErrorWithContext): Promise
     try {
       const body = await error.context.clone().json();
       if (typeof body?.error === 'string') {
+        if (typeof body?.betaDetail === 'string') {
+          return `${body.error} (${body.betaDetail})`;
+        }
+
         return body.error;
       }
     } catch (_parseError) {
@@ -43,22 +61,23 @@ async function getFunctionErrorMessage(error: FunctionErrorWithContext): Promise
 
 export const userManagementService = {
   async createInvite(input: CreateInviteInput): Promise<CreateInviteResult> {
-    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    const {
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession();
 
     if (sessionError) {
       throw new Error(sessionError.message);
     }
 
-    const accessToken = sessionData.session?.access_token;
-
-    if (!accessToken) {
-      throw new Error('Sign in again before creating an invite.');
+    if (!session?.access_token) {
+      throw new Error('You must be signed in to create invites.');
     }
 
     const { data, error } = await supabase.functions.invoke<CreateInviteResult>('create-invite', {
       body: input,
       headers: {
-        Authorization: `Bearer ${accessToken}`,
+        Authorization: `Bearer ${session.access_token}`,
       },
     });
 
@@ -68,6 +87,22 @@ export const userManagementService = {
 
     if (!data?.invitation || !data.inviteCode) {
       throw new Error('Invite creation returned an unexpected response.');
+    }
+
+    return data;
+  },
+
+  async acceptInvite(input: AcceptInviteInput): Promise<AcceptInviteResult> {
+    const { data, error } = await supabase.functions.invoke<AcceptInviteResult>('accept-invite', {
+      body: input,
+    });
+
+    if (error) {
+      throw new Error(await getFunctionErrorMessage(error as FunctionErrorWithContext));
+    }
+
+    if (!data?.organizationId || !data.role || !data.displayName || !data.email) {
+      throw new Error('Invite acceptance returned an unexpected response.');
     }
 
     return data;

@@ -2,21 +2,11 @@ import { useMemo, useState } from 'react';
 import type { InputHTMLAttributes, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Building2, Check, CheckCircle2, ChevronLeft, Package, ShieldCheck, UserPlus, X } from 'lucide-react';
+import { userManagementService, type AcceptInviteResult } from '../services/userManagementService';
 
 type Step = 'welcome' | 'joining' | 'details' | 'password' | 'invite' | 'role' | 'complete';
 
 const stepOrder: Step[] = ['welcome', 'joining', 'details', 'password', 'invite', 'role', 'complete'];
-
-const operatorAllowed = [
-  'Record feed taken & create invoices',
-  'Add incoming stock',
-  'View inventory and activity',
-];
-
-const operatorUnavailable = [
-  'Manage users or settings',
-  'See cost & accounting fields',
-];
 
 export default function SignUpFlow() {
   const navigate = useNavigate();
@@ -25,22 +15,25 @@ export default function SignUpFlow() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [inviteCode, setInviteCode] = useState('');
+  const [acceptedInvite, setAcceptedInvite] = useState<AcceptInviteResult | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const currentStepIndex = stepOrder.indexOf(step);
-  const roleName = 'Operator';
-  const ranchName = 'C&C Feed';
+  const roleName = acceptedInvite ? formatRoleLabel(acceptedInvite.role) : 'Assigned by invite';
+  const trimmedEmail = email.trim();
+  const emailIsValid = isValidEmail(trimmedEmail);
+  const showEmailError = trimmedEmail.length > 0 && !emailIsValid;
 
   const passwordChecks = useMemo(
     () => [
       { label: 'At least 8 characters', met: password.length >= 8 },
-      { label: 'One number', met: /\d/.test(password) },
-      { label: 'One uppercase letter', met: /[A-Z]/.test(password) },
     ],
     [password],
   );
 
   const isPasswordReady = passwordChecks.every((check) => check.met);
-  const inviteCodeReady = inviteCode.length === 6;
+  const inviteCodeReady = normalizeInviteCodeForDisplay(inviteCode).length > 0;
 
   const goToStep = (nextStep: Step) => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -48,22 +41,76 @@ export default function SignUpFlow() {
   };
 
   const goBack = () => {
+    if (currentStepIndex <= 0) {
+      navigate('/login');
+      return;
+    }
+
     const previousStep = stepOrder[Math.max(currentStepIndex - 1, 0)];
     goToStep(previousStep);
   };
 
   const handleInviteChange = (value: string) => {
-    setInviteCode(value.replace(/[^a-z0-9]/gi, '').slice(0, 6).toUpperCase());
+    setInviteCode(value.replace(/[^a-z0-9-\s]/gi, '').toUpperCase());
+    setSubmitError(null);
+  };
+
+  const handleAcceptInvite = async () => {
+    setSubmitError(null);
+
+    if (!fullName.trim()) {
+      setSubmitError('Full name is required.');
+      return;
+    }
+
+    if (!trimmedEmail) {
+      setSubmitError('Email is required.');
+      return;
+    }
+
+    if (!emailIsValid) {
+      setSubmitError('Enter a valid email address.');
+      return;
+    }
+
+    if (password.length < 8) {
+      setSubmitError('Password must be at least 8 characters.');
+      return;
+    }
+
+    if (!inviteCodeReady) {
+      setSubmitError('Invite code is required.');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const result = await userManagementService.acceptInvite({
+        fullName,
+        email: trimmedEmail,
+        password,
+        inviteCode,
+      });
+
+      setAcceptedInvite(result);
+      setPassword('');
+      goToStep('complete');
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : 'Unable to create your account.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <div className="min-h-screen bg-[#f7f4ed] text-[#3d2f1f]">
-      <div className="mx-auto flex min-h-screen w-full max-w-md flex-col px-4 py-5">
-        {step !== 'welcome' && step !== 'complete' && (
+      <div className="signup-shell-safe mx-auto flex min-h-screen w-full max-w-md flex-col px-4 pb-5">
+        {step !== 'complete' && (
           <button
             type="button"
             onClick={goBack}
-            className="mb-4 flex h-11 w-11 items-center justify-center rounded-2xl border border-[#ded2c0] bg-white text-[#3d2f1f] shadow-[0_2px_8px_rgba(61,47,31,0.08)] active:bg-[#faf8f5]"
+            className="relative z-50 mb-4 flex h-11 min-h-11 w-11 min-w-11 items-center justify-center rounded-2xl border border-[#ded2c0] bg-white text-[#3d2f1f] shadow-[0_2px_8px_rgba(61,47,31,0.08)] active:bg-[#faf8f5]"
             aria-label="Go back"
           >
             <ChevronLeft size={22} />
@@ -98,8 +145,13 @@ export default function SignUpFlow() {
               placeholder="Email address"
               autoComplete="email"
             />
+            {showEmailError && (
+              <div className="rounded-2xl border border-[#d8a59a] bg-[#fff4f0] p-3 text-sm text-[#8b3f2f]">
+                Enter a valid email address.
+              </div>
+            )}
             <PrimaryButton
-              disabled={!fullName.trim() || !email.trim()}
+              disabled={!fullName.trim() || !emailIsValid}
               onClick={() => goToStep('password')}
             >
               Continue
@@ -145,7 +197,7 @@ export default function SignUpFlow() {
               onChange={handleInviteChange}
               placeholder="ENTER CODE"
               inputMode="text"
-              maxLength={6}
+              maxLength={16}
               className="text-center text-xl font-bold uppercase tracking-[0.12em]"
             />
             <p className="text-sm leading-relaxed text-[#8b7a6f]">
@@ -154,7 +206,7 @@ export default function SignUpFlow() {
             {inviteCodeReady && (
               <div className="flex items-center gap-2 rounded-2xl border border-[#cbd8c4] bg-[#e9f0e5] p-3 text-sm font-semibold text-[#5a7a4d]">
                 <ShieldCheck size={18} />
-                Code found. This invite assigns the Operator role.
+                Invite code entered. Your role is assigned by the invite.
               </div>
             )}
             <PrimaryButton disabled={!inviteCodeReady} onClick={() => goToStep('role')}>
@@ -167,41 +219,61 @@ export default function SignUpFlow() {
         )}
 
         {step === 'role' && (
-          <StepCard stepLabel="Step 4 of 4" title="Your role">
+          <StepCard stepLabel="Step 4 of 4" title="Create your account">
             <div className="rounded-2xl border border-[#ded2c0] bg-[#fffdf8] p-4">
               <div className="mb-4 flex items-center gap-3">
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#e9f0e5] text-[#5a7a4d]">
                   <ShieldCheck size={24} />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-[#8b7a6f]">Assigned by invite</p>
-                  <h2 className="text-xl font-bold text-[#3d2f1f]">{roleName}</h2>
+                  <p className="text-sm font-semibold text-[#8b7a6f]">Ready to join</p>
+                  <h2 className="text-xl font-bold text-[#3d2f1f]">Existing ranch</h2>
                 </div>
               </div>
               <p className="mb-4 rounded-2xl bg-[#f7f4ed] p-3 text-sm leading-relaxed text-[#6f5f54]">
-                Your role is set by your invite. An admin can change this later.
+                Your role is assigned by the invite. An admin can change this later.
               </p>
-              <PermissionList title="Allowed" items={operatorAllowed} tone="allowed" />
-              <div className="mt-4">
-                <PermissionList title="Unavailable" items={operatorUnavailable} tone="unavailable" />
+              <div className="space-y-3 text-sm">
+                <SummaryRow label="Name" value={fullName || 'Not entered'} />
+                <SummaryRow label="Email" value={email || 'Not entered'} />
+                <SummaryRow label="Invite code" value={normalizeInviteCodeForDisplay(inviteCode) || 'Not entered'} />
               </div>
             </div>
-            <PrimaryButton onClick={() => goToStep('complete')}>Create account</PrimaryButton>
+            {submitError && (
+              <div className="rounded-2xl border border-[#d8a59a] bg-[#fff4f0] p-3 text-sm text-[#8b3f2f]">
+                {submitError}
+              </div>
+            )}
+            <PrimaryButton disabled={isSubmitting} onClick={handleAcceptInvite}>
+              {isSubmitting ? 'Creating account...' : 'Create account'}
+            </PrimaryButton>
           </StepCard>
         )}
 
         {step === 'complete' && (
           <CompleteScreen
             fullName={fullName}
-            email={email}
+            email={acceptedInvite?.email ?? email}
             roleName={roleName}
-            ranchName={ranchName}
             onContinue={() => navigate('/login')}
           />
         )}
       </div>
     </div>
   );
+}
+
+function normalizeInviteCodeForDisplay(code: string): string {
+  return code.trim().toUpperCase().replace(/[\s-]+/g, '');
+}
+
+function isValidEmail(value: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
+function formatRoleLabel(role: string): string {
+  if (role === 'viewer') return 'View Only';
+  return role.charAt(0).toUpperCase() + role.slice(1);
 }
 
 function WelcomeScreen({
@@ -437,13 +509,11 @@ function CompleteScreen({
   fullName,
   email,
   roleName,
-  ranchName,
   onContinue,
 }: {
   fullName: string;
   email: string;
   roleName: string;
-  ranchName: string;
   onContinue: () => void;
 }) {
   return (
@@ -452,9 +522,9 @@ function CompleteScreen({
         <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-white/20">
           <CheckCircle2 size={36} />
         </div>
-        <h1 className="text-3xl font-bold">You’re all set</h1>
+        <h1 className="text-3xl font-bold">Your StockLog account is ready.</h1>
         <p className="mt-3 text-base leading-relaxed text-white/90">
-          Welcome to StockLog. Your account is ready to go.
+          Sign in to start using StockLog.
         </p>
       </div>
 
@@ -463,10 +533,9 @@ function CompleteScreen({
         <SummaryRow label="Name" value={fullName || 'Not entered'} />
         <SummaryRow label="Email" value={email || 'Not entered'} />
         <SummaryRow label="Role" value={roleName} />
-        <SummaryRow label="Ranch" value={ranchName} />
       </div>
 
-      <PrimaryButton onClick={onContinue}>Go to StockLog</PrimaryButton>
+      <PrimaryButton onClick={onContinue}>Back to login</PrimaryButton>
     </div>
   );
 }
