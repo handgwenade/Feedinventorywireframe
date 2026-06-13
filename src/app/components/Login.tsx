@@ -7,7 +7,6 @@ export default function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [inviteCode, setInviteCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -105,19 +104,6 @@ export default function Login() {
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-semibold text-[#3d2f1f] mb-2">
-              Invite code (optional)
-            </label>
-            <input
-              type="text"
-              value={inviteCode}
-              onChange={(event) => setInviteCode(event.target.value)}
-              placeholder="Enter invite code..."
-              className="w-full px-4 py-3 bg-white border border-[#ded2c0] rounded-2xl text-[#3d2f1f] placeholder:text-[#8b7a6f] focus:outline-none focus:ring-2 focus:ring-[#5a7a4d]"
-            />
-          </div>
-
           <button
             onClick={handleSignIn}
             disabled={isLoading}
@@ -141,7 +127,7 @@ export default function Login() {
               onClick={() => navigate('/signup')}
               className="text-sm font-semibold text-[#5a7a4d] hover:text-[#3d2f1f] active:text-[#3d2f1f]"
             >
-              Create account
+              New to StockLog? Create account
             </button>
           </div>
         </div>
