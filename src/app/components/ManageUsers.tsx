@@ -1,9 +1,14 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Check, Copy, Mail, Plus } from 'lucide-react';
+import { ArrowLeft, Check, Clock, Copy, History, Mail, Plus, Users } from 'lucide-react';
 import BottomNav from './shared/BottomNav';
 import UserIcon from './shared/UserIcon';
-import { userManagementService, type CreateInviteResult } from '../services/userManagementService';
+import {
+  userManagementService,
+  type CreateInviteResult,
+  type OrganizationInvitation,
+  type OrganizationUser,
+} from '../services/userManagementService';
 import { userProfileService, type CurrentUserProfile, type UserProfileRole } from '../services/userProfileService';
 
 function formatRoleLabel(role: UserProfileRole): string {
@@ -15,36 +20,77 @@ const allInviteRoles: UserProfileRole[] = ['admin', 'manager', 'operator', 'view
 const managerInviteRoles: UserProfileRole[] = ['manager', 'operator', 'viewer'];
 const expirationOptions = [7, 14, 30];
 
+function formatDate(value?: string | null): string {
+  if (!value) return 'Not set';
+  return new Date(value).toLocaleDateString();
+}
+
 export default function ManageUsers() {
   const navigate = useNavigate();
   const [currentProfile, setCurrentProfile] = useState<CurrentUserProfile | null>(null);
+  const [users, setUsers] = useState<OrganizationUser[]>([]);
+  const [invitations, setInvitations] = useState<OrganizationInvitation[]>([]);
+  const [isLoadingOverview, setIsLoadingOverview] = useState(true);
+  const [overviewError, setOverviewError] = useState<string | null>(null);
+  const [showInviteHistory, setShowInviteHistory] = useState(false);
   const [showInvitePanel, setShowInvitePanel] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState<UserProfileRole>('operator');
   const [expiresInDays, setExpiresInDays] = useState(7);
-  const [createdInvites, setCreatedInvites] = useState<CreateInviteResult[]>([]);
   const [latestInvite, setLatestInvite] = useState<CreateInviteResult | null>(null);
   const [inviteError, setInviteError] = useState<string | null>(null);
   const [copyMessage, setCopyMessage] = useState<string | null>(null);
   const [isCreatingInvite, setIsCreatingInvite] = useState(false);
 
+  const loadOverview = useCallback(async () => {
+    setIsLoadingOverview(true);
+    setOverviewError(null);
+
+    try {
+      const [organizationUsers, organizationInvitations] = await Promise.all([
+        userManagementService.listOrganizationUsers(),
+        userManagementService.listOrganizationInvitations(),
+      ]);
+
+      setUsers(organizationUsers);
+      setInvitations(organizationInvitations);
+    } catch (error) {
+      setOverviewError(error instanceof Error ? error.message : 'Unable to load users and invitations.');
+    } finally {
+      setIsLoadingOverview(false);
+    }
+  }, []);
+
   useEffect(() => {
     let isMounted = true;
 
-    async function loadCurrentProfile() {
+    async function loadInitialData() {
       try {
-        const profile = await userProfileService.getCurrentProfile();
+        const [profile, organizationUsers, organizationInvitations] = await Promise.all([
+          userProfileService.getCurrentProfile(),
+          userManagementService.listOrganizationUsers(),
+          userManagementService.listOrganizationInvitations(),
+        ]);
+
         if (isMounted) {
           setCurrentProfile(profile);
+          setUsers(organizationUsers);
+          setInvitations(organizationInvitations);
+          setOverviewError(null);
         }
-      } catch (_error) {
+      } catch (error) {
         if (isMounted) {
           setCurrentProfile(null);
+          setOverviewError(error instanceof Error ? error.message : 'Unable to load users and invitations.');
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoadingOverview(false);
         }
       }
     }
 
-    loadCurrentProfile();
+    loadInitialData();
 
     return () => {
       isMounted = false;
@@ -65,6 +111,11 @@ export default function ManageUsers() {
     }
   }, [inviteRole, roleOptions]);
 
+  const activeUsers = users.filter((user) => user.isActive);
+  const inactiveUsers = users.filter((user) => !user.isActive);
+  const pendingInvites = invitations.filter((invite) => invite.status === 'pending');
+  const inviteHistory = invitations.filter((invite) => invite.status !== 'pending');
+
   const handleCreateInvite = async () => {
     setInviteError(null);
     setCopyMessage(null);
@@ -84,11 +135,11 @@ export default function ManageUsers() {
       });
 
       setLatestInvite(createdInvite);
-      setCreatedInvites((currentInvites) => [createdInvite, ...currentInvites]);
       setInviteEmail('');
       setInviteRole('operator');
       setExpiresInDays(7);
       setShowInvitePanel(false);
+      await loadOverview();
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unable to create invite.';
       setInviteError(
@@ -134,6 +185,19 @@ export default function ManageUsers() {
           <strong>Beta:</strong> Invites create real pending invitation records. Invited users can now accept codes from the signup screen.
         </div>
 
+        {overviewError && (
+          <div className="p-3 bg-[#fff4f0] border border-[#d8a59a] rounded-2xl text-sm text-[#8b3f2f] shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
+            <div>{overviewError}</div>
+            <button
+              type="button"
+              onClick={loadOverview}
+              className="mt-2 text-sm font-bold text-[#5a7a4d]"
+            >
+              Try again
+            </button>
+          </div>
+        )}
+
         {latestInvite && (
           <div className="bg-[#e9f0e5] border border-[#cbd8c4] rounded-2xl p-4 space-y-3 shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
             <div className="flex items-start gap-3">
@@ -155,6 +219,7 @@ export default function ManageUsers() {
                   {latestInvite.inviteCode}
                 </div>
                 <button
+                  type="button"
                   onClick={() => handleCopyCode(latestInvite.inviteCode)}
                   className="h-12 w-12 rounded-2xl bg-[#5a7a4d] text-white flex items-center justify-center active:bg-[#4a6a3d] shrink-0 shadow-[0_2px_8px_rgba(61,47,31,0.12)]"
                   aria-label="Copy invite code"
@@ -178,7 +243,78 @@ export default function ManageUsers() {
           </div>
         )}
 
+        <OverviewSection
+          title="Active Users"
+          icon={<Users size={20} />}
+          isLoading={isLoadingOverview}
+          itemCount={users.length}
+          emptyMessage="No active users found."
+        >
+          <div className="space-y-3">
+            {activeUsers.map((user) => (
+              <UserCard key={user.id} user={user} />
+            ))}
+            {inactiveUsers.length > 0 && (
+              <div className="rounded-2xl border border-[#ded2c0] bg-[#faf8f5] p-3">
+                <div className="mb-2 text-xs font-bold uppercase text-[#8b7a6f]">Inactive</div>
+                <div className="space-y-2">
+                  {inactiveUsers.map((user) => (
+                    <UserCard key={user.id} user={user} compact />
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </OverviewSection>
+
+        <OverviewSection
+          title="Pending Invites"
+          icon={<Clock size={20} />}
+          isLoading={isLoadingOverview}
+          itemCount={pendingInvites.length}
+          emptyMessage="No pending invites."
+        >
+          <div className="space-y-3">
+            {pendingInvites.map((invite) => (
+              <InvitationCard key={invite.id} invitation={invite} />
+            ))}
+          </div>
+        </OverviewSection>
+
+        {inviteHistory.length > 0 && (
+          <div className="bg-white border border-[#ded2c0] rounded-2xl shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
+            <button
+              type="button"
+              onClick={() => setShowInviteHistory((current) => !current)}
+              className="flex w-full items-center justify-between gap-3 p-4 text-left"
+            >
+              <span className="flex items-center gap-3">
+                <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#f7f4ed] text-[#8b7a6f]">
+                  <History size={20} />
+                </span>
+                <span>
+                  <span className="block font-bold text-[#3d2f1f]">Invite History</span>
+                  <span className="block text-sm text-[#8b7a6f]">
+                    {inviteHistory.length} accepted, revoked, or expired invite{inviteHistory.length === 1 ? '' : 's'}
+                  </span>
+                </span>
+              </span>
+              <span className="text-sm font-bold text-[#5a7a4d]">
+                {showInviteHistory ? 'Hide' : 'Show'}
+              </span>
+            </button>
+            {showInviteHistory && (
+              <div className="space-y-3 border-t border-[#e8dfd1] p-4">
+                {inviteHistory.map((invite) => (
+                  <InvitationCard key={invite.id} invitation={invite} compact />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
         <button
+          type="button"
           onClick={() => {
             setShowInvitePanel((current) => !current);
             setInviteError(null);
@@ -248,6 +384,7 @@ export default function ManageUsers() {
 
             <div className="grid grid-cols-2 gap-2">
               <button
+                type="button"
                 onClick={() => {
                   setShowInvitePanel(false);
                   setInviteError(null);
@@ -257,6 +394,7 @@ export default function ManageUsers() {
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={handleCreateInvite}
                 disabled={isCreatingInvite}
                 className="bg-[#5a7a4d] text-white py-3 rounded-2xl font-semibold active:bg-[#4a6a3d] disabled:bg-[#c7bdb0] shadow-[0_3px_10px_rgba(61,47,31,0.18)]"
@@ -267,20 +405,8 @@ export default function ManageUsers() {
           </div>
         )}
 
-        <div className="space-y-3">
-          {createdInvites.length === 0 ? (
-            <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 text-sm text-[#8b7a6f] leading-relaxed shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
-              Created invite codes will appear here for this session. Invite emails are not sent yet.
-            </div>
-          ) : (
-            createdInvites.map((invite) => (
-              <InviteCard key={invite.invitation.id} invite={invite} onCopyCode={handleCopyCode} />
-            ))
-          )}
-        </div>
-
         <div className="mt-6 p-3 bg-white border border-[#ded2c0] rounded-2xl text-xs text-[#8b7a6f] leading-relaxed shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
-          <strong>Access:</strong> Create Invite requires an active admin or manager profile. Invited users can accept codes from the signup screen.
+          <strong>Access:</strong> Create Invite requires an active admin or manager profile. Invite codes are shown only once when created and cannot be retrieved later.
         </div>
       </div>
 
@@ -289,40 +415,98 @@ export default function ManageUsers() {
   );
 }
 
-function InviteCard({
-  invite,
-  onCopyCode,
+function OverviewSection({
+  title,
+  icon,
+  isLoading,
+  itemCount,
+  emptyMessage,
+  children,
 }: {
-  invite: CreateInviteResult;
-  onCopyCode: (inviteCode: string) => void;
+  title: string;
+  icon: ReactNode;
+  isLoading: boolean;
+  itemCount: number;
+  emptyMessage: string;
+  children: ReactNode;
 }) {
   return (
-    <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
+    <section className="bg-white border border-[#ded2c0] rounded-2xl p-4 shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
+      <div className="mb-3 flex items-center gap-3">
+        <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#e9f0e5] text-[#5a7a4d]">
+          {icon}
+        </span>
+        <h2 className="font-bold text-[#3d2f1f]">{title}</h2>
+      </div>
+
+      {isLoading ? (
+        <div className="rounded-2xl border border-[#ded2c0] bg-[#faf8f5] p-3 text-sm text-[#8b7a6f]">
+          Loading...
+        </div>
+      ) : itemCount === 0 ? (
+        <div className="rounded-2xl border border-[#ded2c0] bg-[#faf8f5] p-3 text-sm text-[#8b7a6f]">
+          {emptyMessage}
+        </div>
+      ) : (
+        children
+      )}
+    </section>
+  );
+}
+
+function UserCard({ user, compact = false }: { user: OrganizationUser; compact?: boolean }) {
+  return (
+    <div className={`rounded-2xl border border-[#ded2c0] bg-white ${compact ? 'p-3' : 'p-4'}`}>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="font-bold text-[#3d2f1f] truncate">{user.displayName}</div>
+          <div className="mt-1 text-sm text-[#8b7a6f]">Email not available</div>
+        </div>
+        <InviteChip label={user.isActive ? 'Active' : 'Inactive'} tone={user.isActive ? 'green' : 'neutral'} />
+      </div>
+      <div className="mt-3 flex flex-wrap gap-2">
+        <InviteChip label={formatRoleLabel(user.role)} tone="green" />
+        <InviteChip label={`Joined ${formatDate(user.createdAt)}`} tone="neutral" />
+      </div>
+    </div>
+  );
+}
+
+function InvitationCard({
+  invitation,
+  compact = false,
+}: {
+  invitation: OrganizationInvitation;
+  compact?: boolean;
+}) {
+  const isPending = invitation.status === 'pending';
+
+  return (
+    <div className={`rounded-2xl border border-[#ded2c0] bg-white ${compact ? 'p-3' : 'p-4'}`}>
       <div className="flex items-start gap-3">
-        <div className="w-10 h-10 rounded-2xl bg-[#f7f4ed] text-[#5a7a4d] flex items-center justify-center shrink-0">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#f7f4ed] text-[#5a7a4d]">
           <Mail size={20} />
         </div>
         <div className="min-w-0 flex-1">
-          <div className="font-semibold text-[#3d2f1f] truncate">{invite.invitation.email}</div>
+          <div className="font-semibold text-[#3d2f1f] truncate">{invitation.email}</div>
           <div className="mt-2 flex flex-wrap gap-2">
-            <InviteChip label={formatRoleLabel(invite.invitation.role)} tone="green" />
-            <InviteChip label="Pending" tone="amber" />
-            <InviteChip
-              label={`Expires ${new Date(invite.invitation.expiresAt).toLocaleDateString()}`}
-              tone="neutral"
-            />
+            <InviteChip label={formatRoleLabel(invitation.role)} tone="green" />
+            <InviteChip label={formatStatusLabel(invitation.status)} tone={isPending ? 'amber' : 'neutral'} />
           </div>
         </div>
       </div>
-      <button
-        onClick={() => onCopyCode(invite.inviteCode)}
-        className="mt-3 w-full bg-white border border-[#ded2c0] text-[#3d2f1f] py-3 rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 active:bg-[#faf8f5] shadow-[0_2px_8px_rgba(61,47,31,0.08)]"
-      >
-        <Copy size={16} />
-        Copy Invite Code
-      </button>
+      <div className="mt-3 grid gap-1 text-sm text-[#6f5f54]">
+        <InviteSummaryRow label="Created" value={formatDate(invitation.createdAt)} />
+        <InviteSummaryRow label="Expires" value={formatDate(invitation.expiresAt)} />
+        {invitation.acceptedAt && <InviteSummaryRow label="Accepted" value={formatDate(invitation.acceptedAt)} />}
+        {invitation.revokedAt && <InviteSummaryRow label="Revoked" value={formatDate(invitation.revokedAt)} />}
+      </div>
     </div>
   );
+}
+
+function formatStatusLabel(status: OrganizationInvitation['status']): string {
+  return status.charAt(0).toUpperCase() + status.slice(1);
 }
 
 function InviteChip({ label, tone }: { label: string; tone: 'green' | 'amber' | 'neutral' }) {

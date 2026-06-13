@@ -22,6 +22,27 @@ export interface CreateInviteResult {
   inviteCode: string;
 }
 
+export interface OrganizationUser {
+  id: string;
+  displayName: string;
+  role: UserRole;
+  isActive: boolean;
+  createdAt: string;
+  email?: string;
+}
+
+export interface OrganizationInvitation {
+  id: string;
+  email: string;
+  role: UserRole;
+  status: 'pending' | 'accepted' | 'revoked' | 'expired';
+  createdAt: string;
+  expiresAt: string;
+  acceptedAt?: string | null;
+  revokedAt?: string | null;
+  lastSentAt?: string | null;
+}
+
 export interface AcceptInviteInput {
   fullName: string;
   email: string;
@@ -75,6 +96,48 @@ async function getFunctionErrorMessage(error: FunctionErrorWithContext): Promise
 }
 
 export const userManagementService = {
+  async listOrganizationUsers(): Promise<OrganizationUser[]> {
+    const { data, error } = await supabase
+      .from('user_profiles')
+      .select('id, display_name, role, is_active, created_at')
+      .order('display_name', { ascending: true });
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    return (data ?? []).map((row) => ({
+      id: row.id,
+      displayName: row.display_name,
+      role: row.role,
+      isActive: row.is_active,
+      createdAt: row.created_at,
+    }));
+  },
+
+  async listOrganizationInvitations(): Promise<OrganizationInvitation[]> {
+    const { data, error } = await supabase
+      .from('user_invitations')
+      .select('id, email, role, status, created_at, expires_at, accepted_at, revoked_at, last_sent_at')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    return (data ?? []).map((row) => ({
+      id: row.id,
+      email: row.email,
+      role: row.role,
+      status: row.status,
+      createdAt: row.created_at,
+      expiresAt: row.expires_at,
+      acceptedAt: row.accepted_at,
+      revokedAt: row.revoked_at,
+      lastSentAt: row.last_sent_at,
+    }));
+  },
+
   async createInvite(input: CreateInviteInput): Promise<CreateInviteResult> {
     const {
       data: { session },
