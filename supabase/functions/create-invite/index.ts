@@ -37,6 +37,10 @@ function jsonResponse(body: Record<string, unknown>, status = 200): Response {
   });
 }
 
+function betaError(error: string, betaDetail: string, status: number): Response {
+  return jsonResponse({ error, betaDetail }, status);
+}
+
 function normalizeEmail(value: unknown): string | null {
   if (typeof value !== 'string') return null;
 
@@ -112,8 +116,8 @@ Deno.serve(async (request) => {
     return jsonResponse({ error: 'Method not allowed.' }, 405);
   }
 
-  const supabaseUrl = Deno.env.get('SUPABASE_URL');
-  const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+  const supabaseUrl = Deno.env.get('STOCKLOG_SUPABASE_URL');
+  const serviceRoleKey = Deno.env.get('STOCKLOG_SERVICE_ROLE_KEY');
   const inviteCodePepper = Deno.env.get('INVITE_CODE_PEPPER');
 
   if (!supabaseUrl || !serviceRoleKey || !inviteCodePepper) {
@@ -124,7 +128,7 @@ Deno.serve(async (request) => {
   const token = authorization.startsWith('Bearer ') ? authorization.slice('Bearer '.length) : '';
 
   if (!token) {
-    return jsonResponse({ error: 'Authentication required.' }, 401);
+    return betaError('Authentication required.', 'missing_auth_header', 401);
   }
 
   const supabase = createClient(supabaseUrl, serviceRoleKey, {
@@ -137,7 +141,7 @@ Deno.serve(async (request) => {
   const { data: userData, error: userError } = await supabase.auth.getUser(token);
 
   if (userError || !userData.user) {
-    return jsonResponse({ error: 'Invalid or expired session.' }, 401);
+    return betaError('Invalid or expired session.', 'invalid_token', 401);
   }
 
   let body: CreateInviteRequest;
@@ -174,11 +178,15 @@ Deno.serve(async (request) => {
     .maybeSingle<CallerProfile>();
 
   if (profileError) {
-    return jsonResponse({ error: 'Unable to verify caller profile.' }, 500);
+    return betaError('Unable to verify caller profile.', 'profile_query_failed', 500);
   }
 
-  if (!profile || !profile.is_active || !profile.organization_id) {
-    return jsonResponse({ error: 'Active organization profile is required.' }, 403);
+  if (!profile) {
+    return betaError('Active organization profile is required.', 'no_caller_profile', 403);
+  }
+
+  if (!profile.is_active || !profile.organization_id) {
+    return betaError('Active organization profile is required.', 'inactive_or_missing_org', 403);
   }
 
   if (profile.role !== 'admin' && profile.role !== 'manager') {
