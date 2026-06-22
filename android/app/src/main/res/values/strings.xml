@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">StockLog</string>
+    <string name="title_activity_main">StockLog</string>
+    <string name="package_name">com.handgwenade.stocklog</string>
+    <string name="custom_url_scheme">com.handgwenade.stocklog</string>
+</resources>
