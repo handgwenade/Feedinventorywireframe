@@ -11,3 +11,10 @@ dist/
 /data/*.csv
 private-export/
 supabase/.temp/
+
+# Android signing keys
+android/stocklog-upload-key.jks
+android/*.jks
+
+# Android Studio project files
+android/.idea/
