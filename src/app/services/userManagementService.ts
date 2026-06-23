@@ -163,11 +163,18 @@ export const userManagementService = {
       throw new Error(await getFunctionErrorMessage(error as FunctionErrorWithContext));
     }
 
-    if (!data?.invitation || !data.inviteCode) {
+    if (!data?.invitation) {
       throw new Error('Invite creation returned an unexpected response.');
     }
 
-    return data;
+    if (!data.inviteCode) {
+      throw new Error('Invite was created but no code was returned. Create a new invite.');
+    }
+
+    return {
+      invitation: data.invitation,
+      inviteCode: data.inviteCode,
+    };
   },
 
   async acceptInvite(input: AcceptInviteInput): Promise<AcceptInviteResult> {

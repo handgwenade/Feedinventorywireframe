@@ -126,6 +126,7 @@ export default function ManageUsers() {
     }
 
     setIsCreatingInvite(true);
+    setLatestInvite(null);
 
     try {
       const createdInvite = await userManagementService.createInvite({
@@ -133,6 +134,12 @@ export default function ManageUsers() {
         role: inviteRole,
         expiresInDays,
       });
+
+      if (!createdInvite.inviteCode) {
+        setInviteError('Invite was created but no code was returned. Create a new invite.');
+        await loadOverview();
+        return;
+      }
 
       setLatestInvite(createdInvite);
       setInviteEmail('');
@@ -221,10 +228,11 @@ export default function ManageUsers() {
                 <button
                   type="button"
                   onClick={() => handleCopyCode(latestInvite.inviteCode)}
-                  className="h-12 w-12 rounded-2xl bg-[#5a7a4d] text-white flex items-center justify-center active:bg-[#4a6a3d] shrink-0 shadow-[0_2px_8px_rgba(61,47,31,0.12)]"
+                  className="h-12 rounded-2xl bg-[#5a7a4d] px-4 text-white flex items-center justify-center gap-2 active:bg-[#4a6a3d] shrink-0 shadow-[0_2px_8px_rgba(61,47,31,0.12)]"
                   aria-label="Copy invite code"
                 >
                   <Copy size={20} />
+                  <span className="text-sm font-bold">Copy</span>
                 </button>
               </div>
               {copyMessage && (

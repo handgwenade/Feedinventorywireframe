@@ -1,14 +1,16 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Package } from 'lucide-react';
 import { supabase } from '../services/supabaseClient';
 
 export default function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const locationState = (location.state ?? {}) as { message?: string };
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState(locationState.message ?? '');
   const [error, setError] = useState('');
 
   const handleSignIn = async () => {
