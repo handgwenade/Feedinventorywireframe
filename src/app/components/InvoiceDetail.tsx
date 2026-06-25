@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Download, Printer, Send, DollarSign, XCircle, Trash2 } from 'lucide-react';
+import { Capacitor } from '@capacitor/core';
+import { Filesystem, Directory } from '@capacitor/filesystem';
+import { Share } from '@capacitor/share';
 import { jsPDF } from 'jspdf';
 import BottomNav from './shared/BottomNav';
 import UserIcon from './shared/UserIcon';
@@ -66,6 +69,35 @@ function saveBlob(blob: Blob, filename: string): void {
   link.click();
   link.remove();
   window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function pdfToBase64(doc: jsPDF): string {
+  const dataUri = doc.output('datauristring');
+  const commaIndex = dataUri.indexOf(',');
+  return commaIndex >= 0 ? dataUri.slice(commaIndex + 1) : dataUri;
+}
+
+async function shareInvoicePdfNative(doc: jsPDF, filename: string, actionLabel: 'save' | 'print'): Promise<void> {
+  const base64 = pdfToBase64(doc);
+
+  await Filesystem.writeFile({
+    path: filename,
+    data: base64,
+    directory: Directory.Cache,
+  });
+
+  const { uri } = await Filesystem.getUri({
+    path: filename,
+    directory: Directory.Cache,
+  });
+
+  await Share.share({
+    title: filename,
+    text: actionLabel === 'print' ? 'Open the invoice PDF and choose Print.' : 'Save or share the invoice PDF.',
+    url: uri,
+    files: [uri],
+    dialogTitle: actionLabel === 'print' ? 'Print invoice PDF' : 'Save invoice PDF',
+  });
 }
 
 function buildInvoicePdf(invoice: InvoiceDetailRecord): jsPDF {
@@ -409,23 +441,36 @@ export default function InvoiceDetail() {
     }
   };
 
-  const handleSavePdf = () => {
+  const handleSavePdf = async () => {
     setPdfMessage(null);
 
     try {
-      buildInvoicePdf(invoice).save(pdfFilename);
+      const doc = buildInvoicePdf(invoice);
+
+      if (Capacitor.isNativePlatform()) {
+        await shareInvoicePdfNative(doc, pdfFilename, 'save');
+        return;
+      }
+
+      doc.save(pdfFilename);
     } catch (error) {
       console.error('Invoice PDF generation failed', error);
       setPdfMessage('Invoice PDF could not be generated. Please try again.');
     }
   };
 
-  const handlePrintPdf = () => {
+  const handlePrintPdf = async () => {
     setPdfMessage(null);
-    const printWindow = window.open('', '_blank');
+    const printWindow = Capacitor.isNativePlatform() ? null : window.open('', '_blank');
 
     try {
       const doc = buildInvoicePdf(invoice);
+
+      if (Capacitor.isNativePlatform()) {
+        await shareInvoicePdfNative(doc, pdfFilename, 'print');
+        return;
+      }
+
       const blob = doc.output('blob');
 
       if (!printWindow) {
