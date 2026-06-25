@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Download, Printer, Send, DollarSign, XCircle, Trash2 } from 'lucide-react';
+import { jsPDF } from 'jspdf';
 import BottomNav from './shared/BottomNav';
 import UserIcon from './shared/UserIcon';
 import { invoicesService } from '../services/invoicesService';
@@ -42,6 +43,175 @@ function safeDate(value: unknown): string {
   return Number.isNaN(date.getTime()) ? '—' : date.toLocaleDateString();
 }
 
+function getInvoiceTypeLabel(type: unknown): string {
+  if (type === 'k2') return 'K2';
+  if (type === 'family') return 'Family';
+  return 'Customer';
+}
+
+function getSafeInvoiceFilename(displayNumber: unknown): string {
+  const safeDisplayNumber = safeText(displayNumber, '')
+    .replace(/[^a-z0-9._-]+/gi, '-')
+    .replace(/^-+|-+$/g, '');
+
+  return safeDisplayNumber ? `invoice-${safeDisplayNumber}.pdf` : 'invoice.pdf';
+}
+
+function saveBlob(blob: Blob, filename: string): void {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function buildInvoicePdf(invoice: InvoiceDetailRecord): jsPDF {
+  const doc = new jsPDF({ unit: 'pt', format: 'letter' });
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 42;
+  const contentWidth = pageWidth - margin * 2;
+  let y = margin;
+
+  const addPageIfNeeded = (height: number) => {
+    if (y + height <= pageHeight - margin) return;
+    doc.addPage();
+    y = margin;
+  };
+
+  const addWrappedText = (text: string, x: number, maxWidth: number, lineHeight = 14) => {
+    const lines = doc.splitTextToSize(text, maxWidth);
+    addPageIfNeeded(lines.length * lineHeight);
+    doc.text(lines, x, y);
+    y += lines.length * lineHeight;
+  };
+
+  const displayNumber = safeText(invoice.displayNumber, 'Pending invoice number');
+  const status = safeText(invoice.status, 'pending').replace(/-/g, ' ');
+  const accountName = safeText(invoice.accountName, 'Unknown account');
+  const invoiceType = getInvoiceTypeLabel(invoice.type);
+  const invoiceDate = safeDate(invoice.issueDate);
+  const dueDate = 'Due on receipt';
+  const lineItems = Array.isArray(invoice.lineItems) ? invoice.lineItems : [];
+  const subtotal = safeCurrency(invoice.subtotal);
+  const tax = safeCurrency(invoice.taxAmount);
+  const total = safeCurrency(invoice.total);
+  const amountPaid = safeCurrency(invoice.amountPaid);
+  const balanceDue = safeCurrency(invoice.balanceDue);
+  const notes = safeText(invoice.notes, '');
+
+  doc.setTextColor(61, 47, 31);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(22);
+  doc.text('C&C Feed', margin, y);
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.text('StockLog Invoice', margin, y + 18);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(18);
+  doc.text('INVOICE', pageWidth - margin, y, { align: 'right' });
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.text(displayNumber, pageWidth - margin, y + 18, { align: 'right' });
+  y += 48;
+
+  doc.setDrawColor(222, 210, 192);
+  doc.line(margin, y, pageWidth - margin, y);
+  y += 24;
+
+  const leftColumn = margin;
+  const rightColumn = margin + contentWidth / 2 + 16;
+
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'bold');
+  doc.text('BILL TO', leftColumn, y);
+  doc.text('INVOICE DETAILS', rightColumn, y);
+  y += 15;
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(11);
+  doc.text(accountName, leftColumn, y);
+  doc.text(`Status: ${status}`, rightColumn, y);
+  y += 16;
+  doc.text(`Type: ${invoiceType}`, leftColumn, y);
+  doc.text(`Invoice date: ${invoiceDate}`, rightColumn, y);
+  y += 16;
+  doc.text(`Due date: ${dueDate}`, rightColumn, y);
+  y += 28;
+
+  addPageIfNeeded(42);
+  doc.setFillColor(247, 244, 237);
+  doc.rect(margin, y - 14, contentWidth, 24, 'F');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9);
+  doc.text('DESCRIPTION', margin + 8, y);
+  doc.text('QTY', margin + 300, y, { align: 'right' });
+  doc.text('UNIT', margin + 358, y);
+  doc.text('UNIT PRICE', margin + 450, y, { align: 'right' });
+  doc.text('TOTAL', pageWidth - margin - 8, y, { align: 'right' });
+  y += 18;
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+
+  if (lineItems.length === 0) {
+    addPageIfNeeded(24);
+    doc.text('No line items recorded.', margin + 8, y);
+    y += 24;
+  } else {
+    lineItems.forEach((item) => {
+      const description = safeText(item.description, 'Line item');
+      const descriptionLines = doc.splitTextToSize(description, 250);
+      const rowHeight = Math.max(24, descriptionLines.length * 13 + 8);
+      addPageIfNeeded(rowHeight);
+
+      doc.text(descriptionLines, margin + 8, y);
+      doc.text(String(safeNumber(item.quantity)), margin + 300, y, { align: 'right' });
+      doc.text(safeText(item.unitLabel, 'units'), margin + 318, y);
+      doc.text(safeCurrency(item.unitPrice), margin + 450, y, { align: 'right' });
+      doc.text(safeCurrency(item.lineTotal), pageWidth - margin - 8, y, { align: 'right' });
+      y += rowHeight;
+      doc.setDrawColor(232, 223, 209);
+      doc.line(margin, y - 8, pageWidth - margin, y - 8);
+    });
+  }
+
+  y += 12;
+  const totalsX = pageWidth - margin - 210;
+  const addTotalRow = (label: string, value: string, bold = false) => {
+    addPageIfNeeded(20);
+    doc.setFont('helvetica', bold ? 'bold' : 'normal');
+    doc.text(label, totalsX, y);
+    doc.text(value, pageWidth - margin, y, { align: 'right' });
+    y += 18;
+  };
+
+  addTotalRow('Subtotal', subtotal);
+  addTotalRow('Tax', tax);
+  addTotalRow('Total', total, true);
+  addTotalRow('Amount paid', amountPaid);
+  addTotalRow('Balance due', balanceDue, true);
+
+  if (notes) {
+    y += 14;
+    addPageIfNeeded(36);
+    doc.setDrawColor(222, 210, 192);
+    doc.line(margin, y, pageWidth - margin, y);
+    y += 20;
+    doc.setFont('helvetica', 'bold');
+    doc.text('Notes', margin, y);
+    y += 16;
+    doc.setFont('helvetica', 'normal');
+    addWrappedText(notes, margin, contentWidth);
+  }
+
+  return doc;
+}
+
 export default function InvoiceDetail() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -49,7 +219,22 @@ export default function InvoiceDetail() {
   const [invoice, setInvoice] = useState<InvoiceDetailRecord | null>(routedInvoice);
   const [isLoading, setIsLoading] = useState(Boolean(routedInvoice?.id));
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [pdfMessage, setPdfMessage] = useState<string | null>(null);
   const [wasMissing, setWasMissing] = useState(false);
+  const [accountEmail, setAccountEmail] = useState<string | null>(null);
+  const [showSendPanel, setShowSendPanel] = useState(false);
+  const [customEmail, setCustomEmail] = useState('');
+  const [sendErrorMessage, setSendErrorMessage] = useState<string | null>(null);
+  const [showWriteOffPanel, setShowWriteOffPanel] = useState(false);
+  const [writeOffReason, setWriteOffReason] = useState('');
+  const [writeOffLoading, setWriteOffLoading] = useState(false);
+  const [writeOffError, setWriteOffError] = useState<string | null>(null);
+  const [writeOffSuccess, setWriteOffSuccess] = useState<string | null>(null);
+  const [showVoidPanel, setShowVoidPanel] = useState(false);
+  const [voidReason, setVoidReason] = useState('');
+  const [voidLoading, setVoidLoading] = useState(false);
+  const [voidError, setVoidError] = useState<string | null>(null);
+  const [voidSuccess, setVoidSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     if (!routedInvoice?.id) {
@@ -94,6 +279,33 @@ export default function InvoiceDetail() {
       isMounted = false;
     };
   }, [routedInvoice?.id]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadAccountEmail() {
+      setAccountEmail(null);
+
+      try {
+        if (invoice?.accountId) {
+          const accounts = await accountsService.listActive();
+          if (!isMounted) return;
+          const acc = accounts.find((a) => a.id === invoice.accountId);
+          setAccountEmail(acc?.email ?? null);
+          return;
+        }
+      } catch (err) {
+        if (!isMounted) return;
+        setAccountEmail(null);
+      }
+    }
+
+    loadAccountEmail();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [invoice?.accountId]);
 
   if (!invoice) {
     return (
@@ -150,7 +362,7 @@ export default function InvoiceDetail() {
   const printDisplayNumber = safeText(displayNumber, 'Pending invoice number');
   const printStatus = safeText(invoice.status, 'pending').replace(/-/g, ' ');
   const printAccountName = safeText(accountName, 'Unknown account');
-  const printInvoiceType = invoiceType === 'k2' ? 'K2 account use' : 'Customer invoice';
+  const printInvoiceType = getInvoiceTypeLabel(invoiceType);
   const printLineItems = Array.isArray(lineItems) ? lineItems : [];
   const printSubtotal = safeCurrency(invoice.subtotal);
   const printTaxAmount = safeNumber(invoice.taxAmount);
@@ -161,47 +373,7 @@ export default function InvoiceDetail() {
   const printNotes = safeText(invoice.notes);
   const isWrittenOff = invoice.status === 'written_off' || invoice.status === 'written-off';
   const isVoid = invoice.status === 'void';
-  const [accountEmail, setAccountEmail] = useState<string | null>(null);
-  const [showSendPanel, setShowSendPanel] = useState(false);
-  const [customEmail, setCustomEmail] = useState('');
-  const [sendErrorMessage, setSendErrorMessage] = useState<string | null>(null);
-  const [showWriteOffPanel, setShowWriteOffPanel] = useState(false);
-  const [writeOffReason, setWriteOffReason] = useState('');
-  const [writeOffLoading, setWriteOffLoading] = useState(false);
-  const [writeOffError, setWriteOffError] = useState<string | null>(null);
-  const [writeOffSuccess, setWriteOffSuccess] = useState<string | null>(null);
-  const [showVoidPanel, setShowVoidPanel] = useState(false);
-  const [voidReason, setVoidReason] = useState('');
-  const [voidLoading, setVoidLoading] = useState(false);
-  const [voidError, setVoidError] = useState<string | null>(null);
-  const [voidSuccess, setVoidSuccess] = useState<string | null>(null);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    async function loadAccountEmail() {
-      setAccountEmail(null);
-
-      try {
-        if (invoice.accountId) {
-          const accounts = await accountsService.listActive();
-          if (!isMounted) return;
-          const acc = accounts.find((a) => a.id === invoice.accountId);
-          setAccountEmail(acc?.email ?? null);
-          return;
-        }
-      } catch (err) {
-        if (!isMounted) return;
-        setAccountEmail(null);
-      }
-    }
-
-    loadAccountEmail();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [invoice.accountId]);
+  const pdfFilename = getSafeInvoiceFilename(displayNumber);
 
   const invoiceEmailSubject = `Invoice ${displayNumber} from C&C Feed`;
 
@@ -237,8 +409,53 @@ export default function InvoiceDetail() {
     }
   };
 
-  const printInvoice = () => {
-    window.print();
+  const handleSavePdf = () => {
+    setPdfMessage(null);
+
+    try {
+      buildInvoicePdf(invoice).save(pdfFilename);
+    } catch (error) {
+      console.error('Invoice PDF generation failed', error);
+      setPdfMessage('Invoice PDF could not be generated. Please try again.');
+    }
+  };
+
+  const handlePrintPdf = () => {
+    setPdfMessage(null);
+    const printWindow = window.open('', '_blank');
+
+    try {
+      const doc = buildInvoicePdf(invoice);
+      const blob = doc.output('blob');
+
+      if (!printWindow) {
+        saveBlob(blob, pdfFilename);
+        setPdfMessage('Invoice PDF was downloaded because the print view could not be opened. Open the PDF to print it.');
+        return;
+      }
+
+      const pdfUrl = URL.createObjectURL(blob);
+      printWindow.document.title = `Invoice ${printDisplayNumber}`;
+      printWindow.document.body.innerHTML = '<p style="font-family: sans-serif;">Opening invoice print view...</p>';
+      printWindow.location.href = pdfUrl;
+
+      window.setTimeout(() => {
+        try {
+          printWindow.focus();
+          printWindow.print();
+        } catch (error) {
+          console.error('Invoice PDF print trigger failed', error);
+          saveBlob(blob, pdfFilename);
+          setPdfMessage('Invoice PDF was downloaded because printing was unavailable. Open the PDF to print it.');
+        } finally {
+          window.setTimeout(() => URL.revokeObjectURL(pdfUrl), 60_000);
+        }
+      }, 700);
+    } catch (error) {
+      console.error('Invoice print view failed', error);
+      printWindow?.close();
+      setPdfMessage('Invoice print view could not be opened. Please try again.');
+    }
   };
 
   const handleMarkWrittenOff = async () => {
@@ -611,6 +828,12 @@ export default function InvoiceDetail() {
           </div>
         )}
 
+        {pdfMessage && (
+          <div className="bg-white border border-[#b7791f] rounded-2xl p-4 text-sm text-[#3d2f1f] shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
+            {pdfMessage}
+          </div>
+        )}
+
         {/* Invoice Header */}
         <div className="bg-white border border-[#ded2c0] rounded-2xl p-4 shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
           <div className="flex justify-between items-start mb-3">
@@ -713,16 +936,16 @@ export default function InvoiceDetail() {
         <div className="space-y-2">
           <ActionButton
             icon={<Download size={20} />}
-            label="Save / Print PDF"
-            onClick={printInvoice}
+            label="Save PDF"
+            onClick={handleSavePdf}
           />
           <ActionButton
             icon={<Printer size={20} />}
             label="Print"
-            onClick={printInvoice}
+            onClick={handlePrintPdf}
           />
           <div className="bg-white border border-[#ded2c0] rounded-2xl p-3 text-xs text-[#8b7a6f] leading-relaxed shadow-[0_2px_8px_rgba(61,47,31,0.08)]">
-            Print preview should show a clean invoice. If it shows the app screen, refresh the app and try again.
+            Print opens a PDF invoice when the browser allows it. If printing is blocked, the PDF will download instead.
           </div>
           {invoiceType === 'k2' ? (
             <div className="space-y-3">
@@ -812,7 +1035,7 @@ export default function InvoiceDetail() {
                   </button>
 
                   <div className="text-sm text-[#8b7a6f]">
-                    To include a PDF, use Save / Print PDF first, then attach it in your email app.
+                    To include a PDF, use Save PDF first, then attach it in your email app.
                   </div>
                   {sendErrorMessage && (
                     <div className="text-sm text-[#8b3f2f]">{sendErrorMessage}</div>
